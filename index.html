@@ -338,7 +338,7 @@ submitBtn.addEventListener('click', async () => {
         
         // Build rendering output for UI
         if (document.getElementById('res-name')) {
-            document.getElementById('res-name').innerText = `${predictedCrop.toUpperCase()} - ${specificDiseaseName}`;
+            document.getElementById('res-name').innerText = specificDiseaseName;
         }
         document.getElementById('res-conf').innerText = confidenceScore;
         
