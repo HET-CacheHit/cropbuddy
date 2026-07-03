@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Buddy | Crop Disease Analysis</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- TensorFlow.js for Client-Side Inference -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="navbar">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav>
+                <ul>
+                    <li><a href="#home" class="active">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#analyze">Analyze</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Smart Analysis for <span>Healthier Crops</span></h1>
+            <p>Identify plant diseases instantly using advanced analysis. Protect your yield, optimize treatments, and ensure agricultural sustainability.</p>
+            <a href="#analyze" class="btn">Start Analysis</a>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <h2>Our Core Capabilities</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon">🔍</div>
+                <h3>Instant Detection</h3>
+                <p>Analyze leaf patterns and discoloration to detect early signs of fungal, bacterial, or viral infections.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">🌿</div>
+                <h3>Treatment Insights</h3>
+                <p>Receive tailored organic and chemical remedy recommendations based on the diagnosed disease.</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📊</div>
+                <h3>Severity Mapping</h3>
+                <p>Understand the spread and severity level of the infection to prevent field-wide contamination.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="analyze" class="analyze-section">
+        <div class="analyze-container">
+            <div class="analysis-portal-wrapper">
+                <h2>Disease Analysis Portal</h2>
+                <p>Upload a clear photograph of the affected plant leaf to begin processing.</p>
+
+                <div class="crop-select-container" style="margin-bottom: 20px; text-align: left;">
+                    <label for="cropSelect" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Crop</label>
+                    <select id="cropSelect" style="padding: 10px 20px; border-radius: 5px; width: 100%; max-width: 300px;">
+                        <option value="sucking pests">Cotton (કપાસ) - Sucking Pests</option>
+                        <option value="seed treatment">Rice (ડાંગર / ચોખા) - Seed Treatment</option>
+                        <option value="sucking pests">Wheat (ઘઉં)</option>
+                        <option value="sucking pests">Other / Unknown Fungal Leaf</option>
+                    </select>
+                </div>
+
+                <div class="upload-box" onclick="document.getElementById('file-upload').click()" style="cursor: pointer; border: 2px dashed #ccc; padding: 30px; text-align: center; border-radius: 8px;">
+                    <div id="upload-prompt">
+                        <div class="upload-icon" style="font-size: 40px; margin-bottom: 10px;">📁</div>
+                        <p>Click to <span class="browse-text" style="text-decoration: underline; color: #1b4332; font-weight: bold;">browse image</span></p>
+                    </div>
+                    <img id="image-preview" src="#" alt="Crop Preview" style="display: none; max-width: 100%; max-height: 200px; margin: 0 auto; border-radius: 5px;">
+                    <input type="file" id="file-upload" accept="image/*" hidden>
+                    <p id="file-name-display" style="margin-top: 15px; color: #1b4332; font-weight: bold;"></p>
+                </div>
+
+                <button type="button" class="btn-submit" id="submit-btn" style="margin-top: 20px; padding: 12px 24px; font-weight: bold; cursor: pointer;" disabled>Loading AI Model...</button>
+            </div>
+
+            <div id="result-box" style="display: none; margin-top: 30px; text-align: left; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
+                <h3 style="color: #1b4332; margin-top: 0;">Analysis Result: <span id="res-name"></span></h3>
+                <p style="margin: 8px 0;"><strong>Confidence:</strong> <span id="res-conf"></span></p>
+                <p style="margin: 8px 0;"><strong>Recommended Treatment:</strong> <span id="res-treat"></span></p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
+    </footer>
+
+<script>
+const fileInput = document.getElementById('file-upload');
+const fileNameDisplay = document.getElementById('file-name-display');
+const uploadPrompt = document.getElementById('upload-prompt');
+const imagePreview = document.getElementById('image-preview');
+const submitBtn = document.getElementById('submit-btn');
+const resultBox = document.getElementById('result-box');
+
+let model = null;
+let pesticideData = null;
+
+// Classes list matching the Teachable Machine alphabetical classes
+const CLASS_NAMES = ["corn", "cotton", "potato", "tomato"];
+
+// Load Model and Pesticides Dataset on Page Load
+async function initApp() {
+    try {
+        console.log("Loading TensorFlow.js model and pesticides dataset...");
+        
+        // 1. Fetch pesticides database
+        const res = await fetch('./pesticides.json');
+        if (!res.ok) throw new Error("Failed to load pesticides.json database.");
+        pesticideData = await res.json();
+        console.log("Pesticides dataset loaded successfully.");
+        
+        // 2. Load TFJS model from local static folder
+        model = await tf.loadLayersModel('./model/model.json');
+        console.log("TensorFlow.js model loaded successfully.");
+        
+        // 3. Enable UI submit button
+        submitBtn.innerText = "Analyze Image";
+        submitBtn.disabled = false;
+    } catch (error) {
+        console.error("Initialization error:", error);
+        submitBtn.innerText = "Error Loading AI";
+        alert("Failed to load the AI model or database locally. Ensure model/model.json and pesticides.json exist and are hosted correctly.");
+    }
+}
+
+// Call on startup
+window.addEventListener('DOMContentLoaded', initApp);
+
+// Handle leaf image selection and display preview securely
+fileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+        const file = this.files[0];
+        fileNameDisplay.innerText = `Selected: ${file.name}`;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = "block";
+            uploadPrompt.style.display = "none";
+        }
+        reader.readAsDataURL(file);
+        
+        // Hide result box when a new file is uploaded
+        resultBox.style.display = "none";
+    }
+});
+
+// Run Inference using local TFJS model
+async function runLocalInference(imgElement) {
+    if (!model) throw new Error("AI model is not loaded yet.");
+    
+    // We execute inside tidy to automatically release WebGL/memory tensor allocations
+    const predictions = tf.tidy(() => {
+        // Convert image element to a tensor [H, W, C]
+        let tensor = tf.browser.fromPixels(imgElement);
+        
+        // Resize to 224x224 (required by Teachable Machine MobileNet model)
+        tensor = tf.image.resizeBilinear(tensor, [224, 224]);
+        
+        // Standard Teachable Machine normalization (-1 to 1 rescaling)
+        // (pixel - 127.5) / 127.5
+        const offset = tf.scalar(127.5);
+        const normalized = tensor.sub(offset).div(offset);
+        
+        // Add batch dimension [1, 224, 224, 3]
+        const batched = normalized.expandDims(0);
+        
+        // Run inference
+        const prediction = model.predict(batched);
+        return prediction.arraySync()[0]; // Extract predictions array
+    });
+    
+    return predictions;
+}
+
+// Client-Side Image Analysis Pipeline
+submitBtn.addEventListener('click', async () => {
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Please upload a plant leaf photo first!");
+        return;
+    }
+    
+    submitBtn.innerText = "Analyzing locally...";
+    submitBtn.disabled = true;
+    
+    try {
+        // Run inference in client side
+        const predictionScores = await runLocalInference(imagePreview);
+        console.log("Prediction scores:", predictionScores);
+        
+        // Find class with highest confidence
+        let highestConfIdx = 0;
+        let highestConfVal = -1;
+        for (let i = 0; i < predictionScores.length; i++) {
+            if (predictionScores[i] > highestConfVal) {
+                highestConfVal = predictionScores[i];
+                highestConfIdx = i;
+            }
+        }
+        
+        const predictedCrop = CLASS_NAMES[highestConfIdx];
+        const confidenceScore = (highestConfVal * 100).toFixed(2) + "%";
+        
+        // Map the predicted crop to pesticide database entries
+        let pesticideRecommendations = [];
+        let specificDiseaseName = "";
+        
+        if (predictedCrop === "corn") {
+            specificDiseaseName = "Corn Common Rust";
+            pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
+        } 
+        else if (predictedCrop === "cotton") {
+            specificDiseaseName = "Cotton Leaf Pests / Caterpillars";
+            pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
+        } 
+        else if (predictedCrop === "potato") {
+            specificDiseaseName = "Potato Early Blight";
+            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[0].medicines;
+        } 
+        else if (predictedCrop === "tomato") {
+            specificDiseaseName = "Tomato Leaf Mold";
+            pesticideRecommendations = pesticideData.modernInsecticides.neonicotinoids.products;
+        } else {
+            specificDiseaseName = "Unknown Leaf Condition";
+        }
+        
+        // Build rendering output for UI
+        if (document.getElementById('res-name')) {
+            document.getElementById('res-name').innerText = `${predictedCrop.toUpperCase()} - ${specificDiseaseName}`;
+        }
+        document.getElementById('res-conf').innerText = confidenceScore;
+        
+        let treatmentText = "Recommended Treatments:\n\n";
+        if (pesticideRecommendations && pesticideRecommendations.length > 0) {
+            pesticideRecommendations.forEach((med, index) => {
+                // Individual Medicine
+                if (med.nameEnglish) {
+                    treatmentText += `${index + 1}. ${med.nameEnglish} (${med.nameGujarati})\n   Dosage: ${med.recommendedDosage}\n\n`;
+                } 
+                // Grouped Medicines
+                else if (med.groupNameEnglish && med.items) {
+                    treatmentText += `📌 [${med.groupNameEnglish} / ${med.groupNameGujarati}]:\n`;
+                    med.items.forEach(subMed => {
+                        treatmentText += `   - ${subMed.nameEnglish} (${subMed.nameGujarati}) | Dosage: ${subMed.recommendedDosage}\n`;
+                    });
+                    treatmentText += `\n`;
+                }
+                // Modern Insecticides structure
+                else if (med.genericNameEnglish) {
+                    treatmentText += `${index + 1}. ${med.genericNameEnglish}\n   Brands: ${med.tradeNamesGujarati}\n   Dosage: ${med.dosage}\n\n`;
+                }
+            });
+        } else {
+            treatmentText += "No specific entries found for this crop pathway in the local database.\nConsult an agricultural expert.";
+        }
+        
+        // Add Fungicide Guidelines underneath
+        if (pesticideData.fungicidesGuidelines) {
+            const fg = pesticideData.fungicidesGuidelines;
+            treatmentText += `\n---------------------------------------------\n`;
+            treatmentText += `🛡️ ${fg.titleEnglish} / ${fg.titleGujarati}\n`;
+            treatmentText += `---------------------------------------------\n`;
+            treatmentText += `${fg.generalInfoEnglish}\n\nGujarati: ${fg.generalInfoGujarati}\n\n`;
+            
+            fg.keyRecommendations.forEach((rec, idx) => {
+                treatmentText += `• ${rec.textEnglish}\n  (${rec.textGujarati})\n\n`;
+            });
+        }
+        
+        document.getElementById('res-treat').innerText = treatmentText;
+        resultBox.style.display = "block";
+        resultBox.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error("Local pipeline analysis failure:", error);
+        alert(`ANALYSIS ERROR:\n${error.message}\n\nPlease try again with a different image.`);
+    } finally {
+        submitBtn.innerText = "Analyze Image";
+        submitBtn.disabled = false;
+    }
+});
+</script>
+        
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "cropbuddy",
+  "version": "1.0.0",
+  "description": "Crop Buddy client-side AI app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
