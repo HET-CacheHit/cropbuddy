@@ -95,6 +95,19 @@
                 </div>
 
                 <button type="button" class="btn-submit" id="submit-btn" style="margin-top: 20px; padding: 12px 24px; font-weight: bold; cursor: pointer;" disabled>Loading AI Model...</button>
+                
+                <!-- Visual Loading Indicator -->
+                <div id="loading-indicator" style="display: none; margin-top: 20px; text-align: center; padding: 15px; border-radius: 8px; background-color: #f4fcf7; border: 1px solid #d8f3e5;">
+                    <style>
+                    @keyframes spin {
+                      0% { transform: rotate(0deg); }
+                      100% { transform: rotate(360deg); }
+                    }
+                    </style>
+                    <div style="border: 4px solid #e9ece9; border-top: 4px solid #1b4332; border-radius: 50%; width: 35px; height: 35px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+                    <p style="margin: 0; font-weight: 600; color: #1b4332; font-size: 14px;">AI Leaf Analysis in progress...</p>
+                    <p style="margin: 3px 0 0 0; color: #555; font-size: 12px;">Running local matrix operations on device</p>
+                </div>
             </div>
 
             <!-- Beautiful, Sectioned Results Container -->
@@ -318,6 +331,10 @@ submitBtn.addEventListener('click', async () => {
     submitBtn.innerText = "Analyzing locally...";
     submitBtn.disabled = true;
     
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) loadingIndicator.style.display = "block";
+    resultBox.style.display = "none";
+    
     try {
         // Run inference in client side
         const predictionScores = await runLocalInference(imagePreview);
@@ -442,6 +459,8 @@ submitBtn.addEventListener('click', async () => {
     } finally {
         submitBtn.innerText = "Analyze Image";
         submitBtn.disabled = false;
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) loadingIndicator.style.display = "none";
     }
 });
 </script>
