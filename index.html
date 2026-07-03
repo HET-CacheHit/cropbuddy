@@ -97,10 +97,51 @@
                 <button type="button" class="btn-submit" id="submit-btn" style="margin-top: 20px; padding: 12px 24px; font-weight: bold; cursor: pointer;" disabled>Loading AI Model...</button>
             </div>
 
-            <div id="result-box" style="display: none; margin-top: 30px; text-align: left; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
-                <h3 style="color: #1b4332; margin-top: 0;">Analysis Result: <span id="res-name"></span></h3>
-                <p style="margin: 8px 0;"><strong>Confidence:</strong> <span id="res-conf"></span></p>
-                <p style="margin: 8px 0;"><strong>Recommended Treatment:</strong> <span id="res-treat"></span></p>
+            <!-- Beautiful, Sectioned Results Container -->
+            <div id="result-box" style="display: none; margin-top: 35px; text-align: left; padding: 25px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid #1b4332;">
+                <!-- Result Header -->
+                <div style="display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px;">
+                    <div style="font-size: 32px; margin-right: 15px;">🌿</div>
+                    <div>
+                        <h3 style="color: #1b4332; margin: 0; font-size: 22px; font-weight: 700;">Diagnosis: <span id="res-name" style="color: #40916c;"></span></h3>
+                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Inference processed locally on device</p>
+                    </div>
+                </div>
+
+                <!-- Confidence Meter Section -->
+                <div style="margin-bottom: 25px; background-color: #f8faf8; padding: 15px; border-radius: 8px; border: 1px solid #e9ece9;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; color: #1b4332; font-size: 14px;">
+                        <span>Inference Confidence Level</span>
+                        <span id="res-conf" style="font-size: 16px; color: #1b4332; font-weight: bold;">0%</span>
+                    </div>
+                    <!-- The Progress Bar -->
+                    <div style="background-color: #e9ece9; border-radius: 10px; height: 12px; overflow: hidden; width: 100%;">
+                        <div id="res-conf-bar" style="background: linear-gradient(90deg, #52b788, #1b4332); height: 100%; width: 0%; transition: width 0.8s ease-in-out; border-radius: 10px;"></div>
+                    </div>
+                </div>
+
+                <!-- Diagnostics & Treatments Split Columns -->
+                <div class="result-details-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                    <!-- Treatment Box Section -->
+                    <div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                        <div style="background-color: #1b4332; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px; display: flex; align-items: center;">
+                            💊 Recommended Medicines & Remedies / દવાઓ અને સારવાર
+                        </div>
+                        <div style="padding: 15px; min-height: 80px;">
+                            <div id="res-treat" style="white-space: pre-line; line-height: 1.6; font-size: 15px; color: #333;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fungicide Guidelines Section -->
+                    <div id="res-fungicides-section" style="background-color: #f4f9f4; border: 1px solid #d8ebd8; border-radius: 8px; overflow: hidden; display: none;">
+                        <div style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
+                            🛡️ Fungicide Spray Guidelines / ફૂગનાશક દવાઓ માટેની માર્ગદર્શિકા
+                        </div>
+                        <div style="padding: 15px;">
+                            <div id="res-fungicides-text" style="white-space: pre-line; line-height: 1.6; font-size: 14px; color: #2d5a45;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -342,12 +383,17 @@ submitBtn.addEventListener('click', async () => {
         }
         document.getElementById('res-conf').innerText = confidenceScore;
         
-        let treatmentText = "Recommended Treatments:\n\n";
+        // Slide confidence progress bar dynamically
+        if (document.getElementById('res-conf-bar')) {
+            document.getElementById('res-conf-bar').style.width = confidenceScore;
+        }
+        
+        let treatmentText = "";
         if (pesticideRecommendations && pesticideRecommendations.length > 0) {
             pesticideRecommendations.forEach((med, index) => {
                 // Individual Medicine
                 if (med.nameEnglish) {
-                    treatmentText += `${index + 1}. ${med.nameEnglish} (${med.nameGujarati})\n   Dosage: ${med.recommendedDosage}\n\n`;
+                    treatmentText += `🔹 ${med.nameEnglish} (${med.nameGujarati})\n   • Dosage: ${med.recommendedDosage}\n\n`;
                 } 
                 // Grouped Medicines
                 else if (med.groupNameEnglish && med.items) {
@@ -359,27 +405,34 @@ submitBtn.addEventListener('click', async () => {
                 }
                 // Modern Insecticides structure
                 else if (med.genericNameEnglish) {
-                    treatmentText += `${index + 1}. ${med.genericNameEnglish}\n   Brands: ${med.tradeNamesGujarati}\n   Dosage: ${med.dosage}\n\n`;
+                    treatmentText += `🔹 ${med.genericNameEnglish}\n   • Brands: ${med.tradeNamesGujarati}\n   • Dosage: ${med.dosage}\n\n`;
                 }
             });
         } else {
-            treatmentText += "No specific entries found for this crop pathway in the local database.\nConsult an agricultural expert.";
+            treatmentText += conditionName.toLowerCase() === "healthy"
+                ? "Excellent leaf condition. No chemical pesticide treatment needed.\nભલામણ: કોઈ કેમિકલ ટ્રીટમેન્ટની જરૂર નથી."
+                : "No specific treatment entries found for this category in the local database.\nConsult an agricultural expert.";
         }
+        document.getElementById('res-treat').innerText = treatmentText;
         
-        // Add Fungicide Guidelines underneath
-        if (pesticideData.fungicidesGuidelines) {
+        // Render Fungicides Guidelines separately in a clean highlighted section
+        const fungicidesSection = document.getElementById('res-fungicides-section');
+        const fungicidesTextContainer = document.getElementById('res-fungicides-text');
+        
+        if (pesticideData.fungicidesGuidelines && conditionName.toLowerCase() !== "healthy") {
             const fg = pesticideData.fungicidesGuidelines;
-            treatmentText += `\n---------------------------------------------\n`;
-            treatmentText += `🛡️ ${fg.titleEnglish} / ${fg.titleGujarati}\n`;
-            treatmentText += `---------------------------------------------\n`;
-            treatmentText += `${fg.generalInfoEnglish}\n\nGujarati: ${fg.generalInfoGujarati}\n\n`;
+            let fungicidesText = `${fg.generalInfoEnglish}\n\nગુજરાતી: ${fg.generalInfoGujarati}\n\n📋 Key Points / ખાસ સૂચનાઓ:\n`;
             
             fg.keyRecommendations.forEach((rec, idx) => {
-                treatmentText += `• ${rec.textEnglish}\n  (${rec.textGujarati})\n\n`;
+                fungicidesText += `• ${rec.textEnglish} (${rec.textGujarati})\n`;
             });
+            
+            fungicidesTextContainer.innerText = fungicidesText;
+            fungicidesSection.style.display = "block";
+        } else {
+            fungicidesSection.style.display = "none";
         }
         
-        document.getElementById('res-treat').innerText = treatmentText;
         resultBox.style.display = "block";
         resultBox.scrollIntoView({ behavior: 'smooth' });
         
