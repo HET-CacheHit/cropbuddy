@@ -1,0 +1,9 @@
+node_modules/
+.venv/
+.vscode/
+uploads/
+*.docx
+*.pdf
+convert_model.py
+extract_json.js
+*.log
