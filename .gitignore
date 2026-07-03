@@ -58,3 +58,8 @@ desktop.ini
 .env.test.local
 .env.production.local
 *.env
+
+# Large Model Files (avoid repo bloat)
+*.h5
+*.keras
+*.pb

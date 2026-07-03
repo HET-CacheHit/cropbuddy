@@ -5,7 +5,7 @@ This document provides a comprehensive overview of the **Crop Buddy** applicatio
 ---
 
 ## 1. Project Overview
-**Crop Buddy** is an AI-powered agricultural helper system. It allows farmers and researchers to upload photos of crop leaves (e.g., corn, cotton, potato, tomato) directly in their browser to diagnose diseases and receive bilingual (Gujarati & English) treatment instructions, pesticide names, and fungicide application guidelines.
+**Crop Buddy** is an AI-powered agricultural helper system. It allows farmers and researchers to upload photos of crop leaves (covering 14 species of plants including Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper, Potato, Raspberry, Soybean, Squash, Strawberry, and Tomato) directly in their browser to diagnose **38 different healthy/diseased states** and receive bilingual (Gujarati & English) treatment instructions, pesticide names, and fungicide application guidelines.
 
 ---
 
@@ -28,11 +28,11 @@ graph TD
 ```
 
 1. **Frontend (Client-side HTML/CSS/JS)**:
-   - [index.html](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/index.html): The main web page (renamed from `cropbuddy.html`). Contains the UI layouts, embeds TensorFlow.js via CDN, handles image uploads, and performs tensor-based image resizing and normalization before running local inference.
+   - [index.html](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/index.html): The main web page. Contains the UI layouts, embeds TensorFlow.js via CDN, handles image uploads, and performs tensor-based image resizing and normalization before running local inference.
    - [style.css](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/style.css): Vanilla CSS containing typography, layout styles, and responsive visual treatments.
 
 2. **Model Files (TensorFlow.js Web Model)**:
-   - [model/model.json](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/model/model.json) & binary shards: Converted from the Keras model. It defines the model architecture and points to weight shards (`group1-shard1of7.bin` to `group1-shard7of7.bin`), which are loaded into the browser dynamically.
+   - [model/model.json](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/model/model.json) & binary shards: Converted from a pre-trained **Harimitra PlantVillage Model**. It defines the model architecture (Input shape: `[None, 128, 128, 3]`) and points to 8 weight shards (`group1-shard1of8.bin` to `group1-shard8of8.bin`), which are loaded into the browser dynamically.
 
 3. **Pesticides Database**:
    - [pesticides.json](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/pesticides.json): Standalone static JSON dataset containing pesticide details, modern insecticides, specialized treatments, and fungicide instructions in English and Gujarati.
@@ -47,8 +47,8 @@ graph TD
 ```
 C:\Users\Aryan\OneDrive\Desktop\cropbuddy\
 ├── model/                         # TensorFlow.js model files
-│   ├── model.json                 # Model architecture configuration
-│   └── group1-shard1of7.bin to 7  # Model weight binary shards (loaded on-demand)
+│   ├── model.json                 # Model architecture configuration (128x128 shape)
+│   └── group1-shard1of8.bin to 8  # Model weight binary shards (loaded on-demand)
 ├── node_modules/                  # Express package for local development
 ├── 1.jpeg to 15.jpeg              # Sample test leaf images
 ├── index.html                     # Frontend user interface and client-side AI engine
@@ -59,13 +59,10 @@ C:\Users\Aryan\OneDrive\Desktop\cropbuddy\
 ├── package-lock.json              # Node.js lockfile
 ├── context.md                     # Current file (Codebase context documentation)
 ├── plan.md                        # The migration plan used to convert to TFJS
-├── crop_model.keras               # Original Keras ML model (backup)
-├── crop_model.h5                  # Original H5 ML model (backup)
-├── saved_model.pb                 # Original TensorFlow SavedModel (backup)
-├── CROPBUDDY REPORT.docx          # Project documentation (Word format)
+├── crop_disease_model.h5          # Pre-trained Keras model (94MB - source backup)
+├── crop_model.keras               # Original 4-class Keras model (backup)
 ├── CROPBUDDY REPORT.pdf           # Project documentation (PDF format)
-├── CropBuddy_General_Report_Gujarati.docx # Project documentation (Gujarati)
-└── CropBuddy_General_Report_Gujarati.pdf  # Project documentation (Gujarati)
+└── vercel.json                    # Vercel static routing configuration
 ```
 
 ---
@@ -79,14 +76,14 @@ const predictions = tf.tidy(() => {
     // 1. Convert image element to a tensor
     let tensor = tf.browser.fromPixels(imgElement);
     
-    // 2. Resize to 224x224 (required by MobileNet topology)
-    tensor = tf.image.resizeBilinear(tensor, [224, 224]);
+    // 2. Resize to 128x128 (required by Harimitra MobileNet topology)
+    tensor = tf.image.resizeBilinear(tensor, [128, 128]);
     
     // 3. Normalization: (pixel - 127.5) / 127.5
     const offset = tf.scalar(127.5);
     const normalized = tensor.sub(offset).div(offset);
     
-    // 4. Add batch dimension [1, 224, 224, 3]
+    // 4. Add batch dimension [1, 128, 128, 3]
     const batched = normalized.expandDims(0);
     
     // 5. Predict

@@ -106,8 +106,47 @@ const resultBox = document.getElementById('result-box');
 let model = null;
 let pesticideData = null;
 
-// Classes list matching the Teachable Machine alphabetical classes
-const CLASS_NAMES = ["corn", "cotton", "potato", "tomato"];
+// Classes list matching the 38 PlantVillage classes of the new model
+const CLASS_NAMES = [
+ 'Apple___Apple_scab',
+ 'Apple___Black_rot',
+ 'Apple___Cedar_apple_rust',
+ 'Apple___healthy',
+ 'Blueberry___healthy',
+ 'Cherry_(including_sour)___Powdery_mildew',
+ 'Cherry_(including_sour)___healthy',
+ 'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot',
+ 'Corn_(maize)___Common_rust_',
+ 'Corn_(maize)___Northern_Leaf_Blight',
+ 'Corn_(maize)___healthy',
+ 'Grape___Black_rot',
+ 'Grape___Esca_(Black_Measles)',
+ 'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)',
+ 'Grape___healthy',
+ 'Orange___Haunglongbing_(Citrus_greening)',
+ 'Peach___Bacterial_spot',
+ 'Peach___healthy',
+ 'Pepper,_bell___Bacterial_spot',
+ 'Pepper,_bell___healthy',
+ 'Potato___Early_blight',
+ 'Potato___Late_blight',
+ 'Potato___healthy',
+ 'Raspberry___healthy',
+ 'Soybean___healthy',
+ 'Squash___Powdery_mildew',
+ 'Strawberry___Leaf_scorch',
+ 'Strawberry___healthy',
+ 'Tomato___Bacterial_spot',
+ 'Tomato___Early_blight',
+ 'Tomato___Late_blight',
+ 'Tomato___Leaf_Mold',
+ 'Tomato___Septoria_leaf_spot',
+ 'Tomato___Spider_mites Two-spotted_spider_mite',
+ 'Tomato___Target_Spot',
+ 'Tomato___Tomato_Yellow_Leaf_Curl_Virus',
+ 'Tomato___Tomato_mosaic_virus',
+ 'Tomato___healthy'
+];
 
 // Load Model and Pesticides Dataset on Page Load
 async function initApp() {
@@ -165,8 +204,8 @@ async function runLocalInference(imgElement) {
         // Convert image element to a tensor [H, W, C]
         let tensor = tf.browser.fromPixels(imgElement);
         
-        // Resize to 224x224 (required by Teachable Machine MobileNet model)
-        tensor = tf.image.resizeBilinear(tensor, [224, 224]);
+        // Resize to 128x128 (required by Harimitra model architecture)
+        tensor = tf.image.resizeBilinear(tensor, [128, 128]);
         
         // Standard Teachable Machine normalization (-1 to 1 rescaling)
         // (pixel - 127.5) / 127.5
@@ -209,30 +248,48 @@ submitBtn.addEventListener('click', async () => {
             }
         }
         
-        const predictedCrop = CLASS_NAMES[highestConfIdx];
+        const predictedClass = CLASS_NAMES[highestConfIdx];
         const confidenceScore = (highestConfVal * 100).toFixed(2) + "%";
         
-        // Map the predicted crop to pesticide database entries
-        let pesticideRecommendations = [];
-        let specificDiseaseName = "";
+        // Parse plant name and condition name from the class string (e.g. Tomato___Early_blight)
+        const parts = predictedClass.split("___");
+        const plantName = parts[0].replace(/_/g, " ").replace(/\(maize\)/g, "");
+        const conditionName = parts[1].replace(/_/g, " ");
         
-        if (predictedCrop === "corn") {
-            specificDiseaseName = "Corn Common Rust";
-            pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
-        } 
-        else if (predictedCrop === "cotton") {
-            specificDiseaseName = "Cotton Leaf Pests / Caterpillars";
-            pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
-        } 
-        else if (predictedCrop === "potato") {
-            specificDiseaseName = "Potato Early Blight";
+        let specificDiseaseName = `${plantName} - ${conditionName}`;
+        let pesticideRecommendations = [];
+        
+        // Map predicted plant condition to relevant pesticide database elements
+        if (conditionName.toLowerCase() === "healthy") {
+            specificDiseaseName = `${plantName} (Healthy Leaf)`;
+            pesticideRecommendations = []; // No treatments needed for healthy crops
+        } else if (conditionName.toLowerCase().includes("bacterial spot")) {
+            specificDiseaseName = `${plantName} - Bacterial Spot`;
+            pesticideRecommendations = pesticideData.specializedTreatments.bactericides.medicines;
+        } else if (conditionName.toLowerCase().includes("spider mites")) {
+            specificDiseaseName = `${plantName} - Spider Mites (Infestation)`;
+            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[2].medicines; // Red Spider Mite
+        } else if (conditionName.toLowerCase().includes("yellow_leaf_curl") || conditionName.toLowerCase().includes("yellow leaf curl")) {
+            specificDiseaseName = `${plantName} - Yellow Leaf Curl Virus (Whitefly-transmitted)`;
+            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[1].medicines; // Whitefly vector control
+        } else if (conditionName.toLowerCase().includes("mosaic_virus") || conditionName.toLowerCase().includes("mosaic virus")) {
+            specificDiseaseName = `${plantName} - Mosaic Virus`;
+            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[0].medicines; // Sucking pests vector control
+        } else if (conditionName.toLowerCase().includes("common_rust") || conditionName.toLowerCase().includes("common rust") || conditionName.toLowerCase().includes("rust")) {
+            specificDiseaseName = `${plantName} - Rust (Fungal)`;
+            pesticideRecommendations = pesticideData.commonPesticides[0].medicines; // Rust treatments
+        } else if (plantName.toLowerCase().includes("potato")) {
+            // General Potato blights
+            specificDiseaseName = `${plantName} - ${conditionName}`;
             pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[0].medicines;
-        } 
-        else if (predictedCrop === "tomato") {
-            specificDiseaseName = "Tomato Leaf Mold";
+        } else if (plantName.toLowerCase().includes("tomato")) {
+            // General Tomato molds and spots
+            specificDiseaseName = `${plantName} - ${conditionName}`;
             pesticideRecommendations = pesticideData.modernInsecticides.neonicotinoids.products;
         } else {
-            specificDiseaseName = "Unknown Leaf Condition";
+            // General fallback
+            specificDiseaseName = `${plantName} - ${conditionName}`;
+            pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
         }
         
         // Build rendering output for UI
