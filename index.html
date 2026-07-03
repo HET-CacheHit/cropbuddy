@@ -63,11 +63,25 @@
                 <div class="crop-select-container" style="margin-bottom: 20px; text-align: left;">
                     <label for="cropSelect" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Crop</label>
                     <select id="cropSelect" style="padding: 10px 20px; border-radius: 5px; width: 100%; max-width: 300px;">
-                        <option value="sucking pests">Cotton (કપાસ) - Sucking Pests</option>
-                        <option value="seed treatment">Rice (ડાંગર / ચોખા) - Seed Treatment</option>
-                        <option value="sucking pests">Wheat (ઘઉં)</option>
-                        <option value="sucking pests">Other / Unknown Fungal Leaf</option>
+                        <option value="all">All Supported Crops (બધા પાક)</option>
+                        <option value="apple">Apple (સફરજન)</option>
+                        <option value="blueberry">Blueberry (બ્લુબેરી)</option>
+                        <option value="cherry">Cherry (ચેરી)</option>
+                        <option value="corn">Corn (મકાઈ)</option>
+                        <option value="grape">Grape (દ્રાક્ષ)</option>
+                        <option value="orange">Orange (નારંગી)</option>
+                        <option value="peach">Peach (પીચ)</option>
+                        <option value="pepper">Pepper Bell (શિમલા મરચા)</option>
+                        <option value="potato">Potato (બટાકા)</option>
+                        <option value="raspberry">Raspberry (રાસ્પબેરી)</option>
+                        <option value="soybean">Soybean (સોયાબીન)</option>
+                        <option value="squash">Squash (કોળુ)</option>
+                        <option value="strawberry">Strawberry (સ્ટ્રોબેરી)</option>
+                        <option value="tomato">Tomato (ટામેટા)</option>
                     </select>
+                    <div id="crop-info" style="margin-top: 10px; font-size: 13px; color: #40916c; font-weight: 500; min-height: 20px; line-height: 1.4;">
+                        Select a crop to view diseases the AI can detect.
+                    </div>
                 </div>
 
                 <div class="upload-box" onclick="document.getElementById('file-upload').click()" style="cursor: pointer; border: 2px dashed #ccc; padding: 30px; text-align: center; border-radius: 8px;">
@@ -175,6 +189,36 @@ async function initApp() {
 
 // Call on startup
 window.addEventListener('DOMContentLoaded', initApp);
+
+// Dictionary mapping supported crops to their detectable disease categories
+const CROP_DISEASES_INFO = {
+    apple: "Detects: Apple Scab, Black Rot, Cedar Apple Rust, or Healthy status.",
+    blueberry: "Detects: Healthy status.",
+    cherry: "Detects: Powdery Mildew or Healthy status.",
+    corn: "Detects: Cercospora Leaf Spot, Common Rust, Northern Leaf Blight, or Healthy status.",
+    grape: "Detects: Black Rot, Esca (Black Measles), Leaf Blight, or Healthy status.",
+    orange: "Detects: Huanglongbing (Citrus Greening / Fungal-like).",
+    peach: "Detects: Bacterial Spot or Healthy status.",
+    pepper: "Detects: Bell Pepper Bacterial Spot or Healthy status.",
+    potato: "Detects: Early Blight, Late Blight, or Healthy status.",
+    raspberry: "Detects: Healthy status.",
+    soybean: "Detects: Healthy status.",
+    squash: "Detects: Powdery Mildew.",
+    strawberry: "Detects: Leaf Scorch or Healthy status.",
+    tomato: "Detects: Bacterial Spot, Early Blight, Late Blight, Leaf Mold, Septoria Leaf Spot, Spider Mites, Target Spot, Yellow Leaf Curl Virus, Mosaic Virus, or Healthy status."
+};
+
+const cropSelect = document.getElementById('cropSelect');
+const cropInfo = document.getElementById('crop-info');
+
+cropSelect.addEventListener('change', function() {
+    const val = this.value;
+    if (val === 'all') {
+        cropInfo.innerText = "Select a crop to view diseases the AI can detect.";
+    } else {
+        cropInfo.innerText = CROP_DISEASES_INFO[val] || "";
+    }
+});
 
 // Handle leaf image selection and display preview securely
 fileInput.addEventListener('change', function() {
