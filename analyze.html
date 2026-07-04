@@ -12,6 +12,22 @@
                 grid-template-columns: 1fr !important;
             }
         }
+        .tab-btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .tab-btn.active {
+            color: #1b4332;
+            border-bottom: 3px solid #1b4332;
+        }
     </style>
     <!-- TensorFlow.js Web Model Inference Library -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
@@ -27,6 +43,9 @@
                     <li><a href="analyze.html" class="active" id="nav-analyze">Analyze Leaf</a></li>
                     <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
                     <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" id="nav-map">Outbreak Map</a></li>
                     <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
                 </ul>
                 <!-- Global Language Switcher -->
@@ -42,180 +61,211 @@
         <div class="analyze-container" style="max-width: 1100px; width: 95%;">
             <div class="analysis-portal-wrapper">
 
+                <!-- Mode Selection Tabs -->
+                <div style="display: flex; border-bottom: 1px solid #e0e0e0; margin-bottom: 25px;">
+                    <button id="tab-leaf" class="tab-btn active">🔍 Diagnose Leaf Disease</button>
+                    <button id="tab-bottle" class="tab-btn">🧴 Scan Medicine Bottle</button>
+                </div>
+
                 <h2 id="portal-title">Disease Analysis Portal</h2>
                 <p id="portal-desc">Upload a clear photograph of the affected plant leaf to begin processing.</p>
 
-                <!-- Model and Crop Select Grid -->
-                <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; text-align: left;">
-                    <!-- Model Selection -->
-                    <div style="flex: 1; min-width: 250px;">
-                        <label for="modelSelect" id="label-choose-model" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Model</label>
-                        <select id="modelSelect" style="padding: 10px 20px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit; height: 44px; box-sizing: border-box; background: white;">
-                            <option value="default" id="opt-model-default">Default PlantVillage Model (38 Classes)</option>
-                            <option value="custom" id="opt-model-custom">Custom Model (2 Classes)</option>
-                        </select>
+                <!-- LEAF DIAGNOSTIC SECTION -->
+                <div id="leaf-diagnostic-section">
+                    <!-- Model and Crop Select Grid -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; text-align: left;">
+                        <!-- Model Selection -->
+                        <div style="flex: 1; min-width: 250px;">
+                            <label for="modelSelect" id="label-choose-model" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Model</label>
+                            <select id="modelSelect" style="padding: 10px 20px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit; height: 44px; box-sizing: border-box; background: white;">
+                                <option value="default" id="opt-model-default">Default PlantVillage Model (38 Classes)</option>
+                                <option value="custom" id="opt-model-custom">Custom Model (2 Classes)</option>
+                            </select>
+                        </div>
+                        <!-- Crop Selection -->
+                        <div class="crop-select-container" style="flex: 1; min-width: 250px;">
+                            <label for="cropSelect" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Crop</label>
+                            <select id="cropSelect" style="padding: 10px 20px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit; height: 44px; box-sizing: border-box; background: white;">
+                                <option value="all">All Supported Crops (બધા પાક)</option>
+                                <option value="apple">Apple (સફરજન)</option>
+                                <option value="blueberry">Blueberry (બ્લુબેરી)</option>
+                                <option value="cherry">Cherry (ચેરી)</option>
+                                <option value="corn">Corn (મકાઈ)</option>
+                                <option value="grape">Grape (દ્રાક્ષ)</option>
+                                <option value="orange">Orange (નારંગી)</option>
+                                <option value="peach">Peach (પીચ)</option>
+                                <option value="pepper">Pepper Bell (શિમલા મરચા)</option>
+                                <option value="potato">Potato (બટાકા)</option>
+                                <option value="raspberry">Raspberry (રાસ્પબેરી)</option>
+                                <option value="soybean">Soybean (સોયાબીન)</option>
+                                <option value="squash">Squash (કોળુ)</option>
+                                <option value="strawberry">Strawberry (સ્ટ્રોબેરી)</option>
+                                <option value="tomato">Tomato (ટામેટા)</option>
+                            </select>
+                        </div>
                     </div>
-                    <!-- Crop Selection -->
-                    <div class="crop-select-container" style="flex: 1; min-width: 250px;">
-                        <label for="cropSelect" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Crop</label>
-                        <select id="cropSelect" style="padding: 10px 20px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit; height: 44px; box-sizing: border-box; background: white;">
-                            <option value="all">All Supported Crops (બધા પાક)</option>
-                            <option value="apple">Apple (સફરજન)</option>
-                            <option value="blueberry">Blueberry (બ્લુબેરી)</option>
-                            <option value="cherry">Cherry (ચેરી)</option>
-                            <option value="corn">Corn (મકાઈ)</option>
-                            <option value="grape">Grape (દ્રાક્ષ)</option>
-                            <option value="orange">Orange (નારંગી)</option>
-                            <option value="peach">Peach (પીચ)</option>
-                            <option value="pepper">Pepper Bell (શિમલા મરચા)</option>
-                            <option value="potato">Potato (બટાકા)</option>
-                            <option value="raspberry">Raspberry (રાસ્પબેરી)</option>
-                            <option value="soybean">Soybean (સોયાબીન)</option>
-                            <option value="squash">Squash (કોળુ)</option>
-                            <option value="strawberry">Strawberry (સ્ટ્રોબેરી)</option>
-                            <option value="tomato">Tomato (ટામેટા)</option>
-                        </select>
+                    <!-- Crop Info Warning -->
+                    <div id="crop-info" style="margin-top: -10px; margin-bottom: 20px; font-size: 13px; color: #40916c; font-weight: 500; min-height: 20px; line-height: 1.4; text-align: left;">
+                        Select a crop to view diseases the AI can detect.
                     </div>
-                </div>
-                <!-- Crop Info Warning -->
-                <div id="crop-info" style="margin-top: -10px; margin-bottom: 20px; font-size: 13px; color: #40916c; font-weight: 500; min-height: 20px; line-height: 1.4; text-align: left;">
-                    Select a crop to view diseases the AI can detect.
                 </div>
 
-                <div class="upload-box" onclick="document.getElementById('file-upload').click()" style="cursor: pointer; border: 2px dashed #95d5b2; padding: 40px 20px; text-align: center; border-radius: 8px; background-color: #f8fbf9;">
+                <!-- Shared Upload Container -->
+                <div class="upload-box" onclick="document.getElementById('file-upload').click()" style="cursor: pointer; border: 2px dashed #95d5b2; padding: 40px 20px; text-align: center; border-radius: 8px; background-color: #f8fbf9; margin-bottom: 20px;">
                     <div id="upload-prompt">
                         <div class="upload-icon" style="font-size: 40px; margin-bottom: 10px;">📁</div>
-                        <p>Click to <span class="browse-text" style="text-decoration: underline; color: #1b4332; font-weight: bold;">browse image</span></p>
+                        <p id="label-upload-prompt">Click to <span class="browse-text" style="text-decoration: underline; color: #1b4332; font-weight: bold;">browse image</span></p>
                     </div>
-                    <img id="image-preview" src="#" alt="Crop Preview" style="display: none; max-width: 100%; max-height: 200px; margin: 0 auto; border-radius: 5px;">
+                    <img id="image-preview" src="#" alt="Upload Preview" style="display: none; max-width: 100%; max-height: 200px; margin: 0 auto; border-radius: 5px;">
                     <input type="file" id="file-upload" accept="image/*" hidden>
                     <p id="file-name-display" style="margin-top: 15px; color: #1b4332; font-weight: bold;"></p>
                 </div>
 
-                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <button id="start-camera-btn" type="button" style="padding: 10px 18px; background-color: #ffffff; border: 1.5px solid #1b4332; color: #1b4332; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: inherit;">
-                        📷 Use Camera / કેમેરો વાપરો
-                    </button>
+                <!-- Dynamic Processing Loading Indicator -->
+                <div id="loading-indicator" style="display: none; margin: 20px 0; text-align: center;">
+                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1b4332; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px;"></div>
+                    <p id="loading-text" style="color: #1b4332; font-weight: bold; margin: 0; font-size: 14px;">Analyzing locally...</p>
+                </div>
+                <style>
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                </style>
+
+                <!-- Action Button -->
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button id="start-camera-btn" type="button" style="padding: 12px 25px; border-radius: 5px; border: 1.5px solid #1b4332; background-color: transparent; color: #1b4332; cursor: pointer; font-weight: bold; font-family: inherit;">📷 Use Camera</button>
+                    <button id="submit-btn" type="button" class="btn-submit" style="padding: 12px 30px; font-weight: bold; cursor: pointer; font-family: inherit;">Analyze Leaf</button>
                 </div>
 
-                <!-- Camera Modal Overlay -->
-                <div id="camera-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="position: relative; width: 100%; max-width: 500px; height: 75vh; background-color: #000; overflow: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 15px;">
-                        <video id="camera-stream" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        <!-- SVG Leaf Overlay Stencil -->
-                        <svg viewBox="0 0 100 100" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-                            <path d="M 50 15 C 65 30 75 45 75 60 C 75 75 65 85 50 85 C 35 85 25 75 25 60 C 25 45 35 30 50 15 Z" fill="none" stroke="#52b788" stroke-width="2" stroke-dasharray="3 3" />
-                            <line x1="50" y1="45" x2="50" y2="55" stroke="#52b788" stroke-width="1" />
-                            <line x1="45" y1="50" x2="55" y2="50" stroke="#52b788" stroke-width="1" />
-                        </svg>
-                        <div style="position: absolute; bottom: 20px; width: 100%; text-align: center; color: #52b788; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 0 10px; box-sizing: border-box; line-height: 1.4;">
-                            Align leaf lesion inside the dashed outline.<br>પાનના રોગિષ્ઠ ભાગને તૂટક રેખાની અંદર ગોઠવો.
+                <!-- 1. Beautiful Leaf Diagnostic Results Dashboard -->
+                <div id="result-box" style="display: none; margin-top: 35px; text-align: left; padding: 25px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid #1b4332;">
+                    <!-- Result Header -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 32px; margin-right: 15px;">🌿</div>
+                            <div>
+                                <h3 style="color: #1b4332; margin: 0; font-size: 22px; font-weight: 700;">Diagnosis: <span id="res-name" style="color: #40916c;"></span></h3>
+                                <p id="label-inference-text" style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Inference processed locally on device</p>
+                            </div>
                         </div>
-                        <button id="close-camera-btn" type="button" style="position: absolute; top: 15px; right: 15px; border-radius: 50%; border: none; background-color: rgba(255,255,255,0.4); color: white; width: 35px; height: 35px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; font-family: inherit;">✕</button>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button id="tts-speak-btn" type="button" style="padding: 6px 12px; background-color: #f8faf8; border: 1.5px solid #1b4332; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="Read Aloud in English">🔊 English</button>
+                            <button id="tts-speak-gu-btn" type="button" style="padding: 6px 12px; background-color: #f4fcf7; border: 1.5px solid #40916c; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="ગુજરાતીમાં સાંભળો">🔊 ગુજરાતી</button>
+                        </div>
                     </div>
-                    <div style="margin-top: 20px;">
-                        <button id="capture-image-btn" type="button" style="padding: 12px 30px; background-color: #52b788; color: white; border: none; border-radius: 30px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: inherit;">📸 Capture Photo / ફોટો લો</button>
+
+                    <!-- Confidence Meter Section -->
+                    <div style="margin-bottom: 25px; background-color: #f8faf8; padding: 15px; border-radius: 8px; border: 1px solid #e9ece9;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; color: #1b4332; font-size: 14px;">
+                            <span id="label-confidence-meter">Inference Confidence Level</span>
+                            <span id="res-conf" style="font-size: 16px; color: #1b4332; font-weight: bold;">0%</span>
+                        </div>
+                        <div style="background-color: #e9ece9; border-radius: 10px; height: 12px; overflow: hidden; width: 100%;">
+                            <div id="res-conf-bar" style="background: linear-gradient(90deg, #52b788, #1b4332); height: 100%; width: 0%; transition: width 0.8s ease-in-out; border-radius: 10px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Diagnostics & Treatments Split Columns -->
+                    <div class="result-details-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+                        <!-- Left Column: Treatment Box Section -->
+                        <div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+                            <div id="label-remedies-header" style="background-color: #1b4332; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px; display: flex; align-items: center;">
+                                💊 Recommended Medicines & Remedies
+                            </div>
+                            <div style="padding: 15px; flex: 1; background: #ffffff;">
+                                <div id="res-treat" style="white-space: pre-line; line-height: 1.6; font-size: 15px; color: #333;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Stack of Calculator and Fungicides -->
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Dosage Calculator Section -->
+                            <div id="res-calc-section" style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: none;">
+                                <div id="label-calc-header" style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
+                                    🧮 Dosage & Water Calculator
+                                </div>
+                                <div style="padding: 15px;">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px;">
+                                        <div style="flex: 1; min-width: 120px;">
+                                            <label for="landSizeInput" id="label-land-size" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Land Size</label>
+                                            <input id="landSizeInput" type="number" value="1" min="0.1" step="0.1" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                                        </div>
+                                        <div style="flex: 1; min-width: 120px;">
+                                            <label for="landUnitSelect" id="label-unit" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Unit</label>
+                                            <select id="landUnitSelect" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                                                <option value="acre" id="opt-acres">Acres</option>
+                                                <option value="bigha" id="opt-bighas">Bighas (Gujarat)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div id="calc-output" style="padding: 12px; background-color: #f4fcf7; border: 1px solid #d8f3e5; border-radius: 6px; font-size: 14px; color: #1b4332; line-height: 1.5; font-weight: 500;">
+                                        Total Water & Chemical required will be displayed here.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fungicide Guidelines Section -->
+                            <div id="res-fungicides-section" style="background-color: #f4f9f4; border: 1px solid #d8ebd8; border-radius: 8px; overflow: hidden; display: none;">
+                                <div id="label-fungicides-header" style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
+                                    🛡️ Fungicide Spray Guidelines
+                                </div>
+                                <div style="padding: 15px;">
+                                    <div id="res-fungicides-text" style="white-space: pre-line; line-height: 1.6; font-size: 14px; color: #2d5a45;"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <button type="button" class="btn-submit" id="submit-btn" style="margin-top: 20px; padding: 12px 24px; font-weight: bold; cursor: pointer; font-family: inherit;" disabled>Loading AI Model...</button>
-                
-                <!-- Visual Loading Indicator -->
-                <div id="loading-indicator" style="display: none; margin-top: 20px; text-align: center; padding: 15px; border-radius: 8px; background-color: #f4fcf7; border: 1px solid #d8f3e5;">
-                    <style>
-                    @keyframes spin {
-                      0% { transform: rotate(0deg); }
-                      100% { transform: rotate(360deg); }
-                    }
-                    </style>
-                    <div style="border: 4px solid #e9ece9; border-top: 4px solid #1b4332; border-radius: 50%; width: 35px; height: 35px; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
-                    <p style="margin: 0; font-weight: 600; color: #1b4332; font-size: 14px;">AI Leaf Analysis in progress...</p>
-                    <p style="margin: 3px 0 0 0; color: #555; font-size: 12px;">Running local matrix operations on device</p>
-                </div>
-            </div>
-
-            <!-- Beautiful, Sectioned Results Container -->
-            <div id="result-box" style="display: none; margin-top: 35px; text-align: left; padding: 25px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid #1b4332;">
-                <!-- Result Header -->
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px;">
-                    <div style="display: flex; align-items: center;">
-                        <div style="font-size: 32px; margin-right: 15px;">🌿</div>
+                <!-- 2. Beautiful Bottle Scan OCR Result Dashboard -->
+                <div id="ocr-result-box" style="display: none; margin-top: 35px; text-align: left; padding: 25px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid #40916c;">
+                    <div style="display: flex; align-items: center; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px; margin-bottom: 20px;">
+                        <div style="font-size: 32px; margin-right: 15px;">🧴</div>
                         <div>
-                            <h3 style="color: #1b4332; margin: 0; font-size: 22px; font-weight: 700;">Diagnosis: <span id="res-name" style="color: #40916c;"></span></h3>
-                            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Inference processed locally on device</p>
+                            <h3 id="ocr-res-title" style="color: #1b4332; margin: 0; font-size: 20px; font-weight: 700;">Bottle Scan Analysis</h3>
+                            <p id="ocr-res-subtitle" style="margin: 5px 0 0 0; color: #666; font-size: 13.5px;">Chemical and dosage validation using local character recognition</p>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button id="tts-speak-btn" type="button" style="padding: 6px 12px; background-color: #f8faf8; border: 1.5px solid #1b4332; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="Read Aloud in English">🔊 English</button>
-                        <button id="tts-speak-gu-btn" type="button" style="padding: 6px 12px; background-color: #f4fcf7; border: 1.5px solid #40916c; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="ગુજરાતીમાં સાંભળો">🔊 ગુજરાતી</button>
+
+                    <!-- Layout Grid for OCR -->
+                    <div class="result-details-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+                        <!-- Scanned Details -->
+                        <div style="background-color: #f4fcf7; border: 1px solid #d8f3e5; padding: 20px; border-radius: 8px; color: #1b4332; line-height: 1.6;">
+                            <h4 id="ocr-label-detected" style="margin-top: 0; font-size: 16px; font-weight: bold; color: #1b4332; border-bottom: 1px solid #d8f3e5; padding-bottom: 5px;">Detected Chemical:</h4>
+                            <p style="font-size: 17px; font-weight: bold; margin: 5px 0 15px 0;" id="ocr-detected-chemical">None</p>
+                            
+                            <h4 id="ocr-label-category" style="margin-top: 0; font-size: 14px; font-weight: bold; color: #555;">Chemical Category:</h4>
+                            <p style="font-size: 15px; font-weight: 600; margin: 5px 0 15px 0;" id="ocr-chemical-category">-</p>
+
+                            <h4 id="ocr-label-dosage" style="margin-top: 0; font-size: 14px; font-weight: bold; color: #555;">Safe Recommended Dosage:</h4>
+                            <p style="font-size: 16px; font-weight: bold; color: #b7094c; margin: 5px 0 0 0;" id="ocr-chemical-dosage">-</p>
+                        </div>
+
+                        <!-- Safety Precautions -->
+                        <div style="background-color: #ffffff; border: 1px solid #e0e0e0; padding: 20px; border-radius: 8px; line-height: 1.6;">
+                            <h4 id="ocr-label-precautions" style="margin-top: 0; font-size: 15px; font-weight: bold; color: #1b4332; border-bottom: 1px solid #eee; padding-bottom: 5px;">⚠️ Safe Spraying Precautions:</h4>
+                            <ul id="ocr-safety-list" style="margin: 10px 0 0 0; padding-left: 20px; font-size: 13.5px; color: #555;">
+                                <!-- Localized safety points will populate here -->
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Confidence Meter Section -->
-                <div style="margin-bottom: 25px; background-color: #f8faf8; padding: 15px; border-radius: 8px; border: 1px solid #e9ece9;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; color: #1b4332; font-size: 14px;">
-                        <span>Inference Confidence Level</span>
-                        <span id="res-conf" style="font-size: 16px; color: #1b4332; font-weight: bold;">0%</span>
-                    </div>
-                    <!-- The Progress Bar -->
-                    <div style="background-color: #e9ece9; border-radius: 10px; height: 12px; overflow: hidden; width: 100%;">
-                        <div id="res-conf-bar" style="background: linear-gradient(90deg, #52b788, #1b4332); height: 100%; width: 0%; transition: width 0.8s ease-in-out; border-radius: 10px;"></div>
-                    </div>
-                </div>
-
-                <!-- Diagnostics & Treatments Split Columns -->
-                <div class="result-details-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
-                    <!-- Left Column: Treatment Box Section -->
-                    <div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
-                        <div id="label-remedies-header" style="background-color: #1b4332; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px; display: flex; align-items: center;">
-                            💊 Recommended Medicines & Remedies
-                        </div>
-                        <div style="padding: 15px; flex: 1; background: #ffffff;">
-                            <div id="res-treat" style="white-space: pre-line; line-height: 1.6; font-size: 15px; color: #333;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Stack of Calculator and Fungicides -->
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        <!-- Dosage Calculator Section (Only visible on diseased results) -->
-                        <div id="res-calc-section" style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: none;">
-                            <div id="label-calc-header" style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
-                                🧮 Dosage & Water Calculator
-                            </div>
-                            <div style="padding: 15px;">
-                                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px;">
-                                    <div style="flex: 1; min-width: 120px;">
-                                        <label for="landSizeInput" id="label-land-size" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Land Size</label>
-                                        <input id="landSizeInput" type="number" value="1" min="0.1" step="0.1" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
-                                    </div>
-                                    <div style="flex: 1; min-width: 120px;">
-                                        <label for="landUnitSelect" id="label-unit" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Unit</label>
-                                        <select id="landUnitSelect" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
-                                            <option value="acre" id="opt-acres">Acres</option>
-                                            <option value="bigha" id="opt-bighas">Bighas (Gujarat)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div id="calc-output" style="padding: 12px; background-color: #f4fcf7; border: 1px solid #d8f3e5; border-radius: 6px; font-size: 14px; color: #1b4332; line-height: 1.5; font-weight: 500;">
-                                    Total Water & Chemical required will be displayed here.
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fungicide Guidelines Section -->
-                        <div id="res-fungicides-section" style="background-color: #f4f9f4; border: 1px solid #d8ebd8; border-radius: 8px; overflow: hidden; display: none;">
-                            <div id="label-fungicides-header" style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
-                                🛡️ Fungicide Spray Guidelines
-                            </div>
-                            <div style="padding: 15px;">
-                                <div id="res-fungicides-text" style="white-space: pre-line; line-height: 1.6; font-size: 14px; color: #2d5a45;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
+
+    <!-- Camera stream modal overlay -->
+    <div id="camera-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="position: relative; width: 90%; max-width: 500px; border-radius: 8px; overflow: hidden; border: 3px solid #fff;">
+            <video id="camera-stream" autoplay playsinline style="width: 100%; display: block;"></video>
+            <!-- Guideline Overlay box for leaves/bottles -->
+            <div style="position: absolute; top: 15%; left: 15%; width: 70%; height: 70%; border: 2px dashed #95d5b2; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4); pointer-events: none;"></div>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 15px;">
+            <button id="close-camera-btn" style="padding: 10px 20px; background-color: #d90429; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Cancel</button>
+            <button id="capture-image-btn" style="padding: 10px 30px; background-color: #40916c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Capture Photo</button>
+        </div>
+    </div>
 
     <footer>
         <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
@@ -228,9 +278,57 @@ const uploadPrompt = document.getElementById('upload-prompt');
 const imagePreview = document.getElementById('image-preview');
 const submitBtn = document.getElementById('submit-btn');
 const resultBox = document.getElementById('result-box');
+const ocrResultBox = document.getElementById('ocr-result-box');
 
+// Tab Selection Buttons
+const tabLeaf = document.getElementById('tab-leaf');
+const tabBottle = document.getElementById('tab-bottle');
+const leafDiagnosticSection = document.getElementById('leaf-diagnostic-section');
+
+let currentActiveMode = 'leaf'; // 'leaf' or 'bottle'
 let model = null;
 let pesticideData = null;
+
+// Tab switcher event handlers
+tabLeaf.addEventListener('click', () => {
+    if (currentActiveMode === 'leaf') return;
+    currentActiveMode = 'leaf';
+    tabLeaf.classList.add('active');
+    tabBottle.classList.remove('active');
+    leafDiagnosticSection.style.display = "block";
+    
+    // Hide results
+    resultBox.style.display = "none";
+    ocrResultBox.style.display = "none";
+    
+    // Reset file input
+    fileInput.value = "";
+    imagePreview.style.display = "none";
+    uploadPrompt.style.display = "block";
+    fileNameDisplay.innerText = "";
+    
+    updateUiLabels();
+});
+
+tabBottle.addEventListener('click', () => {
+    if (currentActiveMode === 'bottle') return;
+    currentActiveMode = 'bottle';
+    tabBottle.classList.add('active');
+    tabLeaf.classList.remove('active');
+    leafDiagnosticSection.style.display = "none";
+    
+    // Hide results
+    resultBox.style.display = "none";
+    ocrResultBox.style.display = "none";
+    
+    // Reset file input
+    fileInput.value = "";
+    imagePreview.style.display = "none";
+    uploadPrompt.style.display = "block";
+    fileNameDisplay.innerText = "";
+    
+    updateUiLabels();
+});
 
 // Classes list matching the 38 PlantVillage classes of the new model
 const CLASS_NAMES = [
@@ -325,6 +423,7 @@ async function initApp() {
         submitBtn.innerText = "Error Loading AI";
     }
 }
+
 // Call on startup
 window.addEventListener('DOMContentLoaded', () => {
     initLanguageToggle();
@@ -394,6 +493,7 @@ fileInput.addEventListener('change', function() {
         reader.readAsDataURL(file);
         
         resultBox.style.display = "none";
+        ocrResultBox.style.display = "none";
     }
 });
 
@@ -438,8 +538,20 @@ let activeClassNames = [];
 
 const UI_LABELS = {
     en: {
+        navHome: "Home",
+        navAnalyze: "Analyze Leaf",
+        navWeather: "Weather Advisor",
+        navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
+        navAdvisor: "AI Advisor",
+        tabLeaf: "🔍 Diagnose Leaf Disease",
+        tabBottle: "🧴 Scan Medicine Bottle",
         title: "Disease Analysis Portal",
         desc: "Upload a clear photograph of the affected plant leaf to begin processing.",
+        titleBottle: "Pesticide Bottle Scanner",
+        descBottle: "Upload a picture of the pesticide chemical bottle to verify its dosage and safety details.",
         chooseModel: "Choose Model",
         modelDefault: "Default PlantVillage Model (38 Classes)",
         modelCustom: "Custom Model (2 Classes)",
@@ -448,7 +560,9 @@ const UI_LABELS = {
         clickTo: "Click to ",
         useCamera: "📷 Use Camera",
         analyzeBtn: "Analyze Leaf",
+        analyzeBtnBottle: "Scan Bottle (OCR)",
         analyzingBtn: "Analyzing locally...",
+        scanningBtn: "Scanning bottle labels (OCR)...",
         loadingModel: "Loading AI Model...",
         remediesHeader: "💊 Recommended Medicines & Remedies",
         calcHeader: "🧮 Dosage & Water Calculator",
@@ -458,11 +572,31 @@ const UI_LABELS = {
         bighas: "Bighas (Gujarat)",
         calcDefault: "Total Water & Chemical required will be displayed here.",
         fungicidesHeader: "🛡️ Fungicide Spray Guidelines",
-        alertNoImage: "Please upload a plant leaf photo first!"
+        alertNoImage: "Please upload a photo first!",
+        inferenceText: "Inference processed locally on device",
+        confidenceMeter: "Inference Confidence Level",
+        ocrTitle: "Bottle Scan Analysis",
+        ocrSubtitle: "Chemical and dosage validation using local character recognition",
+        ocrLabelDetected: "Detected Chemical:",
+        ocrLabelCategory: "Chemical Category:",
+        ocrLabelDosage: "Safe Recommended Dosage:",
+        ocrLabelPrecautions: "⚠️ Safe Spraying Precautions:"
     },
     gu: {
+        navHome: "હોમ",
+        navAnalyze: "પાક રોગ ઓળખકર્તા",
+        navWeather: "હવામાન સલાહકાર",
+        navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
+        navAdvisor: "એઆઈ સલાહકાર",
+        tabLeaf: "🔍 પાક રોગ નિદાન",
+        tabBottle: "🧴 દવાની બોટલ સ્કેનર",
         title: "પાક રોગ નિદાન પોર્ટલ",
         desc: "પ્રક્રિયા શરૂ કરવા માટે રોગિષ્ઠ છોડના પાનનો સ્પષ્ટ ફોટો અપલોડ કરો.",
+        titleBottle: "જંતુનાશક દવાની બોટલનું સ્કેનિંગ",
+        descBottle: "દવાની સાચી માત્રા (ડોઝ) અને સાવચેતીઓ ચકાસવા માટે દવાની બોટલનો ફોટો અપલોડ કરો.",
         chooseModel: "એઆઈ મોડેલ પસંદ કરો",
         modelDefault: "ડિફોલ્ટ પ્લાન્ટવિલેજ મોડેલ (૩૮ વર્ગો)",
         modelCustom: "કસ્ટમ મોડેલ (૨ વર્ગો)",
@@ -471,7 +605,9 @@ const UI_LABELS = {
         clickTo: "ક્લિક કરીને ",
         useCamera: "📷 કેમેરો વાપરો",
         analyzeBtn: "રોગ નિદાન તપાસો",
+        analyzeBtnBottle: "બોટલ સ્કેન કરો",
         analyzingBtn: "નિદાન ચાલુ છે...",
+        scanningBtn: "લખાણ વાંચી રહ્યા છીએ (OCR)...",
         loadingModel: "એઆઈ મોડેલ લોડ થઈ રહ્યું છે...",
         remediesHeader: "💊 ભલામણ કરેલ દવાઓ અને સારવાર",
         calcHeader: "🧮 દવાની માત્રાનું કેલ્ક્યુલેટર",
@@ -481,16 +617,63 @@ const UI_LABELS = {
         bighas: "વીઘા (ગુજરાત)",
         calcDefault: "કુલ પાણી અને દવાની જરૂરી માત્રા અહીં બતાવવામાં આવશે.",
         fungicidesHeader: "🛡️ ફૂગનાશક દવાઓ માટેની માર્ગદર્શિકા",
-        alertNoImage: "કૃપા કરીને પહેલા પાનનો ફોટો અપલોડ કરો!"
+        alertNoImage: "કૃપા કરીને પહેલા ફોટો અપલોડ કરો!",
+        inferenceText: "નિદાન પ્રક્રિયા ઑફલાઇન કરવામાં આવી છે",
+        confidenceMeter: "નિદાન ચોકસાઈ સ્તર",
+        ocrTitle: "દવાની બોટલ વિશ્લેષણ",
+        ocrSubtitle: "સ્થાનિક અક્ષર ઓળખ (OCR) દ્વારા દવાના ડોઝની ચકાસણી",
+        ocrLabelDetected: "શોધાયેલ રાસાયણિક તત્વ (દવા):",
+        ocrLabelCategory: "દવાનો પ્રકાર:",
+        ocrLabelDosage: "ભલામણ કરેલ સલામત માત્રા:",
+        ocrLabelPrecautions: "⚠️ દવા છાંટતી વખતે રાખવાની સાવચેતીઓ:"
     }
 };
+
+let tesseractLoaded = false;
+function loadTesseract(callback) {
+    if (tesseractLoaded) {
+        if (callback) callback();
+        return;
+    }
+    const script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    script.onload = () => {
+        tesseractLoaded = true;
+        console.log("Tesseract.js loaded successfully.");
+        if (callback) callback();
+    };
+    document.head.appendChild(script);
+}
 
 function updateUiLabels() {
     const labels = UI_LABELS[activeLang];
     
-    document.getElementById('portal-title').innerText = labels.title;
-    document.getElementById('portal-desc').innerText = labels.desc;
+    // Navbar
+    document.getElementById('nav-home').innerText = labels.navHome;
+    document.getElementById('nav-analyze').innerText = labels.navAnalyze;
+    document.getElementById('nav-weather').innerText = labels.navWeather;
+    document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
+    document.getElementById('nav-advisor').innerText = labels.navAdvisor;
     
+    // Tabs Text
+    tabLeaf.innerText = labels.tabLeaf;
+    tabBottle.innerText = labels.tabBottle;
+    
+    // General Headers
+    if (currentActiveMode === 'leaf') {
+        document.getElementById('portal-title').innerText = labels.title;
+        document.getElementById('portal-desc').innerText = labels.desc;
+        submitBtn.innerText = model ? labels.analyzeBtn : labels.loadingModel;
+    } else {
+        document.getElementById('portal-title').innerText = labels.titleBottle;
+        document.getElementById('portal-desc').innerText = labels.descBottle;
+        submitBtn.innerText = labels.analyzeBtnBottle;
+    }
+    
+    // Choose model labels
     document.getElementById('label-choose-model').innerText = labels.chooseModel;
     document.getElementById('opt-model-default').innerText = labels.modelDefault;
     document.getElementById('opt-model-custom').innerText = labels.modelCustom;
@@ -505,12 +688,9 @@ function updateUiLabels() {
     
     document.getElementById('start-camera-btn').innerText = labels.useCamera;
     
-    if (!model) {
-        submitBtn.innerText = labels.loadingModel;
-    } else {
-        submitBtn.innerText = labels.analyzeBtn;
-    }
-    
+    // Leaf results elements
+    document.getElementById('label-inference-text').innerText = labels.inferenceText;
+    document.getElementById('label-confidence-meter').innerText = labels.confidenceMeter;
     document.getElementById('label-remedies-header').innerText = labels.remediesHeader;
     document.getElementById('label-calc-header').innerText = labels.calcHeader;
     document.getElementById('label-land-size').innerText = labels.landSize;
@@ -531,18 +711,34 @@ function updateUiLabels() {
     } else {
         cropInfo.innerText = activeLang === 'en' ? CROP_DISEASES_INFO_EN[cropVal] : CROP_DISEASES_INFO_GU[cropVal];
     }
+
+    // OCR Results Elements
+    document.getElementById('ocr-res-title').innerText = labels.ocrTitle;
+    document.getElementById('ocr-res-subtitle').innerText = labels.ocrSubtitle;
+    document.getElementById('ocr-label-detected').innerText = labels.ocrLabelDetected;
+    document.getElementById('ocr-label-category').innerText = labels.ocrLabelCategory;
+    document.getElementById('ocr-label-dosage').innerText = labels.ocrLabelDosage;
+    document.getElementById('ocr-label-precautions').innerText = labels.ocrLabelPrecautions;
 }
 
 // Render dynamic analysis results strictly in active language
 function renderAnalysisResults() {
     if (lastPredictionIdx === -1) return;
     
-    const predictedClass = CLASS_NAMES[lastPredictionIdx];
+    const predictedClass = activeClassNames[lastPredictionIdx];
     const confidenceScore = (lastPredictionVal * 100).toFixed(2) + "%";
     
-    const parts = predictedClass.split("___");
-    const plantName = parts[0].replace(/_/g, " ").replace(/\(maize\)/g, "");
-    const conditionName = parts[1].replace(/_/g, " ");
+    let plantName = "";
+    let conditionName = "";
+    
+    if (predictedClass.includes("___")) {
+        const parts = predictedClass.split("___");
+        plantName = parts[0].replace(/_/g, " ").replace(/\(maize\)/g, "");
+        conditionName = parts[1].replace(/_/g, " ");
+    } else {
+        plantName = "Custom Plant";
+        conditionName = predictedClass;
+    }
     
     predictedCropNameEng = plantName;
     predictedConditionNameEng = conditionName;
@@ -686,47 +882,159 @@ function renderAnalysisResults() {
     resultBox.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Client-Side Image Analysis Pipeline
+// Process Scanned Text and Map to Local Chemical Rules
+function processOCRText(scannedText) {
+    const text = scannedText.toLowerCase();
+    
+    let chemicalNameFound = "";
+    let category = "";
+    let dosage = "";
+    let safetyPoints = [];
+    
+    // Simple substring parsing for active pesticides/fungicides
+    if (text.includes("carbendazim")) {
+        chemicalNameFound = activeLang === 'en' ? "Carbendazim 50% WP" : "કાર્બેન્ડાઝીમ ૫૦% WP (ફૂગનાશક)";
+        category = activeLang === 'en' ? "Systemic Fungicide" : "પ્રણાલીગત ફૂગનાશક";
+        dosage = activeLang === 'en' ? "2.0 grams per Liter of water" : "૨.૦ ગ્રામ પ્રતિ લીટર પાણીમાં";
+        safetyPoints = activeLang === 'en' 
+            ? ["Wear protective mask during preparation.", "Avoid spraying on windy days.", "Wash hands thoroughly with soap after application."]
+            : ["દવા તૈયાર કરતી વખતે માસ્ક પહેરો.", "પવન વાતો હોય તે દિશામાં છંટકાવ ન કરવો.", "છંટકાવ કર્યા પછી સાબુથી હાથ બરાબર ધોવા."];
+    } else if (text.includes("imidacloprid")) {
+        chemicalNameFound = activeLang === 'en' ? "Imidacloprid 17.8% SL" : "ઇમિડાક્લોપ્રિડ ૧૭.૮% SL (કીટનાશક)";
+        category = activeLang === 'en' ? "Neonicotinoid Insecticide (Sucking Pest Control)" : "ચુસિયા જીવાત માટેનું કીટનાશક";
+        dosage = activeLang === 'en' ? "0.5 ml per Liter of water" : "૦.૫ મિલી પ્રતિ લીટર પાણીમાં";
+        safetyPoints = activeLang === 'en' 
+            ? ["Keep away from domestic honey bees.", "Use goggles and gloves while mixing.", "Ensure 14 days waiting period before harvesting."]
+            : ["મધમાખીઓને નુકસાન ન થાય તેનું ધ્યાન રાખવું.", "દવા મિશ્ર કરતી વખતે ગોગલ્સ અને ગ્લોવ્ઝ વાપરો.", "દવા છાંટ્યા પછી ૧૪ દિવસ સુધી પાક ઉતારવો નહીં."];
+    } else if (text.includes("mancozeb")) {
+        chemicalNameFound = activeLang === 'en' ? "Mancozeb 75% WP" : "મેંકોઝેબ ૭૫% WP (ફૂગનાશક)";
+        category = activeLang === 'en' ? "Broad-Spectrum Contact Fungicide" : "સ્પર્શક ફૂગનાશક";
+        dosage = activeLang === 'en' ? "2.5 grams per Liter of water" : "૨.૫ ગ્રામ પ્રતિ લીટર પાણીમાં";
+        safetyPoints = activeLang === 'en' 
+            ? ["Wear safety gloves.", "Keep out of reach of children and livestock.", "Store in a dry, ventilated cabinet."]
+            : ["હાથમોજા પહેરીને જ દવાનો ઉપયોગ કરવો.", "બાળકો અને પશુઓથી આ દવાને દૂર રાખવી.", "દવાને સૂકી અને હવાઉજાસવાળી જગ્યાએ સંગ્રહ કરવી."];
+    } else if (text.includes("neem") || text.includes("azadirachtin")) {
+        chemicalNameFound = activeLang === 'en' ? "Neem Oil / Azadirachtin" : "લીંબોળીનું તેલ (ઓર્ગેનિક જૈવિક દવા)";
+        category = activeLang === 'en' ? "Organic Bio-Insecticide" : "સેન્દ્રિય જૈવિક કીટનાશક";
+        dosage = activeLang === 'en' ? "5.0 ml per Liter of water" : "૫.૦ મિલી પ્રતિ લીટર પાણીમાં";
+        safetyPoints = activeLang === 'en' 
+            ? ["100% organic and eco-friendly.", "Spray during cool evening hours.", "Use emulsifier/soap water for proper mixing."]
+            : ["૧૦૦% સેન્દ્રિય અને પર્યાવરણને અનુકૂળ.", "સાંજે ઠંડક હોય ત્યારે જ છંટકાવ કરવો.", "પાણીમાં તેલ ભળવા માટે થોડું સાબુનું પાણી ઉમેરવું."];
+    } else if (text.includes("copper") || text.includes("oxychloride")) {
+        chemicalNameFound = activeLang === 'en' ? "Copper Oxychloride 50% WP" : "કોપર ઓક્સિક્લોરાઇડ ૫૦% WP (બ્લુ કોપર)";
+        category = activeLang === 'en' ? "Fungicide / Bactericide" : "ફૂગ અને બેક્ટેરિયાનાશક";
+        dosage = activeLang === 'en' ? "2.5 grams per Liter of water" : "૨.૫ ગ્રામ પ્રતિ લીટર પાણીમાં";
+        safetyPoints = activeLang === 'en' 
+            ? ["Highly toxic to fish. Prevent runoff into ponds.", "Do not mix with lime sulfur.", "Wear protective apron during spray."]
+            : ["માછલીઓ માટે ઝેરી હોવાથી તળાવ નજીક ન છાંટવી.", "ચૂના કે ગંધક સાથે આ દવા ક્યારેય ન ભેળવવી.", "છંટકાવ કરતી વખતે એપ્રન અને ચશ્મા પહેરવા."];
+    } else {
+        // No matching preset chemical in our list
+        chemicalNameFound = activeLang === 'en' ? "Unknown Chemical Entity" : "અજાણ્યું રાસાયણિક તત્વ";
+        category = activeLang === 'en' ? "OCR could not match standard database" : "ડેટાબેઝમાં આ દવાની માહિતી ઉપલબ્ધ નથી";
+        dosage = activeLang === 'en' ? "Consult agricultural officer" : "કૃષિ અધિકારીની સલાહ લેવી";
+        safetyPoints = activeLang === 'en'
+            ? ["Read the warning label carefully.", "Use standard protective safety equipment."]
+            : ["દવાની બોટલ પર લખેલું લેબલ કાળજીપૂર્વક વાંચો.", "દવા છાંટતી વખતે સુરક્ષા સાધનોનો ઉપયોગ કરો."];
+    }
+    
+    // Display results in OCR Card
+    document.getElementById('ocr-detected-chemical').innerText = chemicalNameFound;
+    document.getElementById('ocr-chemical-category').innerText = category;
+    document.getElementById('ocr-chemical-dosage').innerText = dosage;
+    
+    const safetyList = document.getElementById('ocr-safety-list');
+    safetyList.innerHTML = "";
+    safetyPoints.forEach(pt => {
+        const li = document.createElement('li');
+        li.innerText = pt;
+        safetyList.appendChild(li);
+    });
+    
+    ocrResultBox.style.display = "block";
+    ocrResultBox.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Client-Side Execution Pipeline (Leaf Analysis or Bottle OCR)
 submitBtn.addEventListener('click', async () => {
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert(UI_LABELS[activeLang].alertNoImage);
         return;
     }
     
-    submitBtn.innerText = UI_LABELS[activeLang].analyzingBtn;
-    submitBtn.disabled = true;
-    
     const loadingIndicator = document.getElementById('loading-indicator');
-    if (loadingIndicator) loadingIndicator.style.display = "block";
-    resultBox.style.display = "none";
+    const loadingText = document.getElementById('loading-text');
     
-    try {
-        const predictionScores = await runLocalInference(imagePreview);
-        console.log("Prediction scores:", predictionScores);
-        
-        let highestConfIdx = 0;
-        let highestConfVal = -1;
-        for (let i = 0; i < predictionScores.length; i++) {
-            if (predictionScores[i] > highestConfVal) {
-                highestConfVal = predictionScores[i];
-                highestConfIdx = i;
-            }
+    resultBox.style.display = "none";
+    ocrResultBox.style.display = "none";
+    
+    if (currentActiveMode === 'leaf') {
+        submitBtn.innerText = UI_LABELS[activeLang].analyzingBtn;
+        submitBtn.disabled = true;
+        if (loadingIndicator) {
+            loadingText.innerText = UI_LABELS[activeLang].analyzingBtn;
+            loadingIndicator.style.display = "block";
         }
         
-        lastPredictionIdx = highestConfIdx;
-        lastPredictionVal = highestConfVal;
-        renderAnalysisResults();
+        try {
+            const predictionScores = await runLocalInference(imagePreview);
+            console.log("Prediction scores:", predictionScores);
+            
+            let highestConfIdx = 0;
+            let highestConfVal = -1;
+            for (let i = 0; i < predictionScores.length; i++) {
+                if (predictionScores[i] > highestConfVal) {
+                    highestConfVal = predictionScores[i];
+                    highestConfIdx = i;
+                }
+            }
+            
+            lastPredictionIdx = highestConfIdx;
+            lastPredictionVal = highestConfVal;
+            renderAnalysisResults();
+            
+        } catch (error) {
+            console.error("Local pipeline analysis failure:", error);
+            alert(`ANALYSIS ERROR:\n${error.message}\n\nPlease try again.`);
+        } finally {
+            submitBtn.innerText = UI_LABELS[activeLang].analyzeBtn;
+            submitBtn.disabled = false;
+            if (loadingIndicator) loadingIndicator.style.display = "none";
+        }
+    } else {
+        // BOTTLE SCANNER OCR MODE
+        submitBtn.innerText = UI_LABELS[activeLang].scanningBtn;
+        submitBtn.disabled = true;
+        if (loadingIndicator) {
+            loadingText.innerText = UI_LABELS[activeLang].scanningBtn;
+            loadingIndicator.style.display = "block";
+        }
         
-    } catch (error) {
-        console.error("Local pipeline analysis failure:", error);
-        alert(`ANALYSIS ERROR:\n${error.message}\n\nPlease try again.`);
-    } finally {
-        submitBtn.innerText = UI_LABELS[activeLang].analyzeBtn;
-        submitBtn.disabled = false;
-        if (loadingIndicator) loadingIndicator.style.display = "none";
+        // Dynamically load Tesseract.js via CDN and run OCR
+        loadTesseract(() => {
+            Tesseract.recognize(
+                imagePreview.src,
+                'eng',
+                { logger: m => console.log(m) }
+            ).then(({ data: { text } }) => {
+                console.log("OCR Scanned Text:", text);
+                processOCRText(text);
+                
+                submitBtn.innerText = UI_LABELS[activeLang].analyzeBtnBottle;
+                submitBtn.disabled = false;
+                if (loadingIndicator) loadingIndicator.style.display = "none";
+            }).catch(err => {
+                console.error("OCR Scanning Error:", err);
+                alert("Failed to scan text from bottle image. Please try again with a clearer picture.");
+                
+                submitBtn.innerText = UI_LABELS[activeLang].analyzeBtnBottle;
+                submitBtn.disabled = false;
+                if (loadingIndicator) loadingIndicator.style.display = "none";
+            });
+        });
     }
 });
 
+// Bind Language selection events
 function initLanguageToggle() {
     const enBtn = document.getElementById('lang-en-btn');
     const guBtn = document.getElementById('lang-gu-btn');
@@ -840,38 +1148,37 @@ ttsSpeakBtn.addEventListener('click', () => {
         return;
     }
     
-    // Compile English narrative text
     let textEn = `Crop Diagnosis: ${predictedCropNameEng}. Condition is ${predictedConditionNameEng}. `;
     if (activeRecommendations && activeRecommendations.length > 0 && predictedConditionNameEng.toLowerCase() !== "healthy") {
         textEn += "Recommended treatments are: ";
         activeRecommendations.forEach(med => {
             if (med.nameEnglish) {
-                textEn += `${med.nameEnglish}, dosage ${med.recommendedDosage}. `;
+                textEn += `Product name ${med.nameEnglish}, dosage ${med.recommendedDosage}. `;
             } else if (med.groupNameEnglish && med.items) {
-                textEn += `Synthetic group ${med.groupNameEnglish} medicines including: `;
+                textEn += `Pesticide classes like ${med.groupNameEnglish}: `;
                 med.items.forEach(subMed => {
                     textEn += `${subMed.nameEnglish}, dosage ${subMed.recommendedDosage}. `;
                 });
             } else if (med.genericNameEnglish) {
-                textEn += `Generic insecticide ${med.genericNameEnglish}, dosage ${med.dosage}. `;
+                textEn += `Generic product ${med.genericNameEnglish}. Brand options ${med.tradeNamesEnglish}. Dosage is ${med.dosage}. `;
             }
         });
     } else {
         textEn += "Leaf condition is healthy. No chemical treatments required.";
     }
     
-    const utterance = new SpeechSynthesisUtterance(textEn);
+    let currentUtteranceObj = new SpeechSynthesisUtterance(textEn);
     const voices = window.speechSynthesis.getVoices();
     const enVoice = voices.find(v => v.lang.includes("en-IN")) || voices.find(v => v.lang.includes("en-US"));
-    if (enVoice) utterance.voice = enVoice;
-    utterance.lang = "en-US";
+    if (enVoice) currentUtteranceObj.voice = enVoice;
+    currentUtteranceObj.lang = "en-US";
     
-    utterance.onend = resetTtsButtons;
-    utterance.onerror = resetTtsButtons;
+    currentUtteranceObj.onend = resetTtsButtons;
+    currentUtteranceObj.onerror = resetTtsButtons;
     
     ttsSpeakBtn.innerText = "🛑 Stop";
     speaking = true;
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.speak(currentUtteranceObj);
 });
 
 // 2. Gujarati Narrator Event Listener
@@ -886,7 +1193,6 @@ ttsSpeakGuBtn.addEventListener('click', () => {
         return;
     }
     
-    // Translate Crop and Condition to Gujarati
     const cropKey = predictedCropNameEng.toLowerCase().trim();
     const cropGu = CROP_TRANSLATIONS_GU[cropKey] || predictedCropNameEng;
     
@@ -913,7 +1219,6 @@ ttsSpeakGuBtn.addEventListener('click', () => {
         textGu += "પાન તંદુરસ્ત છે. કોઈપણ રાસાયણિક દવાની સારવારની જરૂર નથી.";
     }
     
-    // Add general fungicides guidelines in Gujarati if applicable
     if (pesticideData && pesticideData.fungicidesGuidelines && predictedConditionNameEng.toLowerCase() !== "healthy") {
         textGu += ` ફૂગનાશક દવાઓ માટેની માર્ગદર્શિકા: ${pesticideData.fungicidesGuidelines.generalInfoGujarati}. `;
         pesticideData.fungicidesGuidelines.keyRecommendations.forEach(rec => {
@@ -921,18 +1226,18 @@ ttsSpeakGuBtn.addEventListener('click', () => {
         });
     }
     
-    const utterance = new SpeechSynthesisUtterance(textGu);
+    let currentUtteranceObj = new SpeechSynthesisUtterance(textGu);
     const voices = window.speechSynthesis.getVoices();
     const guVoice = voices.find(v => v.lang.includes("gu-IN"));
-    if (guVoice) utterance.voice = guVoice;
-    utterance.lang = "gu-IN";
+    if (guVoice) currentUtteranceObj.voice = guVoice;
+    currentUtteranceObj.lang = "gu-IN";
     
-    utterance.onend = resetTtsButtons;
-    utterance.onerror = resetTtsButtons;
+    currentUtteranceObj.onend = resetTtsButtons;
+    currentUtteranceObj.onerror = resetTtsButtons;
     
     ttsSpeakGuBtn.innerText = "🛑 સ્ટોપ";
     speaking = true;
-    window.speechSynthesis.speak(utterance);
+    window.speechSynthesis.speak(currentUtteranceObj);
 });
 
 // ==========================================
@@ -1014,8 +1319,9 @@ captureImageBtn.addEventListener('click', () => {
     imagePreview.style.display = "block";
     uploadPrompt.style.display = "none";
     
-    fileNameDisplay.innerText = "Captured Photo / કેમેરાથી લીધેલ ફોટો";
+    fileNameDisplay.innerText = currentActiveMode === 'leaf' ? "Captured Photo / કેમેરાથી લીધેલ ફોટો" : "Captured Medicine Bottle / કેમેરાથી લીધેલ બોટલ";
     resultBox.style.display = "none";
+    ocrResultBox.style.display = "none";
     
     stopCamera();
     

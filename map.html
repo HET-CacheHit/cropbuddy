@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Buddy - Pest Outbreak Map / રોગચાળા નકશો</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Leaflet.js Mapping Library CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Leaflet.js Mapping Library Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        #map {
+            height: 480px;
+            width: 100%;
+            border-radius: 8px;
+            border: 2px solid #e2f3e8;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            z-index: 1;
+        }
+        @media (max-width: 768px) {
+            #map {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="navbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+                    <li><a href="index.html" id="nav-home">Home</a></li>
+                    <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
+                    <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
+                    <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" class="active" id="nav-map">Outbreak Map</a></li>
+                    <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
+                </ul>
+                <!-- Global Language Switcher -->
+                <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-left: 10px;">
+                    <button id="lang-en-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">EN</button>
+                    <button id="lang-gu-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">ગુજ</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="analyze-section" style="min-height: 85vh; padding: 40px 20px;">
+        <div class="analyze-container" style="max-width: 1100px; width: 95%;">
+            
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 50px; margin-bottom: 10px;">🗺️</div>
+                <h2 id="map-title" style="color: #1b4332; font-size: 28px; font-weight: 700; margin: 0 0 10px 0;">Community Pest Outbreak Map</h2>
+                <p id="map-desc" style="color: #666; margin: 0; font-size: 15px;">Monitor active disease/pest alerts reported by neighboring farmers in Gujarat and report outbreaks in your fields.</p>
+            </div>
+
+            <!-- Two Column Map Panel -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start;" id="map-grid-wrapper">
+                <!-- Map View -->
+                <div>
+                    <div id="map"></div>
+                </div>
+
+                <!-- Report Outbreak Form Panel -->
+                <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2f3e8; box-shadow: 0 4px 15px rgba(0,0,0,0.03); text-align: left;">
+                    <h3 id="form-header" style="color: #1b4332; margin-top: 0; font-size: 17px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #e2f3e8; padding-bottom: 8px;">🚨 Report an Outbreak</h3>
+                    
+                    <form id="outbreak-form">
+                        <div style="margin-bottom: 15px;">
+                            <label for="formCrop" id="form-label-crop" style="font-size: 12.5px; font-weight: 600; display: block; margin-bottom: 5px; color: #444;">Crop Type</label>
+                            <select id="formCrop" style="padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                                <option value="Tomato" id="f-tom">Tomato (ટામેટા)</option>
+                                <option value="Potato" id="f-pot">Potato (બટાકા)</option>
+                                <option value="Cotton" id="f-cot">Cotton (કપાસ)</option>
+                                <option value="Groundnut" id="f-gnd">Groundnut (મગફળી)</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label for="formDisease" id="form-label-disease" style="font-size: 12.5px; font-weight: 600; display: block; margin-bottom: 5px; color: #444;">Observed Disease / Pest</label>
+                            <input type="text" id="formDisease" placeholder="e.g. Early Blight" style="padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc; width: 100%; font-family: inherit; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label for="formSeverity" id="form-label-severity" style="font-size: 12.5px; font-weight: 600; display: block; margin-bottom: 5px; color: #444;">Severity Level</label>
+                            <select id="formSeverity" style="padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                                <option value="High" id="f-sev-high" style="color: #d90429; font-weight: bold;">High (તીવ્ર રોગચાળો)</option>
+                                <option value="Medium" id="f-sev-med" style="color: #f77f00; font-weight: bold;">Medium (મધ્યમ)</option>
+                                <option value="Low" id="f-sev-low" style="color: #40916c; font-weight: bold;">Low (શરૂઆતનો તબક્કો)</option>
+                            </select>
+                        </div>
+                        <button type="submit" id="form-submit-btn" style="padding: 10px 15px; background-color: #1b4332; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit;">Submit Report</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
+    </footer>
+
+<script>
+// Global Language State Manager
+let activeLang = localStorage.getItem('preferred_lang') || 'en';
+
+const UI_LABELS_MAP = {
+    en: {
+        navHome: "Home",
+        navAnalyze: "Analyze Leaf",
+        navWeather: "Weather Advisor",
+        navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
+        navAdvisor: "AI Advisor",
+        title: "Community Pest Outbreak Map",
+        desc: "Monitor active disease/pest alerts reported by neighboring farmers in Gujarat and report outbreaks in your fields.",
+        formHeader: "🚨 Report an Outbreak",
+        cropLabel: "Crop Type",
+        diseaseLabel: "Observed Disease / Pest",
+        diseasePlaceholder: "e.g. Early Blight",
+        severityLabel: "Severity Level",
+        sevHigh: "High Outbreak",
+        sevMed: "Medium",
+        sevLow: "Low / Initial",
+        submitBtn: "Submit Report",
+        alertSuccess: "Thank you! Outbreak report submitted successfully on the map.",
+        alertError: "Please enter the observed disease name.",
+        mapLoading: "Loading Map...",
+        severityWord: "Severity",
+        cropWord: "Crop",
+        diseaseWord: "Disease"
+    },
+    gu: {
+        navHome: "હોમ",
+        navAnalyze: "પાક રોગ ઓળખકર્તા",
+        navWeather: "હવામાન સલાહકાર",
+        navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
+        navAdvisor: "એઆઈ સલાહકાર",
+        title: "સામુદાયિક રોગચાળા ચેતવણી નકશો",
+        desc: "ગુજરાતમાં તમારા સાથી ખેડૂતો દ્વારા નોંધાયેલ જીવાત અને રોગચાળાની લાઈવ ચેતવણીઓ જુઓ અને તમારા ખેતરનો અહેવાલ મોકલો.",
+        formHeader: "🚨 રોગચાળાનો રિપોર્ટ મોકલો",
+        cropLabel: "પાકનો પ્રકાર",
+        diseaseLabel: "રોગ અથવા જીવાતનું નામ",
+        diseasePlaceholder: "દા.ત. આગતરો સુકારો",
+        severityLabel: "રોગની ગંભીરતા",
+        sevHigh: "તીવ્ર રોગચાળો",
+        sevMed: "મધ્યમ અસર",
+        sevLow: "ઓછી / શરૂઆતની અસર",
+        submitBtn: "રિપોર્ટ સબમિટ કરો",
+        alertSuccess: "આભાર! રોગચાળાનો અહેવાલ નકશા પર સફળતાપૂર્વક સબમિટ કરવામાં આવ્યો છે.",
+        alertError: "કૃપા કરીને રોગ અથવા જીવાતનું નામ દાખલ કરો.",
+        mapLoading: "નકશો લોડ થાય છે...",
+        severityWord: "તીવ્રતા",
+        cropWord: "પાક",
+        diseaseWord: "રોગ"
+    }
+};
+
+// Initial dynamic markers centered around Gujarat districts
+const INITIAL_OUTBREAKS = [
+    { lat: 22.5645, lng: 72.9580, crop: "Tomato", diseaseEn: "Early Blight", diseaseGu: "આગતરો સુકારો", severity: "High", location: "Anand" },
+    { lat: 22.3039, lng: 70.8022, crop: "Cotton", diseaseEn: "Bollworm Infestation", diseaseGu: "ગુલાબી ઈયળનો ઉપદ્રવ", severity: "High", location: "Rajkot" },
+    { lat: 23.8500, lng: 72.3833, crop: "Potato", diseaseEn: "Late Blight", diseaseGu: "પાછતરો સુકારો", severity: "Medium", location: "Mehsana" },
+    { lat: 21.5222, lng: 70.4579, crop: "Groundnut", diseaseEn: "Tikka Leaf Spot", diseaseGu: "ટીક્કા ટપકાનો રોગ", severity: "Low", location: "Junagadh" }
+];
+
+let map = null;
+let markersGroup = [];
+
+function initLanguageToggle() {
+    const enBtn = document.getElementById('lang-en-btn');
+    const guBtn = document.getElementById('lang-gu-btn');
+    
+    if (!enBtn || !guBtn) return;
+    
+    function applyBtnStyles() {
+        if (activeLang === 'en') {
+            enBtn.style.backgroundColor = '#1b4332';
+            enBtn.style.color = 'white';
+            guBtn.style.backgroundColor = 'transparent';
+            guBtn.style.color = '#1b4332';
+        } else {
+            guBtn.style.backgroundColor = '#1b4332';
+            guBtn.style.color = 'white';
+            enBtn.style.backgroundColor = 'transparent';
+            enBtn.style.color = '#1b4332';
+        }
+    }
+    
+    applyBtnStyles();
+    
+    enBtn.addEventListener('click', () => {
+        if (activeLang === 'en') return;
+        activeLang = 'en';
+        localStorage.setItem('preferred_lang', 'en');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+    
+    guBtn.addEventListener('click', () => {
+        if (activeLang === 'gu') return;
+        activeLang = 'gu';
+        localStorage.setItem('preferred_lang', 'gu');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+}
+
+function updatePageLanguage() {
+    const labels = UI_LABELS_MAP[activeLang];
+    
+    // Navbar
+    document.getElementById('nav-home').innerText = labels.navHome;
+    document.getElementById('nav-analyze').innerText = labels.navAnalyze;
+    document.getElementById('nav-weather').innerText = labels.navWeather;
+    document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
+    document.getElementById('nav-advisor').innerText = labels.navAdvisor;
+    
+    // Page details
+    document.getElementById('map-title').innerText = labels.title;
+    document.getElementById('map-desc').innerText = labels.desc;
+    document.getElementById('form-header').innerText = labels.formHeader;
+    document.getElementById('form-label-crop').innerText = labels.cropLabel;
+    document.getElementById('form-label-disease').innerText = labels.diseaseLabel;
+    document.getElementById('formDisease').placeholder = labels.diseasePlaceholder;
+    document.getElementById('form-label-severity').innerText = labels.severityLabel;
+    
+    document.getElementById('f-sev-high').innerText = labels.sevHigh;
+    document.getElementById('f-sev-med').innerText = labels.sevMed;
+    document.getElementById('f-sev-low').innerText = labels.sevLow;
+    document.getElementById('form-submit-btn').innerText = labels.submitBtn;
+    
+    // Re-draw map markers to update popup translation text
+    drawMapMarkers();
+}
+
+function initMap() {
+    // Center map on Gujarat coordinates
+    map = L.map('map').setView([22.6000, 71.8000], 7);
+    
+    // Load OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    drawMapMarkers();
+}
+
+function drawMapMarkers() {
+    if (!map) return;
+    
+    // Clear existing markers
+    markersGroup.forEach(m => map.removeLayer(m));
+    markersGroup = [];
+    
+    const labels = UI_LABELS_MAP[activeLang];
+    
+    INITIAL_OUTBREAKS.forEach(ob => {
+        const pinColor = ob.severity === "High" ? "#d90429" : (ob.severity === "Medium" ? "#f77f00" : "#40916c");
+        
+        // Dynamic custom colored SVG marker icon
+        const svgIcon = L.divIcon({
+            html: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="${pinColor}"/>
+                   </svg>`,
+            className: 'custom-pin',
+            iconSize: [24, 24],
+            iconAnchor: [12, 24]
+        });
+        
+        const cropName = activeLang === 'en' ? ob.crop : (ob.crop === "Tomato" ? "ટામેટા" : ob.crop === "Potato" ? "બટાકા" : ob.crop === "Cotton" ? "કપાસ" : "મગફળી");
+        const diseaseName = activeLang === 'en' ? ob.diseaseEn : ob.diseaseGu;
+        const locationName = activeLang === 'en' ? ob.location : (ob.location === "Anand" ? "આણંદ" : ob.location === "Rajkot" ? "રાજકોટ" : ob.location === "Mehsana" ? "મહેસાણા" : "જૂનાગઢ");
+        const severityWord = ob.severity === "High" ? labels.sevHigh : (ob.severity === "Medium" ? labels.sevMed : labels.sevLow);
+
+        const popupContent = `
+            <div style="font-family: inherit; font-size: 13px;">
+                <strong style="color: #1b4332; font-size: 14px;">📍 ${locationName}</strong><br>
+                <strong>${labels.cropWord}:</strong> ${cropName}<br>
+                <strong>${labels.diseaseWord}:</strong> <span style="color: #b7094c; font-weight: bold;">${diseaseName}</span><br>
+                <strong>${labels.severityWord}:</strong> <span style="color: ${pinColor}; font-weight: bold;">${severityWord}</span>
+            </div>
+        `;
+        
+        const marker = L.marker([ob.lat, ob.lng], { icon: svgIcon }).bindPopup(popupContent).addTo(map);
+        markersGroup.push(marker);
+    });
+}
+
+// Handle outbreak report form submission
+document.getElementById('outbreak-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const crop = document.getElementById('formCrop').value;
+    const disease = document.getElementById('formDisease').value.trim();
+    const severity = document.getElementById('formSeverity').value;
+    
+    const labels = UI_LABELS_MAP[activeLang];
+    
+    if (!disease) {
+        alert(labels.alertError);
+        return;
+    }
+    
+    // Simulate reporting at farmer's current GPS location (with slight random offset inside Gujarat)
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            // Add to database array
+            INITIAL_OUTBREAKS.push({
+                lat: lat,
+                lng: lng,
+                crop: crop,
+                diseaseEn: disease,
+                diseaseGu: disease,
+                severity: severity,
+                location: activeLang === 'en' ? "Current Location" : "ચાલુ સ્થાન"
+            });
+            
+            drawMapMarkers();
+            alert(labels.alertSuccess);
+            document.getElementById('formDisease').value = "";
+        },
+        () => {
+            // Fallback default coordinates (near Ahmedabad) if GPS permission is denied
+            const lat = 23.0225 + (Math.random() - 0.5) * 0.5;
+            const lng = 72.5714 + (Math.random() - 0.5) * 0.5;
+            
+            INITIAL_OUTBREAKS.push({
+                lat: lat,
+                lng: lng,
+                crop: crop,
+                diseaseEn: disease,
+                diseaseGu: disease,
+                severity: severity,
+                location: activeLang === 'en' ? "Simulated Farm" : "ખેતર"
+            });
+            
+            drawMapMarkers();
+            alert(labels.alertSuccess);
+            document.getElementById('formDisease').value = "";
+        }
+    );
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguageToggle();
+    updatePageLanguage();
+    initMap();
+});
+</script>
+
+</body>
+</html>

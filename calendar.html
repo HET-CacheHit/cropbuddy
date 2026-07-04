@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crop Buddy - Crop Lifecycle Calendar / પાક સમયપત્રક આયોજક</title>
+    <title>Crop Buddy - Crop Stage Calendar / પાક કેલેન્ડર સમયપત્રક</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -18,6 +18,9 @@
                     <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
                     <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
                     <li><a href="calendar.html" class="active" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" id="nav-map">Outbreak Map</a></li>
                     <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
                 </ul>
                 <!-- Global Language Switcher -->
@@ -29,35 +32,29 @@
         </div>
     </header>
 
-    <section class="analyze-section" style="min-height: 85vh; padding: 60px 20px;">
-        <div class="analyze-container" style="max-width: 750px; text-align: center;">
+    <section class="analyze-section" style="min-height: 85vh; padding: 40px 20px;">
+        <div class="analyze-container" style="max-width: 900px; text-align: center;">
             <div style="font-size: 50px; margin-bottom: 15px;">🗓️</div>
-            <h2 id="calendar-title" style="color: #1b4332; font-size: 28px; font-weight: 700; margin-bottom: 10px;">Crop Calendar Planner</h2>
-            <p id="calendar-desc" style="color: #666; margin-bottom: 30px; font-size: 15px;">Plan your crop lifecycle milestones from sowing to harvest and check for dynamic disease warnings.</p>
-            
-            <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); text-align: left; border: 1px solid #e2f3e8;">
-                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
-                    <div style="flex: 1; min-width: 200px;">
-                        <label for="planCropSelect" id="label-select-crop" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Select Crop</label>
-                        <select id="planCropSelect" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
-                            <option value="tomato" id="opt-tomato">Tomato</option>
-                            <option value="potato" id="opt-potato">Potato</option>
-                            <option value="corn" id="opt-corn">Corn</option>
-                        </select>
-                    </div>
-                    <div style="flex: 1; min-width: 200px;">
-                        <label for="sowingDateInput" id="label-sowing-date" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Sowing Date</label>
-                        <input id="sowingDateInput" type="date" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
-                    </div>
+            <h2 id="calendar-title" style="color: #1b4332; font-size: 28px; font-weight: 700; margin-bottom: 10px;">Crop Growth Lifecycle Calendar</h2>
+            <p id="calendar-desc" style="color: #666; margin-bottom: 30px; font-size: 15px;">Track development milestones for different crops and view dynamic warnings about potential disease threats at each stage.</p>
+
+            <div style="background-color: #ffffff; padding: 20px 25px; border-radius: 8px; border: 1px solid #e2f3e8; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px;">
+                    <label for="calendarCropSelect" id="label-choose-crop" style="font-weight: 600; color: #1b4332; font-size: 14.5px;">Select Crop</label>
+                    <select id="calendarCropSelect" style="padding: 10px 15px; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; font-size: 14px; flex: 1;">
+                        <option value="tomato" id="opt-tomato">Tomato (ટામેટા)</option>
+                        <option value="potato" id="opt-potato">Potato (બટાકા)</option>
+                        <option value="corn" id="opt-corn">Corn (મકાઈ)</option>
+                    </select>
                 </div>
-                
-                <button id="generate-plan-btn" type="button" class="btn-submit" style="padding: 12px 24px; font-weight: bold; width: 100%; background-color: #1b4332; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; margin-top: 0; font-family: inherit; transition: background 0.2s;">Generate Timeline</button>
-                
-                <!-- Milestones Output Container -->
-                <div id="calendar-timeline-container" style="display: none; margin-top: 35px;">
-                    <h4 id="label-timeline-header" style="color: #1b4332; margin-bottom: 20px; font-size: 16px; border-bottom: 2px dashed #e2f3e8; padding-bottom: 10px; font-weight: 700;">Lifecycle Milestones & Advisory:</h4>
-                    <div id="calendar-timeline" style="position: relative; padding-left: 25px; border-left: 2px solid #e2f3e8; margin-left: 10px; text-align: left;"></div>
+                <div style="font-size: 13.5px; font-weight: 600; color: #40916c;" id="label-stages-count">
+                    4 Development Stages
                 </div>
+            </div>
+
+            <!-- Stages Timeline Output Box -->
+            <div id="timeline-container" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+                <!-- Timeline Stages will populate here dynamically -->
             </div>
         </div>
     </section>
@@ -76,101 +73,148 @@ const UI_LABELS_CALENDAR = {
         navAnalyze: "Analyze Leaf",
         navWeather: "Weather Advisor",
         navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
         navAdvisor: "AI Advisor",
-        title: "Crop Calendar Planner",
-        desc: "Plan your crop lifecycle milestones from sowing to harvest and check for dynamic disease warnings.",
-        selectCrop: "Select Crop",
-        sowingDate: "Sowing Date",
-        generateBtn: "Generate Timeline",
-        timelineHeader: "Lifecycle Milestones & Advisory:",
-        currentPhaseBadge: "CURRENT PHASE",
-        alertDate: "Please select a valid date.",
-        advisoryLabel: "Advisory",
-        daysLabel: "Day",
-        cropTomato: "Tomato",
-        cropPotato: "Potato",
-        cropCorn: "Corn"
+        title: "Crop Growth Lifecycle Calendar",
+        desc: "Track development milestones for different crops and view dynamic warnings about potential disease threats at each stage.",
+        chooseCrop: "Select Crop:",
+        stagesCount: "Development Stages",
+        cTomato: "Tomato",
+        cPotato: "Potato",
+        cCorn: "Corn",
+        diseaseHeader: "⚠️ Stage Specific Disease Risks:",
+        activitiesHeader: "📋 Recommended Farming Operations:"
     },
     gu: {
         navHome: "હોમ",
         navAnalyze: "પાક રોગ ઓળખકર્તા",
         navWeather: "હવામાન સલાહકાર",
         navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
         navAdvisor: "એઆઈ સલાહકાર",
-        title: "પાક સમયપત્રક આયોજક",
-        desc: "વાવણીથી લણણી સુધીના તમારા પાક સમયપત્રકના તબક્કાઓનું આયોજન કરો અને પાક વધવા દરમિયાન રોગોની આગોતરી ચેતવણીઓ મેળવો.",
-        selectCrop: "પાક પસંદ કરો",
-        sowingDate: "વાવણી તારીખ",
-        generateBtn: "સમયરેખા બનાવો",
-        timelineHeader: "વિકાસ તબક્કા અને કૃષિ સલાહ:",
-        currentPhaseBadge: "સક્રિય તબક્કો",
-        alertDate: "કૃપા કરીને સાચી તારીખ પસંદ કરો.",
-        advisoryLabel: "ખાસ સૂચના",
-        daysLabel: "દિવસ",
-        cropTomato: "ટામેટા",
-        cropPotato: "બટાકા",
-        cropCorn: "મકાઈ"
+        title: "પાક સમયપત્રક આયોજક (કેલેન્ડર)",
+        desc: "વાવણીથી લણણી સુધીના તબક્કાઓનું આયોજન કરો અને પાકના વિકાસ દરમિયાન રોગની સંભવિત ચેતવણીઓ મેળવો.",
+        chooseCrop: "પાક પસંદ કરો:",
+        stagesCount: "વિકાસ તબક્કાઓ",
+        cTomato: "ટામેટા",
+        cPotato: "બટાકા",
+        cCorn: "મકાઈ",
+        diseaseHeader: "⚠️ આ તબક્કામાં સંભવિત પાક રોગો:",
+        activitiesHeader: "📋 આ તબક્કાની મુખ્ય ભલામણ કરેલ ખેતી પદ્ધતિઓ:"
     }
 };
 
-const CALENDAR_DATA_EN = {
+const CROP_STAGES_DATA = {
     tomato: [
-        { days: 14, title: "Transplanting Stage", desc: "Transplant nursery seedlings into main field. Irrigate immediately.", warn: "Check for damping-off or early leaf spots." },
-        { days: 28, title: "Vegetative Development", desc: "Weed the area and apply Nitrogen-rich fertilizer (Urea).", warn: "Monitor for whiteflies which transmit Mosaic/Leaf Curl Virus." },
-        { days: 45, title: "Flowering Phase", desc: "Ensure soil remains moist. Spray neem oil to repel sucking pests.", warn: "Early leaf mold check. Look under lower leaves." },
-        { days: 65, title: "Fruiting Stage", desc: "Apply potassium-rich fertilizers. Maintain uniform irrigation.", warn: "Spray copper-based fungicides if Early Blight spots appear." },
-        { days: 85, title: "Harvesting Milestones", desc: "Harvest ripe red tomatoes. Sort and store in shaded boxes.", warn: "Avoid post-harvest decay by storing in dry conditions." }
+        {
+            stageNameEn: "Stage 1: Seedling & Transplant (Days 1-25)",
+            stageNameGu: "તબક્કો ૧: ધરૂવાડિયું અને ફેરરોપણી (૧ થી ૨૫ દિવસ)",
+            activitiesEn: "Ensure proper soil preparation, transplant seedlings on raised beds, apply light starter fertilizer rich in phosphorus, and water regularly.",
+            activitiesGu: "જમીનની સારી તૈયારી કરો, ગાદી ક્યારા પર ધરૂની ફેરરોપણી કરો, ફોસ્ફરસ યુક્ત ખાતર આપો અને નિયમિત હળવું પાણી આપો.",
+            diseasesEn: "Damping-off, Pythium root rot, early onset of Bacterial Spot.",
+            diseasesGu: "ધરૂનો સુકારો (ડિમ્પિંગ ઓફ), પીથિયમ મૂળનો સડો, બેક્ટેરિયલ ટપકાનો રોગ."
+        },
+        {
+            stageNameEn: "Stage 2: Vegetative Growth (Days 26-50)",
+            stageNameGu: "તબક્કો ૨: વાનસ્પતિક વૃદ્ધિ (૨૬ થી ૫૦ દિવસ)",
+            activitiesEn: "Stake and tie plants for structural support, prune side shoots (suckers), spray safety-checked preventive copper fungicides, apply balanced Nitrogen fertilizer.",
+            activitiesGu: "છોડને ટેકો આપો (વેલા બાંધવા), વધારાની ડાળીઓની કાપણી કરો, સુરક્ષિત તાપમાન જોઈ કોપર યુક્ત ફૂગનાશકનો છંટકાવ કરો, સપ્રમાણ નાઈટ્રોજન ખાતર આપો.",
+            diseasesEn: "Early Blight, Late Blight, Septoria Leaf Spot, Leaf Mold.",
+            diseasesGu: "આગતરો સુકારો, પાછતરો સુકારો, સેપ્ટોરિયા પાનના ટપકા, પર્ણ ફૂગ."
+        },
+        {
+            stageNameEn: "Stage 3: Flowering & Fruit Set (Days 51-80)",
+            stageNameGu: "તબક્કો ૩: ફૂલ અને ફળ બેસવા (૫૧ થી ૮૦ દિવસ)",
+            activitiesEn: "Maintain consistent soil moisture to prevent blossom end rot, spray calcium sprays if needed, monitor for whiteflies and aphids.",
+            activitiesGu: "ફળમાં સડો અટકાવવા ભેજ જાળવી રાખો, કેલ્શિયમનો છંટકાવ કરવો, મોલોમશી અને સફેદ માખીનો ઉપદ્રવ ચકાસતા રહો.",
+            diseasesEn: "Blossom End Rot, Tomato Yellow Leaf Curl Virus (transmitted by Whiteflies), Spider Mites.",
+            diseasesGu: "કેલ્શિયમની ખામીથી ફળનો સડો, પર્ણ વલન કોકડવો વાયરસ (સફેદ માખી દ્વારા ફેલાતો), લાલ કરોળિયા."
+        },
+        {
+            stageNameEn: "Stage 4: Harvesting & Storage (Days 81-120)",
+            stageNameGu: "તબક્કો ૪: ફળની લણણી અને સંગ્રહ (૮૧ થી ૧૨૦ દિવસ)",
+            activitiesEn: "Pick mature green or red ripe tomatoes carefully, stop chemical pesticide spraying 7-10 days before picking, store in cool aerated crates.",
+            activitiesGu: "પરિપક્વ લાલ કે લીલા ટામેટા કાળજીપૂર્વક ઉતારો, લણણીના ૧૦ દિવસ પહેલા દવાનો છંટકાવ બંધ કરો, ઠંડી અને હવાઉજાસવાળી જગ્યાએ સંગ્રહ કરો.",
+            diseasesEn: "Late Blight fruit rot, Anthracnose, Fruit Borer damage.",
+            diseasesGu: "પાછતરો સુકારો ફળનો સડો, એન્થ્રેકનોઝ (કાઢા ટપકા), ફળ કોરી ખાનાર ઇયળ."
+        }
     ],
     potato: [
-        { days: 15, title: "Sprouting Phase", desc: "Tuber sprouts emerge above soil. Keep soil loose.", warn: "Check for cutworms or soil pests." },
-        { days: 35, title: "Stolon & Tuber Initiation", desc: "Apply Nitrogen fertilizer and execute first earthing-up (hilling).", warn: "Late blight warning. Highly critical phase if rain occurs." },
-        { days: 55, title: "Tuber Bulking", desc: "Maintain optimal irrigation. Prevent dry-wet soil oscillations.", warn: "Monitor for Early Blight. Check lower leaves." },
-        { days: 75, title: "Maturation Phase", desc: "Stop watering 10 days before harvest to allow tuber skins to harden.", warn: "Check tuber skins for common scab." },
-        { days: 95, title: "Harvesting Phase", desc: "Dig tubers carefully to avoid scratching skins. Keep in dark storage.", warn: "Avoid storing damaged tubers." }
+        {
+            stageNameEn: "Stage 1: Sprouting & Emergence (Days 1-30)",
+            stageNameGu: "તબક્કો ૧: ઉગાવો અને બહાર નીકળવું (૧ થી ૩૦ દિવસ)",
+            activitiesEn: "Plant healthy certified seed tubers, maintain optimal field moisture, apply basal dose of DAP and Organic manure.",
+            activitiesGu: "પ્રમાણિત ગુણવત્તાવાળા બિયારણ બટાકા વાવો, ખેતરમાં સારો ભેજ જાળવો, ડી.એ.પી (DAP) અને સેન્દ્રિય ખાતરનો પાયાનો ડોઝ આપો.",
+            diseasesEn: "Seed piece decay, Rhizoctonia stem canker.",
+            diseasesGu: "કાળા ચામડીનો રોગ, રાઈઝોક્ટોનિયા મૂળનો સડો."
+        },
+        {
+            stageNameEn: "Stage 2: Stolon & Tuber Initiation (Days 31-60)",
+            stageNameGu: "તબક્કો ૨: સ્ટોલોન અને ગાંઠો બનવી (૩૧ થી ૬૦ દિવસ)",
+            activitiesEn: "Perform hilling (earthing up soil) to cover developing tubers, spray preventive systemic fungicides, ensure no water logging.",
+            activitiesGu: "બટાકાને જમીનથી ઢાંકવા માટી ચડાવવાનું કામ કરો, અગમચેતી રૂપે ફૂગનાશકનો છંટકાવ કરો, ખેતરમાં પાણી ભરાવા ન દેવું.",
+            diseasesEn: "Early Blight, Late Blight, Blackleg bacterial rot.",
+            diseasesGu: "આગતરો સુકારો, પાછતરો સુકારો, થડનો કાળો કોહવારો."
+        },
+        {
+            stageNameEn: "Stage 3: Tuber Bulking (Days 61-90)",
+            stageNameGu: "તબક્કો ૩: બટાકાનો વિકાસ અને કદ વધવું (૬૧ થી ૯૦ દિવસ)",
+            activitiesEn: "Ensure maximum potash supply, monitor weather for high humidity/low temperature which triggers blight outbreaks.",
+            activitiesGu: "પોટાશ ખાતર પૂરતા પ્રમાણમાં આપો, વાદળછાયું કે ભેજવાળું હવામાન હોય ત્યારે સુકારાના ઉપદ્રવ પર ખાસ નજર રાખો.",
+            diseasesEn: "Late Blight epidemic, Scab on tubers, Potato Virus Y.",
+            diseasesGu: "પાછતરા સુકારાનો રોગચાળો, બટાકાની ચામડીનો ભીંગડા રોગ, પોટેટો વાયરસ Y."
+        },
+        {
+            stageNameEn: "Stage 4: Maturation & Harvesting (Days 91-120)",
+            stageNameGu: "તબક્કો ૪: પાકની પરિપક્વતા અને લણણી (૯૧ થી ૧૨૦ દિવસ)",
+            activitiesEn: "Perform dehaulming (cut potato vines/foliage) 10-14 days before harvest to harden the tuber skin, harvest in dry soil.",
+            activitiesGu: "લણણીના ૧૦-૧૪ દિવસ પહેલા બટાકાના વેલા કાપી નાખો (વેલા કાપણી) જેથી બટાકાની ચામડી કઠણ બને, સૂકી માટીમાં લણણી કરો.",
+            diseasesEn: "Tuber rot, Fusarium dry rot, skin bruising.",
+            diseasesGu: "બટાકાનો કોહવારો, ફ્યુઝેરિયમ સુકો સડો, ચામડી છોલાઈ જવી."
+        }
     ],
     corn: [
-        { days: 15, title: "Seedling Growth", desc: "Apply starter fertilizer. Watch out for weeds.", warn: "Check for seedling blight." },
-        { days: 40, title: "Knee-High Stage", desc: "Execute side-dressing with Nitrogen fertilizer. Irrigate heavily.", warn: "Common rust check. Look for orange powdery spots." },
-        { days: 65, title: "Tasseling & Silking", desc: "Ensure high moisture. Pollination happens during this phase.", warn: "Northern Leaf Blight warning if weather is humid." },
-        { days: 90, title: "Grain Fill", desc: "Kernels mature. Corn cobs grow plump and firm.", warn: "Stalk rot inspection." },
-        { days: 110, title: "Physiological Maturity", desc: "Corn husks turn dry and brown. Safe for harvesting.", warn: "Keep dry to prevent grain molds." }
+        {
+            stageNameEn: "Stage 1: Germination & Early Leaf stages (Days 1-25)",
+            stageNameGu: "તબક્કો ૧: અંકુરણ અને પાંદડા આવવા (૧ થી ૨૫ દિવસ)",
+            activitiesEn: "Sow seeds at correct depth, clear early weeds, apply light Nitrogen dosage.",
+            activitiesGu: "યોગ્ય ઊંડાઈએ બીજની વાવણી કરો, નીંદણ નિયંત્રણ કરો, શરૂઆતનો હળવો નાઇટ્રોજન આપો.",
+            diseasesEn: "Seedling blight, Pythium damping off.",
+            diseasesGu: "ધરૂનો કોહવારો, પીથિયમ સુકારો."
+        },
+        {
+            stageNameEn: "Stage 2: Rapid Vegetative growth & Tasseling (Days 26-55)",
+            stageNameGu: "તબક્કો ૨: વાનસ્પતિક વૃદ્ધિ અને ચમરી આવવી (૨૬ થી ૫૫ દિવસ)",
+            activitiesEn: "Apply second dose of Urea, monitor leaf undersides for rust spots, maintain irrigation during vegetative peaks.",
+            activitiesGu: "બીજો યુરિયાનો ડોઝ આપો, પાંદડાની નીચે ગેરુના લાલ ટપકા ચકાસો, મકાઈના ઝડપી વિકાસના તબક્કે નિયમિત પિયત આપો.",
+            diseasesEn: "Common Rust, Northern Leaf Blight, Cercospora Gray Leaf Spot.",
+            diseasesGu: "ગેરુનો રોગ, ઉત્તરી પાનનો સુકારો, પર્ણ ટપકાનો ગ્રે સ્પોટ રોગ."
+        },
+        {
+            stageNameEn: "Stage 3: Silking & Ear formation (Days 56-85)",
+            stageNameGu: "તબક્કો ૩: રેશમ રેશા અને ડોડા બનવા (૫૬ થી ૮૫ દિવસ)",
+            activitiesEn: "Maintain moisture at silking stage to ensure full grain filling, check for fall armyworm larvae inside whorls.",
+            activitiesGu: "ડોડામાં પૂરા દાણા ભરાવવા રેશાના તબક્કે ભેજ જાળવો, પાનની વચ્ચે લશ્કરી ઇયળ (આર્મીવોર્મ) નો ઉપદ્રવ ચકાસો.",
+            diseasesEn: "Common Smut, Ear rot, Stem Borer damage.",
+            diseasesGu: "કોલસાનો રોગ (સ્મટ), ડોડાનો સડો, ગુલાબી ઇયળ કે કાનસલીનો ઉપદ્રવ."
+        },
+        {
+            stageNameEn: "Stage 4: Maturity & Grain Drying (Days 86-110)",
+            stageNameGu: "તબક્કો ૪: પાકની પરિપક્વતા અને દાણા સૂકવવા (૮૬ થી ૧૧૦ દિવસ)",
+            activitiesEn: "Allow ears to dry on stalk until moisture is below 15-20%, harvest, shell grains and store in moisture-proof bags.",
+            activitiesGu: "ડોડા સુકાઈ જાય ત્યાં સુધી ઉભા પાકમાં રહેવા દો, દાણા છૂટા કરો (લણણી) અને ભેજ રહિત કોથળાઓમાં સંગ્રહ કરો.",
+            diseasesEn: "Aflatoxin mold, stalk rot.",
+            diseasesGu: "ડોડાની ઝેરી ફૂગ (એફલાટોક્સિન), થડનો સડો."
+        }
     ]
 };
 
-const CALENDAR_DATA_GU = {
-    tomato: [
-        { days: 14, title: "ધરૂ રોપણી તબક્કો", desc: "ધરૂવાડિયાના રોપાને મુખ્ય ખેતરમાં રોપો અને તરત જ પિયત (પાણી) આપો.", warn: "ધરૂ નમી પડવાના રોગ અથવા પાન પર શરૂઆતી ટપકાં માટે તપાસો." },
-        { days: 28, title: "છોડનો વાનસ્પતિક વિકાસ", desc: "ખેતરમાંથી નિંદામણ કરો અને નાઇટ્રોજનયુક્ત ખાતર (યુરિયા) આપો.", warn: "સફેદ માખીઓ પર દેખરેખ રાખો જે કોકડવો (મોઝેક વાયરસ) ફેલાવે છે." },
-        { days: 45, title: "ફૂલ આવવાનો તબક્કો", desc: "જમીનમાં ભેજ જાળવી રાખો. ચુસિયા પ્રકારની જીવાતોને રોકવા લીંબોળીના તેલનો છંટકાવ કરો.", warn: "પાનની ફૂગ અને લાલ કરોળિયા માટે પાનની નીચેની સપાટી તપાસો." },
-        { days: 65, title: "ફળ બેસવાનો તબક્કો", desc: "પોટાશયુક્ત ખાતર આપો. નિયમિત સમય અંતરે પિયત જાળવી રાખો.", warn: "જો પાન પર આગતરા સુકારાના કાળા ગોળ ટપકાં દેખાય તો કોપરયુક્ત દવા છાંટો." },
-        { days: 85, title: "પાક લણણી", desc: "પાકેલા લાલ ટામેટાં ઉતારો. કાળજીપૂર્વક છાંયડા વાળા બોક્સમાં સંગ્રહ કરો.", warn: "દૂષિત કે ખરાબ ફળો અલગ કરી સૂકી જગ્યાએ સંગ્રહ કરો જેથી બગાડ ન થાય." }
-    ],
-    potato: [
-        { days: 15, title: "અંકુરણ તબક્કો", desc: "બટાકાના અંકુર જમીનની બહાર નીકળે છે. માટી પોચી રાખો.", warn: "ધણિયા જીવાત કે જમીનના કીડાની તપાસ કરો." },
-        { days: 35, title: "કંદ નિર્માણ શરૂઆત", desc: "નાઇટ્રોજન ખાતર આપો અને છોડના થડની આજુબાજુ માટી ચડાવો.", warn: "પાછતરો સુકારો (લેટ બ્લાઇટ) ની ચેતવણી. જો ભેજવાળું વાતાવરણ હોય તો ખાસ ધ્યાન રાખો." },
-        { days: 55, title: "કંદ મોટો થવાનો તબક્કો", desc: "અનુકૂળ પિયત આપો. જમીનને વધુ સમય સૂકી ન રહેવા દેશો.", warn: "આગતરા સુકારા પર નજર રાખો. નીચલા પાન તપાસો." },
-        { days: 75, title: "પાક પકવવાની સ્થિતિ", desc: "બટાકાની છાલ કડક અને મજબૂત બને તે માટે લણણીના ૧૦ દિવસ પહેલા પાણી આપવાનું બંધ કરો.", warn: "બટાકા પર સામાન્ય ભીંગડા રોગ માટે તપાસ કરો." },
-        { days: 95, title: "બટાકાની લણણી તબક્કો", desc: "છાલ છોલાઈ ન જાય તે રીતે કાળજીપૂર્વક બટાકા ખોદી કાઢો. અંધારા રૂમમાં સંગ્રહ કરો.", warn: "બગડેલા કે સડેલા બટાકા અલગ રાખો." }
-    ],
-    corn: [
-        { days: 15, title: "રોપાનો વિકાસ તબક્કો", desc: "શરૂઆતી પોષક ખાતર આપો. નિંદામણ પર ધ્યાન આપો.", warn: "રોપાઓ કરમાઈ જવાના રોગ માટે તપાસ કરો." },
-        { days: 40, title: "ઘૂંટણ સમાન ઉંચાઈ", desc: "યુરિયા ખાતરનો હપ્તો આપો અને ભારે પિયત આપો.", warn: "ગેરુ (કાટ રોગ) માટે પાનની સપાટી પર નારંગી પાવડર જેવા ટપકા તપાસો." },
-        { days: 65, title: "મોર અને ચમરી આવવા", desc: "જમીનમાં પૂરતો ભેજ રાખો. આ તબક્કે પરાગનયનની પ્રક્રિયા થાય છે.", warn: "જો વાતાવરણ ભેજવાળું હોય તો પાનનો સુકારો રોગ આવી શકે છે." },
-        { days: 90, title: "દાણા ભરાવાનો તબક્કો", desc: "મકાઈના ડોડામાં દૂધિયા દાણા ભરાય છે. છોડને નમી જતો અટકાવો.", warn: "કાળજીપૂર્વક થડના સડાની તપાસ કરો." },
-        { days: 110, title: "પાક લણણી તબક્કો", desc: "મકાઈના ડોડાની છાલ સૂકાઈને પીળી થાય એટલે લણણી માટે તૈયાર.", warn: "મોલ્ડ ફૂગથી બચાવવા માટે દાણાને સૂકવીને રાખો." }
-    ]
-};
-
-const planCropSelect = document.getElementById('planCropSelect');
-const sowingDateInput = document.getElementById('sowingDateInput');
-const generatePlanBtn = document.getElementById('generate-plan-btn');
-const calendarTimelineContainer = document.getElementById('calendar-timeline-container');
-const calendarTimeline = document.getElementById('calendar-timeline');
-
-// Set default sowing date to today
-sowingDateInput.value = new Date().toISOString().split('T')[0];
-
-let didGenerateReport = false;
+const calendarCropSelect = document.getElementById('calendarCropSelect');
+const timelineContainer = document.getElementById('timeline-container');
 
 function initLanguageToggle() {
     const enBtn = document.getElementById('lang-en-btn');
@@ -219,87 +263,62 @@ function updatePageLanguage() {
     document.getElementById('nav-analyze').innerText = labels.navAnalyze;
     document.getElementById('nav-weather').innerText = labels.navWeather;
     document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
     document.getElementById('nav-advisor').innerText = labels.navAdvisor;
     
-    // Headers
+    // Titles & Dropdowns
     document.getElementById('calendar-title').innerText = labels.title;
     document.getElementById('calendar-desc').innerText = labels.desc;
-    document.getElementById('label-select-crop').innerText = labels.selectCrop;
-    document.getElementById('label-sowing-date').innerText = labels.sowingDate;
-    generatePlanBtn.innerText = labels.generateBtn;
-    document.getElementById('label-timeline-header').innerText = labels.timelineHeader;
+    document.getElementById('label-choose-crop').innerText = labels.chooseCrop;
     
-    // Dropdown values
-    document.getElementById('opt-tomato').innerText = labels.cropTomato;
-    document.getElementById('opt-potato').innerText = labels.cropPotato;
-    document.getElementById('opt-corn').innerText = labels.cropCorn;
+    document.getElementById('opt-tomato').innerText = labels.cTomato;
+    document.getElementById('opt-potato').innerText = labels.cPotato;
+    document.getElementById('opt-corn').innerText = labels.cCorn;
     
-    if (didGenerateReport) {
-        renderTimeline();
-    }
+    renderTimeline();
 }
 
 function renderTimeline() {
-    const crop = planCropSelect.value;
-    const sowingDate = new Date(sowingDateInput.value);
+    const crop = calendarCropSelect.value;
+    const stages = CROP_STAGES_DATA[crop] || [];
     const labels = UI_LABELS_CALENDAR[activeLang];
     
-    if (isNaN(sowingDate.getTime())) {
-        alert(labels.alertDate);
-        return;
-    }
-    
-    const today = new Date();
-    const diffTime = today - sowingDate;
-    const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+    document.getElementById('label-stages-count').innerText = `${stages.length} ${labels.stagesCount}`;
     
     let html = "";
-    const milestones = (activeLang === 'en') ? CALENDAR_DATA_EN[crop] : CALENDAR_DATA_GU[crop];
     
-    milestones.forEach((m, idx) => {
-        const isActive = (diffDays >= (idx === 0 ? 0 : milestones[idx-1].days) && diffDays < m.days);
-        const isPast = (diffDays >= m.days);
-        
-        let markerColor = "#e0e0e0";
-        let cardBg = "#ffffff";
-        let borderStyle = "1px solid #e0e0e0";
-        
-        if (isActive) {
-            markerColor = "#1b4332";
-            cardBg = "#f4fcf7";
-            borderStyle = "2px solid #52b788";
-        } else if (isPast) {
-            markerColor = "#52b788";
-            cardBg = "#f8faf8";
-        }
+    stages.forEach((stage, idx) => {
+        const stageTitle = activeLang === 'en' ? stage.stageNameEn : stage.stageNameGu;
+        const activitiesText = activeLang === 'en' ? stage.activitiesEn : stage.activitiesGu;
+        const diseaseText = activeLang === 'en' ? stage.diseasesEn : stage.diseasesGu;
         
         html += `
-            <div style="position: relative; margin-bottom: 25px; padding: 15px; border-radius: 8px; background-color: ${cardBg}; border: ${borderStyle}; transition: all 0.3s; margin-left: 10px;">
-                <!-- Timeline Dot -->
-                <div style="position: absolute; left: -34px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background-color: ${markerColor}; border: 3px solid #ffffff; box-shadow: 0 0 0 2px ${markerColor === '#e0e0e0' ? '#f0f0f0' : markerColor}; z-index: 1;"></div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h5 style="margin: 0; color: #1b4332; font-size: 15px; font-weight: bold;">${m.title}</h5>
-                    <span style="font-size: 12px; font-weight: bold; background-color: ${isActive ? '#52b788' : '#e9ece9'}; color: ${isActive ? 'white' : '#555'}; padding: 2px 8px; border-radius: 20px;">${labels.daysLabel} ${m.days}</span>
+            <div style="background-color: #ffffff; padding: 25px; border-radius: 8px; border: 1px solid #e2f3e8; border-left: 5px solid #1b4332; box-shadow: 0 4px 12px rgba(0,0,0,0.02); display: flex; gap: 20px;">
+                <div style="font-size: 24px; font-weight: 800; color: #40916c; background-color: #f4fcf7; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #e2f3e8;">
+                    ${idx + 1}
                 </div>
-                <p style="margin: 0; font-size: 13.5px; color: #333; line-height: 1.5;">${m.desc}</p>
-                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-size: 12.5px; color: #b7094c; font-weight: bold; display: flex; align-items: center; gap: 5px;">
-                    ⚠️ ${labels.advisoryLabel}: ${m.warn}
+                <div>
+                    <h4 style="margin: 0 0 10px 0; color: #1b4332; font-size: 16px; font-weight: 700;">${stageTitle}</h4>
+                    
+                    <p style="margin: 0 0 12px 0; font-size: 13.5px; color: #555; line-height: 1.5;">
+                        <strong>${labels.activitiesHeader}</strong><br>
+                        ${activitiesText}
+                    </p>
+                    
+                    <div style="background-color: #fff8f8; padding: 10px 15px; border-radius: 5px; border: 1px solid #ffebeb; font-size: 13px; color: #d90429; font-weight: 500;">
+                        <strong>${labels.diseaseHeader}</strong> ${diseaseText}
+                    </div>
                 </div>
-                ${isActive ? `<div style="position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 700; color: #1b4332; background-color: #d8f3e5; padding: 2px 6px; border-radius: 4px;">${labels.currentPhaseBadge}</div>` : ''}
             </div>
         `;
     });
     
-    calendarTimeline.innerHTML = html;
-    calendarTimelineContainer.style.display = "block";
+    timelineContainer.innerHTML = html;
 }
 
-generatePlanBtn.addEventListener('click', () => {
-    didGenerateReport = true;
-    renderTimeline();
-    calendarTimelineContainer.scrollIntoView({ behavior: 'smooth' });
-});
+calendarCropSelect.addEventListener('change', renderTimeline);
 
 window.addEventListener('DOMContentLoaded', () => {
     initLanguageToggle();

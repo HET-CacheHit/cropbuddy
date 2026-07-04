@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Buddy - APMC Mandi Prices / માર્કેટ યાર્ડ ભાવો</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="navbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+                    <li><a href="index.html" id="nav-home">Home</a></li>
+                    <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
+                    <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
+                    <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" class="active" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" id="nav-map">Outbreak Map</a></li>
+                    <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
+                </ul>
+                <!-- Global Language Switcher -->
+                <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-left: 10px;">
+                    <button id="lang-en-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">EN</button>
+                    <button id="lang-gu-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">ગુજ</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="analyze-section" style="min-height: 85vh; padding: 40px 20px;">
+        <div class="analyze-container" style="max-width: 1000px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">📊</div>
+            <h2 id="mandi-title" style="color: #1b4332; font-size: 28px; font-weight: 700; margin-bottom: 10px;">APMC Mandi Price Tracker</h2>
+            <p id="mandi-desc" style="color: #666; margin-bottom: 30px; font-size: 15px;">Live daily market rates of major agricultural commodities in Gujarat Mandis (per 20kg / મણ).</p>
+
+            <!-- Search and Filter Panel -->
+            <div style="background-color: #ffffff; padding: 15px 25px; border-radius: 8px; border: 1px solid #e2f3e8; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+                <div style="flex: 1; min-width: 250px;">
+                    <input type="text" id="mandi-search-input" placeholder="Search Mandi or Crop..." style="padding: 10px 15px; width: 100%; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; font-size: 14px; box-sizing: border-box;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <select id="mandi-select" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: inherit; font-size: 14px;">
+                        <option value="all" id="opt-all-mandis">All Mandis</option>
+                        <option value="Rajkot">Rajkot (રાજકોટ)</option>
+                        <option value="Gondal">Gondal (ગોંડલ)</option>
+                        <option value="Unjha">Unjha (ઊંઝા)</option>
+                        <option value="Surat">Surat (સુરત)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Price Table -->
+            <div style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2f3e8; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14.5px;">
+                    <thead>
+                        <tr style="background-color: #1b4332; color: white;">
+                            <th id="th-mandi" style="padding: 12px 15px;">Mandi (માર્કેટ યાર્ડ)</th>
+                            <th id="th-crop" style="padding: 12px 15px;">Crop (પાક)</th>
+                            <th id="th-min" style="padding: 12px 15px;">Min Price (ન્યુનતમ)</th>
+                            <th id="th-max" style="padding: 12px 15px;">Max Price (મહત્તમ)</th>
+                            <th id="th-modal" style="padding: 12px 15px;">Average (સરેરાશ)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mandi-table-body">
+                        <!-- Dynamic Data Rows -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
+    </footer>
+
+<script>
+// Global Language State Manager
+let activeLang = localStorage.getItem('preferred_lang') || 'en';
+
+const UI_LABELS_MANDI = {
+    en: {
+        navHome: "Home",
+        navAnalyze: "Analyze Leaf",
+        navWeather: "Weather Advisor",
+        navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
+        navAdvisor: "AI Advisor",
+        title: "APMC Mandi Price Tracker",
+        desc: "Live daily market rates of major agricultural commodities in Gujarat Mandis (per 20kg / મણ).",
+        searchPlaceholder: "Search Mandi or Crop...",
+        allMandis: "All Mandis",
+        thMandi: "Mandi (માર્કેટ યાર્ડ)",
+        thCrop: "Crop (પાક)",
+        thMin: "Min Price (Per 20kg)",
+        thMax: "Max Price (Per 20kg)",
+        thModal: "Average Price",
+        cTomato: "Tomato",
+        cPotato: "Potato",
+        cCotton: "Cotton",
+        cGroundnut: "Groundnut",
+        cCumin: "Cumin Seeds",
+        cWheat: "Wheat"
+    },
+    gu: {
+        navHome: "હોમ",
+        navAnalyze: "પાક રોગ ઓળખકર્તા",
+        navWeather: "હવામાન સલાહકાર",
+        navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
+        navAdvisor: "એઆઈ સલાહકાર",
+        title: "એ.પી.એમ.સી માર્કેટ યાર્ડ ભાવો",
+        desc: "ગુજરાત માર્કેટ યાર્ડના મુખ્ય કૃષિ ઉત્પાદનોના દૈનિક બજાર ભાવો (૨૦ કિલો / મણ દીઠ).",
+        searchPlaceholder: "માર્કેટ યાર્ડ અથવા પાક શોધો...",
+        allMandis: "બધા યાર્ડ",
+        thMandi: "માર્કેટ યાર્ડ",
+        thCrop: "કૃષિ પાક",
+        thMin: "ન્યુનતમ ભાવ (૨૦ કિલો દીઠ)",
+        thMax: "મહત્તમ ભાવ (૨૦ કિલો દીઠ)",
+        thModal: "સરેરાશ ભાવ",
+        cTomato: "ટામેટા",
+        cPotato: "બટાકા",
+        cCotton: "કપાસ (નવો)",
+        cGroundnut: "મગફળી",
+        cCumin: "જીરું",
+        cWheat: "ઘઉં"
+    }
+};
+
+const MANDI_DATA = [
+    { location: "Rajkot", cropEn: "Cotton", cropGu: "કપાસ (નવો)", min: 1350, max: 1680 },
+    { location: "Rajkot", cropEn: "Groundnut", cropGu: "મગફળી", min: 1100, max: 1450 },
+    { location: "Rajkot", cropEn: "Wheat", cropGu: "ઘઉં", min: 460, max: 530 },
+    { location: "Gondal", cropEn: "Cotton", cropGu: "કપાસ (નવો)", min: 1380, max: 1710 },
+    { location: "Gondal", cropEn: "Groundnut", cropGu: "મગફળી", min: 1120, max: 1480 },
+    { location: "Gondal", cropEn: "Tomato", cropGu: "ટામેટા", min: 300, max: 850 },
+    { location: "Unjha", cropEn: "Cumin Seeds", cropGu: "જીરું", min: 9500, max: 12400 },
+    { location: "Unjha", cropEn: "Mustard Seeds", cropGu: "રાયડો", min: 950, max: 1200 },
+    { location: "Surat", cropEn: "Tomato", cropGu: "ટામેટા", min: 350, max: 900 },
+    { location: "Surat", cropEn: "Potato", cropGu: "બટાકા", min: 280, max: 480 },
+    { location: "Surat", cropEn: "Wheat", cropGu: "ઘઉં", min: 480, max: 550 }
+];
+
+const mandiSearchInput = document.getElementById('mandi-search-input');
+const mandiSelect = document.getElementById('mandi-select');
+const mandiTableBody = document.getElementById('mandi-table-body');
+
+function initLanguageToggle() {
+    const enBtn = document.getElementById('lang-en-btn');
+    const guBtn = document.getElementById('lang-gu-btn');
+    
+    if (!enBtn || !guBtn) return;
+    
+    function applyBtnStyles() {
+        if (activeLang === 'en') {
+            enBtn.style.backgroundColor = '#1b4332';
+            enBtn.style.color = 'white';
+            guBtn.style.backgroundColor = 'transparent';
+            guBtn.style.color = '#1b4332';
+        } else {
+            guBtn.style.backgroundColor = '#1b4332';
+            guBtn.style.color = 'white';
+            enBtn.style.backgroundColor = 'transparent';
+            enBtn.style.color = '#1b4332';
+        }
+    }
+    
+    applyBtnStyles();
+    
+    enBtn.addEventListener('click', () => {
+        if (activeLang === 'en') return;
+        activeLang = 'en';
+        localStorage.setItem('preferred_lang', 'en');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+    
+    guBtn.addEventListener('click', () => {
+        if (activeLang === 'gu') return;
+        activeLang = 'gu';
+        localStorage.setItem('preferred_lang', 'gu');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+}
+
+function updatePageLanguage() {
+    const labels = UI_LABELS_MANDI[activeLang];
+    
+    // Navbar
+    document.getElementById('nav-home').innerText = labels.navHome;
+    document.getElementById('nav-analyze').innerText = labels.navAnalyze;
+    document.getElementById('nav-weather').innerText = labels.navWeather;
+    document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
+    document.getElementById('nav-advisor').innerText = labels.navAdvisor;
+    
+    // Titles & Tables
+    document.getElementById('mandi-title').innerText = labels.title;
+    document.getElementById('mandi-desc').innerText = labels.desc;
+    mandiSearchInput.placeholder = labels.searchPlaceholder;
+    document.getElementById('opt-all-mandis').innerText = labels.allMandis;
+    
+    document.getElementById('th-mandi').innerText = labels.thMandi;
+    document.getElementById('th-crop').innerText = labels.thCrop;
+    document.getElementById('th-min').innerText = labels.thMin;
+    document.getElementById('th-max').innerText = labels.thMax;
+    document.getElementById('th-modal').innerText = labels.thModal;
+    
+    renderMandiTable();
+}
+
+function renderMandiTable() {
+    const searchVal = mandiSearchInput.value.toLowerCase();
+    const filterMandi = mandiSelect.value;
+    
+    let html = "";
+    
+    MANDI_DATA.forEach(row => {
+        const matchesMandi = (filterMandi === "all" || row.location === filterMandi);
+        const cropName = activeLang === 'en' ? row.cropEn : row.cropGu;
+        const matchesSearch = row.location.toLowerCase().includes(searchVal) || cropName.toLowerCase().includes(searchVal);
+        
+        if (matchesMandi && matchesSearch) {
+            const avg = Math.round((row.min + row.max) / 2);
+            
+            html += `
+                <tr style="border-bottom: 1px solid #f0fdf4; transition: background 0.2s;">
+                    <td style="padding: 12px 15px; color: #1b4332; font-weight: bold;">
+                        ${row.location === "Rajkot" ? (activeLang === 'en' ? 'Rajkot' : 'રાજકોટ') :
+                          row.location === "Gondal" ? (activeLang === 'en' ? 'Gondal' : 'ગોંડલ') :
+                          row.location === "Unjha" ? (activeLang === 'en' ? 'Unjha' : 'ઊંઝા') : (activeLang === 'en' ? 'Surat' : 'સુરત')}
+                    </td>
+                    <td style="padding: 12px 15px; font-weight: 500;">${cropName}</td>
+                    <td style="padding: 12px 15px; color: #666;">₹ ${row.min}</td>
+                    <td style="padding: 12px 15px; color: #b7094c; font-weight: bold;">₹ ${row.max}</td>
+                    <td style="padding: 12px 15px; color: #1b4332; font-weight: bold; background-color: #f4fcf7;">₹ ${avg}</td>
+                </tr>
+            `;
+        }
+    });
+    
+    mandiTableBody.innerHTML = html || `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #888;">No price records found. / કોઈ પરિણામ મળ્યા નથી.</td></tr>`;
+}
+
+mandiSearchInput.addEventListener('input', renderMandiTable);
+mandiSelect.addEventListener('change', renderMandiTable);
+
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguageToggle();
+    updatePageLanguage();
+});
+</script>
+
+</body>
+</html>

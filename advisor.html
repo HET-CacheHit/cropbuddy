@@ -18,6 +18,9 @@
                     <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
                     <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
                     <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" id="nav-map">Outbreak Map</a></li>
                     <li><a href="advisor.html" class="active" id="nav-advisor">AI Advisor</a></li>
                 </ul>
                 <!-- Global Language Switcher -->
@@ -84,6 +87,9 @@ const UI_LABELS_ADVISOR = {
         navAnalyze: "Analyze Leaf",
         navWeather: "Weather Advisor",
         navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
         navAdvisor: "AI Advisor",
         title: "💬 AI Crop Advisor",
         desc: "Ask crop care, disease treatment, or fertilizer management questions.",
@@ -105,6 +111,9 @@ const UI_LABELS_ADVISOR = {
         navAnalyze: "પાક રોગ ઓળખકર્તા",
         navWeather: "હવામાન સલાહકાર",
         navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
         navAdvisor: "એઆઈ સલાહકાર",
         title: "💬 એઆઈ પાક સલાહકાર",
         desc: "પાકની સંભાળ, રોગ નિયંત્રણ, અથવા ખાતર વ્યવસ્થાપનના પ્રશ્નો પૂછો.",
@@ -194,6 +203,9 @@ function updatePageLanguage() {
     document.getElementById('nav-analyze').innerText = labels.navAnalyze;
     document.getElementById('nav-weather').innerText = labels.navWeather;
     document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
     document.getElementById('nav-advisor').innerText = labels.navAdvisor;
     
     // Text Labels
@@ -209,7 +221,7 @@ function updatePageLanguage() {
     chatHistory.innerHTML = "";
     appendMessage(labels.systemLabel, labels.welcomeMsg, false);
     
-    // Convert current conversation history bubbles list to new language (clearing local history layout, but keeping server context)
+    // Convert current conversation history bubbles list to new language
     conversationHistory.forEach(msg => {
         const sender = msg.role === 'user' ? labels.userLabel : labels.systemLabel;
         appendMessage(sender, msg.text, msg.role === 'user');
@@ -285,7 +297,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     
     micBtn.addEventListener('click', () => {
         const labels = UI_LABELS_ADVISOR[activeLang];
-        // Set speech language to match website selected language
         recognition.lang = activeLang === 'gu' ? 'gu-IN' : 'en-US';
         
         try {
@@ -342,7 +353,6 @@ async function sendQuery() {
         let reply = "";
         const clientKey = clientApiKey.value.trim();
         
-        // System instruction template depending on active website language
         const systemPrompt = activeLang === 'gu' 
             ? `તમે ક્રોપ બડી છો, એઆઈ કૃષિ નિષ્ણાત સલાહકાર.
 તમારે ખેડૂતોને કાળજીપૂર્વક, વિનમ્રતાપૂર્વક અને ટૂંકમાં જવાબ આપવા જોઈએ.
@@ -364,7 +374,6 @@ You MUST respond strictly in English language.`;
             const data = await res.json();
             reply = data.candidates[0].content.parts[0].text;
         } else {
-            // Standard Vercel Serverless call
             const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

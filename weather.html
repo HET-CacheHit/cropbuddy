@@ -18,6 +18,9 @@
                     <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
                     <li><a href="weather.html" class="active" id="nav-weather">Weather Advisor</a></li>
                     <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" id="nav-map">Outbreak Map</a></li>
                     <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
                 </ul>
                 <!-- Global Language Switcher -->
@@ -60,6 +63,9 @@ const UI_LABELS_WEATHER = {
         navAnalyze: "Analyze Leaf",
         navWeather: "Weather Advisor",
         navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
         navAdvisor: "AI Advisor",
         title: "Weather Spray Advisor",
         desc: "Check if the current weather parameters (temperature, wind, and rain) are safe for spraying pesticides or fungicides on your fields.",
@@ -80,6 +86,9 @@ const UI_LABELS_WEATHER = {
         navAnalyze: "પાક રોગ ઓળખકર્તા",
         navWeather: "હવામાન સલાહકાર",
         navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
         navAdvisor: "એઆઈ સલાહકાર",
         title: "હવામાન છંટકાવ સલાહકાર",
         desc: "ચેક કરો કે તાપમાન, પવન અને વરસાદ જેવા હવામાન પરિમાણો તમારા ખેતરમાં જંતુનાશકો અથવા ફૂગનાશક દવાઓ છાંટવા માટે સલામત છે કે નહીં.",
@@ -146,6 +155,9 @@ function updatePageLanguage() {
     document.getElementById('nav-analyze').innerText = labels.navAnalyze;
     document.getElementById('nav-weather').innerText = labels.navWeather;
     document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
     document.getElementById('nav-advisor').innerText = labels.navAdvisor;
     
     // Titles & Labels

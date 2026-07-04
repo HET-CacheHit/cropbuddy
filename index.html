@@ -18,6 +18,9 @@
                     <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
                     <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
                     <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" id="nav-map">Outbreak Map</a></li>
                     <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
                 </ul>
                 <!-- Global Language Switcher -->
@@ -39,7 +42,7 @@
 
     <section class="features">
         <h2>Our Agricultural Services / અમારી કૃષિ સેવાઓ</h2>
-        <div class="feature-grid">
+        <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
             <div class="feature-card" onclick="window.location.href='analyze.html'" style="cursor: pointer; transition: all 0.3s; border: 1.5px solid #e2f3e8;">
                 <div class="icon">🌿</div>
                 <h3 style="font-weight: 700; color: #1b4332;">Disease Detector / રોગ નિદાન</h3>
@@ -59,6 +62,27 @@
                 <h3 style="font-weight: 700; color: #1b4332;">Crop Calendar / સમયપત્રક આયોજક</h3>
                 <p style="margin: 10px 0 15px; color: #555; line-height: 1.5;">Plan growth milestones from sowing to harvest and check for dynamic disease warnings during each growth stage.</p>
                 <span style="color: #40916c; font-weight: bold; font-size: 13.5px; text-decoration: underline;">Open Calendar / કેલેન્ડર જુઓ →</span>
+            </div>
+
+            <div class="feature-card" onclick="window.location.href='mandi.html'" style="cursor: pointer; transition: all 0.3s; border: 1.5px solid #e2f3e8;">
+                <div class="icon">📊</div>
+                <h3 style="font-weight: 700; color: #1b4332;">Mandi Prices / માર્કેટ ભાવો</h3>
+                <p style="margin: 10px 0 15px; color: #555; line-height: 1.5;">Monitor daily daily market commodity prices in major Gujarat APMC market yards like Gondal, Rajkot, and Unjha.</p>
+                <span style="color: #40916c; font-weight: bold; font-size: 13.5px; text-decoration: underline;">Check Prices / ભાવો જુઓ →</span>
+            </div>
+
+            <div class="feature-card" onclick="window.location.href='calculator.html'" style="cursor: pointer; transition: all 0.3s; border: 1.5px solid #e2f3e8;">
+                <div class="icon">🧮</div>
+                <h3 style="font-weight: 700; color: #1b4332;">NPK Calculator / ખાતર ગણતરી</h3>
+                <p style="margin: 10px 0 15px; color: #555; line-height: 1.5;">Calculate standard Nitrogen, Phosphorus, Potassium and Urea/DAP bag ratios matching your soil requirements.</p>
+                <span style="color: #40916c; font-weight: bold; font-size: 13.5px; text-decoration: underline;">Open Calculator / ગણતરી કરો →</span>
+            </div>
+
+            <div class="feature-card" onclick="window.location.href='map.html'" style="cursor: pointer; transition: all 0.3s; border: 1.5px solid #e2f3e8;">
+                <div class="icon">🗺️</div>
+                <h3 style="font-weight: 700; color: #1b4332;">Outbreak Map / રોગચાળા નકશો</h3>
+                <p style="margin: 10px 0 15px; color: #555; line-height: 1.5;">Track real-time pest outbreaks in surrounding villages or submit outbreak reports to protect neighboring farms.</p>
+                <span style="color: #40916c; font-weight: bold; font-size: 13.5px; text-decoration: underline;">View Map / નકશો જુઓ →</span>
             </div>
 
             <div class="feature-card" onclick="window.location.href='advisor.html'" style="cursor: pointer; transition: all 0.3s; border: 1.5px solid #e2f3e8;">
@@ -84,6 +108,9 @@ const UI_LABELS_HOME = {
         navAnalyze: "Analyze Leaf",
         navWeather: "Weather Advisor",
         navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
         navAdvisor: "AI Advisor",
         heroTitle: "AI-Powered <span>Crop Care</span> at Your Fingertips",
         heroDesc: "Empowering farmers with on-device disease diagnostics, real-time spray safety weather forecast, and interactive crop lifecycle milestone timelines.",
@@ -98,15 +125,27 @@ const UI_LABELS_HOME = {
         card3Title: "Crop Calendar",
         card3Desc: "Plan growth milestones from sowing to harvest and check for dynamic disease warnings during each growth stage.",
         card3Link: "Open Calendar →",
-        card4Title: "AI Crop Advisor",
-        card4Desc: "Chat with our AI bot using text or voice to ask custom questions about plant care, pest management, and fertilizers.",
-        card4Link: "Start Chat →"
+        card4Title: "Mandi Prices",
+        card4Desc: "Monitor daily market rates of main commodities in major Gujarat APMC market yards (Unjha, Gondal, Rajkot).",
+        card4Link: "Check Prices →",
+        card5Title: "NPK Calculator",
+        card5Desc: "Calculate standard Nitrogen, Phosphorus, Potassium and Urea/DAP bag ratios matching your soil requirements.",
+        card5Link: "Open Calculator →",
+        card6Title: "Outbreak Map",
+        card6Desc: "Track real-time pest outbreaks in surrounding villages or submit outbreak reports to protect neighboring farms.",
+        card6Link: "View Map →",
+        card7Title: "AI Crop Advisor",
+        card7Desc: "Chat with our AI bot using text or voice to ask custom questions about plant care, pest management, and fertilizers.",
+        card7Link: "Start Chat →"
     },
     gu: {
         navHome: "હોમ",
         navAnalyze: "પાક રોગ ઓળખકર્તા",
         navWeather: "હવામાન સલાહકાર",
         navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
         navAdvisor: "એઆઈ સલાહકાર",
         heroTitle: "એઆઈ આધારિત <span>પાક કાળજી</span> હવે તમારી આંગળીના ટેરવે",
         heroDesc: "ઓન-ડીવાઈસ રોગ નિદાન, હવામાન સલાહકાર અને પાક સમયપત્રક આયોજક સાથે ખેડૂતોનું સશક્તિકરણ.",
@@ -121,9 +160,18 @@ const UI_LABELS_HOME = {
         card3Title: "પાક સમયપત્રક આયોજક",
         card3Desc: "વાવણીથી લણણી સુધીના તબક્કાઓનું આયોજન કરો અને પાકના વિકાસ દરમિયાન રોગની ચેતવણી મેળવો.",
         card3Link: "કેલેન્ડર જુઓ →",
-        card4Title: "પાક સલાહકાર ચેટ",
-        card4Desc: "પાકની સંભાળ, જીવાત નિયંત્રણ અને ખાતર વિશે કસ્ટમ પ્રશ્નો પૂછવા માટે એઆઈ બોટ સાથે ચેટ કરો.",
-        card4Link: "ચેટ શરૂ કરો →"
+        card4Title: "માર્કેટ ભાવો",
+        card4Desc: "ગુજરાત માર્કેટ યાર્ડના મુખ્ય કૃષિ ઉત્પાદનોના દૈનિક બજાર ભાવો (ઊંઝા, ગોંડલ, રાજકોટ) જુઓ.",
+        card4Link: "ભાવો જુઓ →",
+        card5Title: "ખાતર ગણતરી",
+        card5Desc: "જમીનના ન્યુટ્રીએન્ટ રેશિયો મુજબ નાઇટ્રોજન, ફોસ્ફરસ, પોટાશ અને યુરિયા/ડીએપી બેગની ગણતરી કરો.",
+        card5Link: "ખાતર ગણતરી ખોલો →",
+        card6Title: "રોગચાળા નકશો",
+        card6Desc: "આજુબાજુના ગામોમાં ફેલાયેલા લાઈવ રોગચાળાની માહિતી મેળવો અને તમારા ખેતરમાંથી ચેતવણી સબમિટ કરો.",
+        card6Link: "નકશો જુઓ →",
+        card7Title: "પાક સલાહકાર ચેટ",
+        card7Desc: "પાકની સંભાળ, જીવાત નિયંત્રણ અને ખાતર વિશે કસ્ટમ પ્રશ્નો પૂછવા માટે એઆઈ બોટ સાથે ચેટ કરો.",
+        card7Link: "ચેટ શરૂ કરો →"
     }
 };
 
@@ -173,6 +221,9 @@ function updatePageLanguage() {
     document.getElementById('nav-analyze').innerText = labels.navAnalyze;
     document.getElementById('nav-weather').innerText = labels.navWeather;
     document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
     document.getElementById('nav-advisor').innerText = labels.navAdvisor;
     
     document.querySelector('.hero-content h1').innerHTML = labels.heroTitle;
@@ -198,6 +249,18 @@ function updatePageLanguage() {
     cards[3].querySelector('h3').innerText = labels.card4Title;
     cards[3].querySelector('p').innerText = labels.card4Desc;
     cards[3].querySelector('span').innerText = labels.card4Link;
+
+    cards[4].querySelector('h3').innerText = labels.card5Title;
+    cards[4].querySelector('p').innerText = labels.card5Desc;
+    cards[4].querySelector('span').innerText = labels.card5Link;
+
+    cards[5].querySelector('h3').innerText = labels.card6Title;
+    cards[5].querySelector('p').innerText = labels.card6Desc;
+    cards[5].querySelector('span').innerText = labels.card6Link;
+
+    cards[6].querySelector('h3').innerText = labels.card7Title;
+    cards[6].querySelector('p').innerText = labels.card7Desc;
+    cards[6].querySelector('span').innerText = labels.card7Link;
 }
 
 window.addEventListener('DOMContentLoaded', () => {

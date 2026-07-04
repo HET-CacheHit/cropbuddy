@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Buddy - Fertilizer & NPK Calculator / ખાતર ગણતરી</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="navbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+                    <li><a href="index.html" id="nav-home">Home</a></li>
+                    <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
+                    <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
+                    <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="mandi.html" id="nav-mandi">Mandi Prices</a></li>
+                    <li><a href="calculator.html" class="active" id="nav-calculator">NPK Calculator</a></li>
+                    <li><a href="map.html" id="nav-map">Outbreak Map</a></li>
+                    <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
+                </ul>
+                <!-- Global Language Switcher -->
+                <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-left: 10px;">
+                    <button id="lang-en-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">EN</button>
+                    <button id="lang-gu-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">ગુજ</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <section class="analyze-section" style="min-height: 85vh; padding: 40px 20px;">
+        <div class="analyze-container" style="max-width: 750px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">🧮</div>
+            <h2 id="calc-title" style="color: #1b4332; font-size: 28px; font-weight: 700; margin-bottom: 10px;">Fertilizer & NPK Calculator</h2>
+            <p id="calc-desc" style="color: #666; margin-bottom: 30px; font-size: 15px;">Calculate the exact Nitrogen, Phosphorus, Potassium (NPK) and commercial fertilizer requirements (Urea, DAP, MOP) for your land.</p>
+
+            <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #e2f3e8; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <!-- Crop Choice -->
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="calcCropSelect" id="label-crop" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Target Crop</label>
+                        <select id="calcCropSelect" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                            <option value="tomato" id="opt-tomato">Tomato (ટામેટા)</option>
+                            <option value="potato" id="opt-potato">Potato (બટાકા)</option>
+                            <option value="corn" id="opt-corn">Corn (મકાઈ)</option>
+                            <option value="cotton" id="opt-cotton">Cotton (કપાસ)</option>
+                            <option value="wheat" id="opt-wheat">Wheat (ઘઉં)</option>
+                        </select>
+                    </div>
+                    <!-- Land Size -->
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="calcLandInput" id="label-land" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Land Size</label>
+                        <input id="calcLandInput" type="number" value="1" min="0.1" step="0.1" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                    </div>
+                    <!-- Land Unit -->
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="calcUnitSelect" id="label-unit" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Unit</label>
+                        <select id="calcUnitSelect" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                            <option value="acre" id="opt-acres">Acres (એકર)</option>
+                            <option value="bigha" id="opt-bighas">Bighas (વીઘા - Gujarat)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="calculate-btn" type="button" class="btn-submit" style="padding: 12px 24px; font-weight: bold; width: 100%; background-color: #1b4332; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; font-family: inherit;">Calculate Fertilizer Requirements</button>
+
+                <!-- Output Display -->
+                <div id="calculator-output" style="display: none; margin-top: 30px; border-top: 2px dashed #e2f3e8; padding-top: 20px;">
+                    <h4 id="label-req-title" style="color: #1b4332; margin-bottom: 15px; font-size: 16px; font-weight: 700;">Required Nutrients & Fertilizer:</h4>
+                    
+                    <!-- Nutrients Progress Bars Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                        <!-- Nitrogen -->
+                        <div style="background-color: #f8faf8; padding: 15px; border-radius: 8px; border: 1px solid #e9ece9;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; color: #1b4332; font-size: 13.5px; margin-bottom: 5px;">
+                                <span>Nitrogen (N)</span>
+                                <span id="n-kg">0 kg</span>
+                            </div>
+                            <div style="background-color: #e9ece9; border-radius: 5px; height: 8px; overflow: hidden;">
+                                <div style="background-color: #40916c; height: 100%; width: 100%;"></div>
+                            </div>
+                        </div>
+                        <!-- Phosphorus -->
+                        <div style="background-color: #f8faf8; padding: 15px; border-radius: 8px; border: 1px solid #e9ece9;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; color: #1b4332; font-size: 13.5px; margin-bottom: 5px;">
+                                <span>Phosphorus (P)</span>
+                                <span id="p-kg">0 kg</span>
+                            </div>
+                            <div style="background-color: #e9ece9; border-radius: 5px; height: 8px; overflow: hidden;">
+                                <div style="background-color: #52b788; height: 100%; width: 100%;"></div>
+                            </div>
+                        </div>
+                        <!-- Potassium -->
+                        <div style="background-color: #f8faf8; padding: 15px; border-radius: 8px; border: 1px solid #e9ece9;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; color: #1b4332; font-size: 13.5px; margin-bottom: 5px;">
+                                <span>Potassium (K)</span>
+                                <span id="k-kg">0 kg</span>
+                            </div>
+                            <div style="background-color: #e9ece9; border-radius: 5px; height: 8px; overflow: hidden;">
+                                <div style="background-color: #74c69d; height: 100%; width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Commercial Fertilizer Recommendations -->
+                    <div style="background-color: #f4fcf7; border: 1px solid #d8f3e5; padding: 20px; border-radius: 8px; color: #1b4332; font-size: 14.5px; line-height: 1.6;">
+                        <h5 id="label-commercial-title" style="margin-top: 0; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #d8f3e5; padding-bottom: 5px;">Recommended Commercial Bag Count:</h5>
+                        <ul style="margin: 0; padding-left: 20px; font-weight: 500;">
+                            <li><strong id="label-urea">Urea:</strong> <span id="urea-bags">0</span> bags (૫૦ કિલોની બોરી)</li>
+                            <li><strong id="label-dap">DAP (18-46-0):</strong> <span id="dap-bags">0</span> bags (૫૦ કિલોની બોરી)</li>
+                            <li><strong id="label-mop">MOP (Muriate of Potash):</strong> <span id="mop-bags">0</span> bags (૫૦ કિલોની બોરી)</li>
+                        </ul>
+                        <div id="calc-disclaimer" style="margin-top: 15px; font-size: 12px; color: #666; font-weight: normal; line-height: 1.4;">
+                            *Calculation is based on local agricultural university package of practices recommending standard NPK ratios. Adjust based on soil test reports.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
+    </footer>
+
+<script>
+// Global Language State Manager
+let activeLang = localStorage.getItem('preferred_lang') || 'en';
+
+const UI_LABELS_CALC = {
+    en: {
+        navHome: "Home",
+        navAnalyze: "Analyze Leaf",
+        navWeather: "Weather Advisor",
+        navCalendar: "Crop Calendar",
+        navMandi: "Mandi Prices",
+        navCalculator: "NPK Calculator",
+        navMap: "Outbreak Map",
+        navAdvisor: "AI Advisor",
+        title: "Fertilizer & NPK Calculator",
+        desc: "Calculate the exact Nitrogen, Phosphorus, Potassium (NPK) and commercial fertilizer requirements (Urea, DAP, MOP) for your land.",
+        cropLabel: "Target Crop",
+        landLabel: "Land Size",
+        unitLabel: "Unit",
+        acres: "Acres",
+        bighas: "Bighas (Gujarat)",
+        calculateBtn: "Calculate Fertilizer Requirements",
+        reqHeader: "Required Nutrients & Fertilizer:",
+        commercialHeader: "Recommended Commercial Bag Count (50kg bags):",
+        ureaLabel: "Urea (Nitrogen Source):",
+        dapLabel: "DAP (Phosphorus & Nitrogen Source):",
+        mopLabel: "MOP (Potassium Source):",
+        disclaimer: "*Calculation is based on local agricultural university package of practices recommending standard NPK ratios. Adjust based on soil test reports.",
+        alertSize: "Please enter a valid land size.",
+        cTomato: "Tomato",
+        cPotato: "Potato",
+        cCorn: "Corn",
+        cCotton: "Cotton",
+        cWheat: "Wheat"
+    },
+    gu: {
+        navHome: "હોમ",
+        navAnalyze: "પાક રોગ ઓળખકર્તા",
+        navWeather: "હવામાન સલાહકાર",
+        navCalendar: "પાક સમયપત્રક",
+        navMandi: "માર્કેટ ભાવ",
+        navCalculator: "ખાતર ગણતરી",
+        navMap: "રોગચાળા નકશો",
+        navAdvisor: "એઆઈ સલાહકાર",
+        title: "ખાતર અને NPK કેલ્ક્યુલેટર",
+        desc: "તમારી જમીન માટે જરૂરી નાઈટ્રોજન, ફોસ્ફરસ, પોટાશ (NPK) અને રાસાયણિક ખાતરો (યુરિયા, ડી.એ.પી, એમ.ઓ.પી) ની સાચી ગણતરી કરો.",
+        cropLabel: "મુખ્ય પાક",
+        landLabel: "જમીનનું માપ",
+        unitLabel: "જમીન એકમ",
+        acres: "એકર",
+        bighas: "વીઘા (ગુજરાત)",
+        calculateBtn: "ખાતરની ગણતરી કરો",
+        reqHeader: "જરૂરી પોષક તત્વો અને રાસાયણિક ખાતર:",
+        commercialHeader: "ભલામણ કરેલ ખાતરની બોરીઓ (૫૦ કિલોની ગુણી):",
+        ureaLabel: "યુરિયા (નાઇટ્રોજન સ્ત્રોત):",
+        dapLabel: "ડી.એ.પી - DAP (ફોસ્ફરસ સ્ત્રોત):",
+        mopLabel: "એમ.ઓ.પી - MOP (પોટાશ સ્ત્રોત):",
+        disclaimer: "*ખાતરની ગણતરી કૃષિ યુનિવર્સિટી દ્વારા ભલામણ કરેલ પ્રમાણિત ગુણોત્તર પર આધારિત છે. જમીન પરીક્ષણ (Soil Test) રિપોર્ટ મુજબ ફેરફાર કરવો.",
+        alertSize: "કૃપા કરીને સાચું માપ દાખલ કરો.",
+        cTomato: "ટામેટા",
+        cPotato: "બટાકા",
+        cCorn: "મકાઈ",
+        cCotton: "કપાસ",
+        cWheat: "ઘઉં"
+    }
+};
+
+// Standard nutrient recommendations in N-P-K kg per Acre
+const NPK_DATABASE = {
+    tomato: { n: 75, p: 60, k: 60 },
+    potato: { n: 100, p: 80, k: 100 },
+    corn: { n: 120, p: 60, k: 40 },
+    cotton: { n: 80, p: 40, k: 40 },
+    wheat: { n: 100, p: 50, k: 50 }
+};
+
+const calcCropSelect = document.getElementById('calcCropSelect');
+const calcLandInput = document.getElementById('calcLandInput');
+const calcUnitSelect = document.getElementById('calcUnitSelect');
+const calculateBtn = document.getElementById('calculate-btn');
+const calculatorOutput = document.getElementById('calculator-output');
+
+let didRunCalculation = false;
+
+function initLanguageToggle() {
+    const enBtn = document.getElementById('lang-en-btn');
+    const guBtn = document.getElementById('lang-gu-btn');
+    
+    if (!enBtn || !guBtn) return;
+    
+    function applyBtnStyles() {
+        if (activeLang === 'en') {
+            enBtn.style.backgroundColor = '#1b4332';
+            enBtn.style.color = 'white';
+            guBtn.style.backgroundColor = 'transparent';
+            guBtn.style.color = '#1b4332';
+        } else {
+            guBtn.style.backgroundColor = '#1b4332';
+            guBtn.style.color = 'white';
+            enBtn.style.backgroundColor = 'transparent';
+            enBtn.style.color = '#1b4332';
+        }
+    }
+    
+    applyBtnStyles();
+    
+    enBtn.addEventListener('click', () => {
+        if (activeLang === 'en') return;
+        activeLang = 'en';
+        localStorage.setItem('preferred_lang', 'en');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+    
+    guBtn.addEventListener('click', () => {
+        if (activeLang === 'gu') return;
+        activeLang = 'gu';
+        localStorage.setItem('preferred_lang', 'gu');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+}
+
+function updatePageLanguage() {
+    const labels = UI_LABELS_CALC[activeLang];
+    
+    // Navbar
+    document.getElementById('nav-home').innerText = labels.navHome;
+    document.getElementById('nav-analyze').innerText = labels.navAnalyze;
+    document.getElementById('nav-weather').innerText = labels.navWeather;
+    document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-mandi').innerText = labels.navMandi;
+    document.getElementById('nav-calculator').innerText = labels.navCalculator;
+    document.getElementById('nav-map').innerText = labels.navMap;
+    document.getElementById('nav-advisor').innerText = labels.navAdvisor;
+    
+    // Form Inputs
+    document.getElementById('calc-title').innerText = labels.title;
+    document.getElementById('calc-desc').innerText = labels.desc;
+    document.getElementById('label-crop').innerText = labels.cropLabel;
+    document.getElementById('label-land').innerText = labels.landLabel;
+    document.getElementById('label-unit').innerText = labels.unitLabel;
+    document.getElementById('opt-acres').innerText = labels.acres;
+    document.getElementById('opt-bighas').innerText = labels.bighas;
+    calculateBtn.innerText = labels.calculateBtn;
+    
+    // Dropdown choices
+    document.getElementById('opt-tomato').innerText = labels.cTomato;
+    document.getElementById('opt-potato').innerText = labels.cPotato;
+    document.getElementById('opt-corn').innerText = labels.cCorn;
+    document.getElementById('opt-cotton').innerText = labels.cCotton;
+    document.getElementById('opt-wheat').innerText = labels.cWheat;
+    
+    // Results
+    document.getElementById('label-req-title').innerText = labels.reqHeader;
+    document.getElementById('label-commercial-title').innerText = labels.commercialHeader;
+    document.getElementById('label-urea').innerText = labels.ureaLabel;
+    document.getElementById('label-dap').innerText = labels.dapLabel;
+    document.getElementById('label-mop').innerText = labels.mopLabel;
+    document.getElementById('calc-disclaimer').innerText = labels.disclaimer;
+    
+    if (didRunCalculation) {
+        performNPKCalculation();
+    }
+}
+
+function performNPKCalculation() {
+    const size = parseFloat(calcLandInput.value);
+    const labels = UI_LABELS_CALC[activeLang];
+    
+    if (isNaN(size) || size <= 0) {
+        alert(labels.alertSize);
+        return;
+    }
+    
+    const crop = calcCropSelect.value;
+    const unit = calcUnitSelect.value;
+    
+    // 1 Acre = 2.5 Bigha (Gujarat ratio)
+    const sizeInAcres = (unit === "bigha") ? (size / 2.5) : size;
+    
+    const baseNutrients = NPK_DATABASE[crop];
+    
+    // Total nutrients required in kg
+    const totalN = Math.round(baseNutrients.n * sizeInAcres);
+    const totalP = Math.round(baseNutrients.p * sizeInAcres);
+    const totalK = Math.round(baseNutrients.k * sizeInAcres);
+    
+    // Commercial Fertilizer derivation
+    // 1. DAP bag (50kg) contains 9kg Nitrogen, 23kg Phosphorus
+    // 2. Urea bag (50kg) contains 23kg Nitrogen
+    // 3. MOP bag (50kg) contains 30kg Potassium
+    const dapBagsNeeded = (totalP / 23).toFixed(1);
+    const nitrogenProvidedByDAP = (totalP / 23) * 9;
+    const remainingN = Math.max(0, totalN - nitrogenProvidedByDAP);
+    const ureaBagsNeeded = (remainingN / 23).toFixed(1);
+    const mopBagsNeeded = (totalK / 30).toFixed(1);
+    
+    document.getElementById('n-kg').innerText = `${totalN} kg`;
+    document.getElementById('p-kg').innerText = `${totalP} kg`;
+    document.getElementById('k-kg').innerText = `${totalK} kg`;
+    
+    document.getElementById('urea-bags').innerText = ureaBagsNeeded;
+    document.getElementById('dap-bags').innerText = dapBagsNeeded;
+    document.getElementById('mop-bags').innerText = mopBagsNeeded;
+    
+    calculatorOutput.style.display = "block";
+}
+
+calculateBtn.addEventListener('click', () => {
+    didRunCalculation = true;
+    performNPKCalculation();
+    calculatorOutput.scrollIntoView({ behavior: 'smooth' });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguageToggle();
+    updatePageLanguage();
+});
+</script>
+
+</body>
+</html>
