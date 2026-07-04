@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Buddy - AI Crop Advisor / પાક સલાહકાર ચેટ</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="navbar">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="analyze.html">Analyze Leaf</a></li>
+                    <li><a href="weather.html">Weather Advisor</a></li>
+                    <li><a href="calendar.html">Crop Calendar</a></li>
+                    <li><a href="advisor.html" class="active">AI Advisor</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="analyze-section" style="min-height: 85vh; padding: 40px 20px;">
+        <div class="analyze-container" style="max-width: 800px; display: flex; flex-direction: column; height: 75vh; padding: 25px; box-sizing: border-box;">
+            
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h2 style="color: #1b4332; font-size: 24px; font-weight: 700; margin: 0 0 5px 0;">💬 AI Crop Advisor / પાક સલાહકાર ચેટ</h2>
+                <p style="color: #666; margin: 0; font-size: 13.5px;">Ask crop care, disease treatment, or fertilizer management questions in English or Gujarati.</p>
+            </div>
+
+            <!-- Chat Messages Log -->
+            <div id="chat-history" style="flex: 1; overflow-y: auto; background-color: #f8faf8; border: 1px solid #e9ece9; border-radius: 8px; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px; text-align: left; max-height: 45vh;">
+                <!-- Bot Welcome Message -->
+                <div style="max-width: 85%; align-self: flex-start; background-color: #ffffff; border: 1px solid #e0e0e0; padding: 10px 15px; border-radius: 12px 12px 12px 0px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 11px; font-weight: bold; color: #1b4332; margin-bottom: 3px;">Crop Buddy AI</div>
+                    <div style="font-size: 13.5px; color: #333; line-height: 1.5;">
+                        Hello! I am your AI Crop Advisor. You can type or click the microphone to speak your question.<br>
+                        નમસ્તે! હું તમારો પાક સલાહકાર છું. તમે ટાઈપ કરી શકો છો અથવા બોલવા માટે માઇક્રોફોન વાપરી શકો છો.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Control Panel -->
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: center; justify-content: space-between; border-top: 1px solid #e9ece9; padding-top: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="chat-lang-select" style="font-size: 12px; font-weight: bold; color: #555;">Voice Input Lang:</label>
+                    <select id="chat-lang-select" style="padding: 5px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; font-family: inherit;">
+                        <option value="gu-IN">Gujarati (ગુજરાતી)</option>
+                        <option value="en-US">English (English)</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <input type="checkbox" id="voice-reply-toggle" checked style="cursor: pointer;">
+                    <label for="voice-reply-toggle" style="font-size: 12px; font-weight: bold; color: #555; cursor: pointer;">🔊 Auto Read Aloud / આપમેળે વાંચો</label>
+                </div>
+            </div>
+
+            <!-- Chat Inputs Block -->
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="mic-btn" type="button" style="padding: 12px; background-color: #1b4332; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; transition: all 0.2s; flex-shrink: 0;" title="Speak / બોલો">🎙️</button>
+                
+                <input id="chat-input" type="text" placeholder="Type your crop question here... / પાક વિશેનો પ્રશ્ન અહિયાં લખો..." style="flex: 1; padding: 12px 15px; border: 1.5px solid #ccc; border-radius: 30px; font-size: 14px; font-family: inherit; box-sizing: border-box; outline: none; transition: border 0.2s;">
+                
+                <button id="send-btn" type="button" style="padding: 12px 20px; background-color: #40916c; color: white; border: none; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s; font-family: inherit; flex-shrink: 0;">Send</button>
+            </div>
+
+            <!-- Optional client-side API key configuration fallback -->
+            <div id="key-config-fallback" style="margin-top: 15px; font-size: 11px; color: #888; text-align: left; display: none;">
+                Note: Serverless API key is missing. Enter a personal Gemini API Key to run queries locally:
+                <input id="client-api-key" type="password" placeholder="AI Studio Key" style="font-size: 10px; padding: 2px 5px; border: 1px solid #ccc; border-radius: 3px; margin-left: 5px; width: 150px;">
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
+    </footer>
+
+<script>
+const chatHistory = document.getElementById('chat-history');
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
+const micBtn = document.getElementById('mic-btn');
+const langSelect = document.getElementById('chat-lang-select');
+const voiceReplyToggle = document.getElementById('voice-reply-toggle');
+const keyConfigFallback = document.getElementById('key-config-fallback');
+const clientApiKey = document.getElementById('client-api-key');
+
+let conversationHistory = [];
+let voiceRecognition = null;
+let isListening = false;
+let currentUtteranceObj = null;
+
+// Load API Key from local storage if saved
+if (localStorage.getItem('gemini_api_key')) {
+    clientApiKey.value = localStorage.getItem('gemini_api_key');
+}
+clientApiKey.addEventListener('change', () => {
+    localStorage.setItem('gemini_api_key', clientApiKey.value);
+});
+
+// 1. Voice Recognition Setup (Speech-to-Text)
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.continuous = false;
+    voiceRecognition.interimResults = false;
+    
+    voiceRecognition.onstart = () => {
+        isListening = true;
+        micBtn.innerText = "🛑";
+        micBtn.style.backgroundColor = "#d90429";
+        chatInput.placeholder = "Listening... Speak now / સાંભળી રહ્યા છીએ... બોલો...";
+    };
+    
+    voiceRecognition.onend = () => {
+        isListening = false;
+        micBtn.innerText = "🎙️";
+        micBtn.style.backgroundColor = "#1b4332";
+        chatInput.placeholder = "Type your crop question here... / પાક વિશેનો પ્રશ્ન અહિયાં લખો...";
+    };
+    
+    voiceRecognition.onresult = (event) => {
+        const spokenText = event.results[0][0].transcript;
+        chatInput.value = spokenText;
+    };
+    
+    voiceRecognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        alert("Microphone Error: " + event.error);
+        isListening = false;
+        micBtn.innerText = "🎙️";
+        micBtn.style.backgroundColor = "#1b4332";
+    };
+} else {
+    // Hide Mic if Web Speech API is not supported
+    micBtn.style.display = 'none';
+}
+
+micBtn.addEventListener('click', () => {
+    if (!voiceRecognition) return;
+    if (isListening) {
+        voiceRecognition.stop();
+    } else {
+        voiceRecognition.lang = langSelect.value;
+        voiceRecognition.start();
+    }
+});
+
+// 2. Chat Messaging logic
+function appendMessage(sender, text, isUser = false) {
+    const bubble = document.createElement('div');
+    bubble.style.maxWidth = "85%";
+    bubble.style.alignSelf = isUser ? "flex-end" : "flex-start";
+    bubble.style.backgroundColor = isUser ? "#40916c" : "#ffffff";
+    bubble.style.color = isUser ? "#ffffff" : "#333333";
+    bubble.style.border = isUser ? "none" : "1px solid #e0e0e0";
+    bubble.style.padding = "10px 15px";
+    bubble.style.borderRadius = isUser ? "12px 12px 0px 12px" : "12px 12px 12px 0px";
+    bubble.style.boxShadow = "0 2px 5px rgba(0,0,0,0.02)";
+    bubble.style.lineHeight = "1.5";
+    bubble.style.fontSize = "13.5px";
+    
+    const nameLabel = document.createElement('div');
+    nameLabel.style.fontSize = "10.5px";
+    nameLabel.style.fontWeight = "bold";
+    nameLabel.style.marginBottom = "3px";
+    nameLabel.style.color = isUser ? "#d8f3e5" : "#1b4332";
+    nameLabel.innerText = sender;
+    
+    const textLabel = document.createElement('div');
+    textLabel.style.whiteSpace = "pre-line";
+    textLabel.innerText = text;
+    
+    bubble.appendChild(nameLabel);
+    bubble.appendChild(textLabel);
+    chatHistory.appendChild(bubble);
+    
+    // Auto-scroll chat window
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+// 3. Audio Reply Output (Text-to-Speech)
+let voicesList = [];
+function preloadVoices() {
+    if ('speechSynthesis' in window) {
+        voicesList = window.speechSynthesis.getVoices();
+    }
+}
+preloadVoices();
+if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = preloadVoices;
+}
+
+function speakReply(text) {
+    if (!voiceReplyToggle.checked || !('speechSynthesis' in window)) return;
+    
+    // Cancel any active speaking
+    window.speechSynthesis.cancel();
+    
+    // Strip markdown formatting symbols before speaking
+    const cleanText = text.replace(/[*#`🔹📌-]/g, "").trim();
+    
+    currentUtteranceObj = new SpeechSynthesisUtterance(cleanText);
+    
+    // Detect language of response to set voice mapping
+    const isGujarati = /[\u0A80-\u0AFF]/.test(cleanText);
+    
+    if (isGujarati) {
+        const guVoice = voicesList.find(v => v.lang.includes("gu-IN"));
+        if (guVoice) currentUtteranceObj.voice = guVoice;
+        currentUtteranceObj.lang = "gu-IN";
+    } else {
+        const enVoice = voicesList.find(v => v.lang.includes("en-IN")) || voicesList.find(v => v.lang.includes("en-US"));
+        if (enVoice) currentUtteranceObj.voice = enVoice;
+        currentUtteranceObj.lang = "en-IN";
+    }
+    
+    window.speechSynthesis.speak(currentUtteranceObj);
+}
+
+// Send user query to Backend / Gemini API
+async function sendQuery() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    
+    // Append to UI chat view
+    appendMessage("Farmer / ખેડૂત", text, true);
+    chatInput.value = "";
+    
+    // Append loading state placeholder
+    const loadingBubble = document.createElement('div');
+    loadingBubble.id = "chat-loading";
+    loadingBubble.style.alignSelf = "flex-start";
+    loadingBubble.style.fontSize = "12px";
+    loadingBubble.style.color = "#777";
+    loadingBubble.innerText = "AI Advisor is thinking... / જવાબ તૈયાર કરી રહ્યા છીએ...";
+    chatHistory.appendChild(loadingBubble);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+    
+    try {
+        let reply = "";
+        
+        // Check if direct API Key is used
+        const clientKey = clientApiKey.value.trim();
+        if (clientKey) {
+            // Direct client-side fetch (developer fallback)
+            const promptContext = `You are Crop Buddy, an AI agricultural expert advisor.
+Respond clearly, politely, and keep your answers practical and concise.
+You MUST support bilingual communication in both Gujarati and English. If the user asks in Gujarati, respond in Gujarati.
+User Question: ${text}`;
+            
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clientKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ role: "user", parts: [{ text: promptContext }] }]
+                })
+            });
+            if (!res.ok) throw new Error("Client Gemini key request failed.");
+            const data = await res.json();
+            reply = data.candidates[0].content.parts[0].text;
+        } else {
+            // Standard Vercel Serverless Function Call
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: text,
+                    history: conversationHistory
+                })
+            });
+            
+            if (res.status === 500) {
+                // If Vercel env variable is not set, expose local key fallback
+                const data = await res.json();
+                if (data.error && data.error.includes("GEMINI_API_KEY")) {
+                    keyConfigFallback.style.display = "block";
+                }
+                throw new Error(data.error || "Serverless response error");
+            }
+            
+            if (!res.ok) throw new Error("Advisor API request failed.");
+            const data = await res.json();
+            reply = data.reply;
+        }
+        
+        // Remove loading state placeholder
+        const loader = document.getElementById('chat-loading');
+        if (loader) loader.remove();
+        
+        // Append AI reply to UI
+        appendMessage("Crop Buddy AI", reply, false);
+        
+        // Speak response out loud
+        speakReply(reply);
+        
+        // Store conversation history for multi-turn chats
+        conversationHistory.push({ role: "user", text: text });
+        conversationHistory.push({ role: "model", text: reply });
+        
+    } catch (err) {
+        console.error("Chat error:", err);
+        const loader = document.getElementById('chat-loading');
+        if (loader) loader.remove();
+        appendMessage("System", `Error: ${err.message}. Please enter a Gemini API Key in the config box if running locally.`);
+    }
+}
+
+sendBtn.addEventListener('click', sendQuery);
+chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendQuery();
+});
+</script>
+
+</body>
+</html>
