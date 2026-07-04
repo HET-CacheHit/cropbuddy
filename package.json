@@ -4,7 +4,8 @@
   "description": "Crop Buddy client-side AI app",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'Static Site'"
   },
   "dependencies": {
     "express": "^4.19.2"
