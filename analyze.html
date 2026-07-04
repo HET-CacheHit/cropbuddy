@@ -130,6 +130,13 @@
                     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
                 </style>
 
+                <!-- Auto Read Aloud Option -->
+                <div style="margin: 0px 0px 20px 0px; display: flex; justify-content: center;">
+                    <label style="display: inline-flex; align-items: center; font-size: 13.5px; font-weight: bold; color: #1b4332; cursor: pointer; background-color: #f4fcf7; padding: 6px 15px; border-radius: 20px; border: 1.5px solid #d8f3e5; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <input type="checkbox" id="auto-speak-toggle" checked style="margin-right: 6px;"> 🔊 Auto Read Aloud / આપમેળે મોટેથી વાંચો
+                    </label>
+                </div>
+
                 <!-- Action Button -->
                 <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
                     <button id="start-camera-btn" type="button" style="padding: 12px 25px; border-radius: 5px; border: 1.5px solid #1b4332; background-color: transparent; color: #1b4332; cursor: pointer; font-weight: bold; font-family: inherit;">📷 Use Camera</button>
@@ -218,11 +225,17 @@
 
                 <!-- 2. Beautiful Bottle Scan OCR Result Dashboard -->
                 <div id="ocr-result-box" style="display: none; margin-top: 35px; text-align: left; padding: 25px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid #40916c;">
-                    <div style="display: flex; align-items: center; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px; margin-bottom: 20px;">
-                        <div style="font-size: 32px; margin-right: 15px;">🧴</div>
-                        <div>
-                            <h3 id="ocr-res-title" style="color: #1b4332; margin: 0; font-size: 20px; font-weight: 700;">Bottle Scan Analysis</h3>
-                            <p id="ocr-res-subtitle" style="margin: 5px 0 0 0; color: #666; font-size: 13.5px;">Chemical and dosage validation using local character recognition</p>
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center;">
+                            <div style="font-size: 32px; margin-right: 15px;">🧴</div>
+                            <div>
+                                <h3 id="ocr-res-title" style="color: #1b4332; margin: 0; font-size: 20px; font-weight: 700;">Bottle Scan Analysis</h3>
+                                <p id="ocr-res-subtitle" style="margin: 5px 0 0 0; color: #666; font-size: 13.5px;">Chemical and dosage validation using local character recognition</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button id="ocr-tts-btn-en" type="button" style="padding: 6px 12px; background-color: #f8faf8; border: 1.5px solid #1b4332; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="Read Aloud in English">🔊 English</button>
+                            <button id="ocr-tts-btn-gu" type="button" style="padding: 6px 12px; background-color: #f4fcf7; border: 1.5px solid #40916c; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="ગુજરાતીમાં સાંભળો">🔊 ગુજરાતી</button>
                         </div>
                     </div>
 
@@ -880,6 +893,7 @@ function renderAnalysisResults() {
     
     resultBox.style.display = "block";
     resultBox.scrollIntoView({ behavior: 'smooth' });
+    triggerAutoSpeak('leaf');
 }
 
 // Process Scanned Text and Map to Local Chemical Rules
@@ -950,8 +964,15 @@ function processOCRText(scannedText) {
         safetyList.appendChild(li);
     });
     
+    // Save for TTS read-aloud references
+    ocrDetectedName = chemicalNameFound;
+    ocrDetectedCategory = category;
+    ocrDetectedDosage = dosage;
+    ocrDetectedSafetyList = safetyPoints;
+    
     ocrResultBox.style.display = "block";
     ocrResultBox.scrollIntoView({ behavior: 'smooth' });
+    triggerAutoSpeak('bottle');
 }
 
 // Client-Side Execution Pipeline (Leaf Analysis or Bottle OCR)
@@ -1085,7 +1106,15 @@ function initLanguageToggle() {
 // ==========================================
 const ttsSpeakBtn = document.getElementById('tts-speak-btn');
 const ttsSpeakGuBtn = document.getElementById('tts-speak-gu-btn');
+const ocrTtsBtnEn = document.getElementById('ocr-tts-btn-en');
+const ocrTtsBtnGu = document.getElementById('ocr-tts-btn-gu');
+const autoSpeakToggle = document.getElementById('auto-speak-toggle');
+
 let speaking = false;
+let ocrDetectedName = "";
+let ocrDetectedCategory = "";
+let ocrDetectedDosage = "";
+let ocrDetectedSafetyList = [];
 
 // English and Gujarati Dictionary Maps for translation
 const CROP_TRANSLATIONS_GU = {
@@ -1133,6 +1162,8 @@ function resetTtsButtons() {
     window.speechSynthesis.cancel();
     ttsSpeakBtn.innerText = "🔊 English";
     ttsSpeakGuBtn.innerText = "🔊 ગુજરાતી";
+    ocrTtsBtnEn.innerText = "🔊 English";
+    ocrTtsBtnGu.innerText = "🔊 ગુજરાતી";
     speaking = false;
 }
 
@@ -1239,6 +1270,77 @@ ttsSpeakGuBtn.addEventListener('click', () => {
     speaking = true;
     window.speechSynthesis.speak(currentUtteranceObj);
 });
+
+// 3. OCR English Narrator Event Listener
+ocrTtsBtnEn.addEventListener('click', () => {
+    if (speaking) {
+        resetTtsButtons();
+        return;
+    }
+    if (!ocrDetectedName) return;
+    
+    let textEn = `Scanned pesticide bottle result. Detected chemical is ${ocrDetectedName}. Category is ${ocrDetectedCategory}. Safe recommended dosage is ${ocrDetectedDosage}. `;
+    if (ocrDetectedSafetyList && ocrDetectedSafetyList.length > 0) {
+        textEn += "Safety precautions: " + ocrDetectedSafetyList.join(". ");
+    }
+    
+    let currentUtteranceObj = new SpeechSynthesisUtterance(textEn);
+    currentUtteranceObj.lang = "en-US";
+    currentUtteranceObj.onend = resetTtsButtons;
+    currentUtteranceObj.onerror = resetTtsButtons;
+    
+    ocrTtsBtnEn.innerText = "🛑 Stop";
+    speaking = true;
+    window.speechSynthesis.speak(currentUtteranceObj);
+});
+
+// 4. OCR Gujarati Narrator Event Listener
+ocrTtsBtnGu.addEventListener('click', () => {
+    if (speaking) {
+        resetTtsButtons();
+        return;
+    }
+    if (!ocrDetectedName) return;
+    
+    let textGu = `દવાની બોટલ સ્કેનનું પરિણામ. શોધાયેલ રાસાયણિક દવા છે ${ocrDetectedName}. દવાનો પ્રકાર છે ${ocrDetectedCategory}. ભલામણ કરેલ સલામત માત્રા છે ${ocrDetectedDosage}. `;
+    if (ocrDetectedSafetyList && ocrDetectedSafetyList.length > 0) {
+        textGu += "દવા છાંટતી વખતે રાખવાની સાવચેતીઓ આ મુજબ છે: " + ocrDetectedSafetyList.join(". ");
+    }
+    
+    let currentUtteranceObj = new SpeechSynthesisUtterance(textGu);
+    const voices = window.speechSynthesis.getVoices();
+    const guVoice = voices.find(v => v.lang.includes("gu-IN"));
+    if (guVoice) currentUtteranceObj.voice = guVoice;
+    currentUtteranceObj.lang = "gu-IN";
+    
+    currentUtteranceObj.onend = resetTtsButtons;
+    currentUtteranceObj.onerror = resetTtsButtons;
+    
+    ocrTtsBtnGu.innerText = "🛑 સ્ટોપ";
+    speaking = true;
+    window.speechSynthesis.speak(currentUtteranceObj);
+});
+
+// Helper to trigger auto speak based on language
+function triggerAutoSpeak(mode) {
+    if (!autoSpeakToggle.checked) return;
+    
+    setTimeout(() => {
+        if (mode === 'leaf') {
+            if (activeLang === 'en') {
+                ttsSpeakBtn.click();
+            } else {
+                ttsSpeakGuBtn.click();
+            }
+        } else if (mode === 'bottle') {
+            if (activeLang === 'en') {
+                ocrTtsBtnEn.click();
+            } else {
+                ocrTtsBtnGu.click();
+            }
+        }
+    }, 600);
+}
 
 // ==========================================
 // FEATURE 3: Dosage & Water Calculator
