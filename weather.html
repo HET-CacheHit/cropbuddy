@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Buddy - Weather Spray Advisor / હવામાન સલાહકાર</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="navbar">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="analyze.html">Analyze Leaf</a></li>
+                    <li><a href="weather.html" class="active">Weather Advisor</a></li>
+                    <li><a href="calendar.html">Crop Calendar</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="analyze-section" style="min-height: 85vh; padding: 60px 20px;">
+        <div class="analyze-container" style="max-width: 650px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">🌦️</div>
+            <h2 style="color: #1b4332; font-size: 28px; font-weight: 700;">Weather Spray Advisor / હવામાન સલાહ</h2>
+            <p style="color: #666; margin-bottom: 30px; font-size: 15px;">Check if the current weather parameters (temperature, wind, and rain) are safe for spraying pesticides or fungicides on your fields.</p>
+
+            <div style="background-color: #f8faf8; padding: 25px; border-radius: 12px; border: 1px solid #e9ece9; text-align: left; margin-bottom: 25px;">
+                <h4 style="margin-top: 0; color: #1b4332; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #e2f3e8; padding-bottom: 8px;">Advisory Status:</h4>
+                <div id="weather-info" style="font-size: 14px; color: #555; line-height: 1.6; min-height: 80px;">
+                    Please click the button below to allow location access and calculate the spray safety advisory.
+                </div>
+            </div>
+
+            <button id="check-weather-btn" type="button" class="btn-submit" style="padding: 12px 30px; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit;">Check Forecast / હવામાન તપાસો</button>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
+    </footer>
+
+<script>
+const checkWeatherBtn = document.getElementById('check-weather-btn');
+const weatherInfo = document.getElementById('weather-info');
+
+checkWeatherBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        weatherInfo.innerHTML = "❌ Geolocation is not supported by your browser.<br>ગુજરાતી: લોકેશન તમારા બ્રાઉઝર દ્વારા સપોર્ટેડ નથી.";
+        return;
+    }
+    
+    weatherInfo.innerHTML = "Fetching GPS coordinates... / સ્થાન શોધી રહ્યાં છીએ...";
+    
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude.toFixed(4);
+            const lon = position.coords.longitude.toFixed(4);
+            weatherInfo.innerHTML = `GPS Coordinates found: Lat ${lat}, Lon ${lon}. Fetching forecast...`;
+            
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability,wind_speed_10m&forecast_days=1`);
+                if (!res.ok) throw new Error("Weather API fetch error");
+                const data = await res.json();
+                
+                // Get conditions for the next 4 hours
+                const nowHour = new Date().getHours();
+                let maxRainProb = 0;
+                let maxWind = 0;
+                let maxTemp = 0;
+                
+                for (let i = 0; i < 4; i++) {
+                    const idx = (nowHour + i) % 24;
+                    maxRainProb = Math.max(maxRainProb, data.hourly.precipitation_probability[idx] || 0);
+                    maxWind = Math.max(maxWind, data.hourly.wind_speed_10m[idx] || 0);
+                    maxTemp = Math.max(maxTemp, data.hourly.temperature_2m[idx] || 0);
+                }
+                
+                // Determine safety status
+                let safetyBadge = "";
+                let adviceEnglish = "";
+                let adviceGujarati = "";
+                
+                if (maxWind > 15 || maxRainProb > 30 || maxTemp > 35) {
+                    safetyBadge = `<span style="background-color: #d90429; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🔴 Avoid Spraying / દવાનો છંટકાવ ટાળો</span>`;
+                    if (maxWind > 15) {
+                        adviceEnglish = `High winds (${maxWind} km/h) detected. High risk of chemical drift. Do not spray.`;
+                        adviceGujarati = `ભારે પવન (${maxWind} કિમી/કલાક) છે. પવનથી દવા ઉડી જવાનું જોખમ હોવાથી છંટકાવ કરશો નહી.`;
+                    } else if (maxRainProb > 30) {
+                        adviceEnglish = `High rain probability (${maxRainProb}%) detected. Chemicals will wash off.`;
+                        adviceGujarati = `વરસાદની ઉંચી સંભાવના (${maxRainProb}%) છે. દવા વરસાદથી ધોવાઈ જશે.`;
+                    } else {
+                        adviceEnglish = `Extreme heat (${maxTemp}°C) detected. Risk of evaporation and leaf injury.`;
+                        adviceGujarati = `ખૂબ જ ગરમી (${maxTemp}°C) છે. દવા બાષ્પીભવન થવા કે પાંદડા બળવાનું જોખમ છે.`;
+                    }
+                } else if (maxWind > 10 || maxRainProb > 15 || maxTemp > 30) {
+                    safetyBadge = `<span style="background-color: #f77f00; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟡 Caution / સાવચેતી</span>`;
+                    adviceEnglish = `Moderate wind/heat. Temp: ${maxTemp}°C, Wind: ${maxWind} km/h, Rain: ${maxRainProb}%. Try spraying during early morning or late evening.`;
+                    adviceGujarati = `મધ્યમ પવન/ગરમી છે. તાપમાન: ${maxTemp}°C, પવન: ${maxWind} કિમી/કલાક, વરસાદ: ${maxRainProb}%. સવારે વહેલા અથવા સાંજે ઠંડકમાં છંટકાવ કરો.`;
+                } else {
+                    safetyBadge = `<span style="background-color: #40916c; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟢 Safe / દવા છાંટવા યોગ્ય</span>`;
+                    adviceEnglish = `Excellent weather. Wind: ${maxWind} km/h, Temp: ${maxTemp}°C, Rain: ${maxRainProb}%. Safe to spray.`;
+                    adviceGujarati = `હવામાન અનુકૂળ છે. પવન: ${maxWind} કિમી/કલાક, તાપમાન: ${maxTemp}°C, વરસાદ: ${maxRainProb}%. છંટકાવ કરો.`;
+                }
+                
+                weatherInfo.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 15px;">
+                        <strong>Current Status:</strong> ${safetyBadge}
+                    </div>
+                    <div style="border-top: 1px solid #e2f3e8; padding-top: 15px;">
+                        <p style="margin: 0 0 10px 0;"><strong>English</strong>: ${adviceEnglish}</p>
+                        <p style="margin: 0; color: #2d6a4f;"><strong>ગુજરાતી</strong>: ${adviceGujarati}</p>
+                    </div>
+                    <div style="margin-top: 15px; font-size: 12px; color: #888; display: flex; justify-content: space-between; border-top: 1px dashed #e9ece9; padding-top: 8px;">
+                        <span>Wind: ${maxWind} km/h</span>
+                        <span>Temp: ${maxTemp}°C</span>
+                        <span>Rain: ${maxRainProb}%</span>
+                    </div>
+                `;
+            } catch (err) {
+                weatherInfo.innerHTML = "❌ Failed to load weather forecast details from API.<br>ગુજરાતી: વેધર ફોરકાસ્ટ મેળવવામાં નિષ્ફળતા મળી.";
+            }
+        },
+        () => {
+            weatherInfo.innerHTML = "❌ Geolocation permission denied by user.<br>ગુજરાતી: લોકેશન પરમિશન નકારવામાં આવી છે.";
+        }
+    );
+});
+</script>
+
+</body>
+</html>

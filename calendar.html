@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Buddy - Crop Lifecycle Calendar / પાક સમયપત્રક આયોજક</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="navbar">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="analyze.html">Analyze Leaf</a></li>
+                    <li><a href="weather.html">Weather Advisor</a></li>
+                    <li><a href="calendar.html" class="active">Crop Calendar</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="analyze-section" style="min-height: 85vh; padding: 60px 20px;">
+        <div class="analyze-container" style="max-width: 750px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">🗓️</div>
+            <h2 style="color: #1b4332; font-size: 28px; font-weight: 700; margin-bottom: 10px;">Crop Calendar Planner / પાક સમયપત્રક આયોજક</h2>
+            <p style="color: #666; margin-bottom: 30px; font-size: 15px;">Plan your crop lifecycle milestones from sowing to harvest and check for dynamic disease warnings.</p>
+            
+            <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); text-align: left; border: 1px solid #e2f3e8;">
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="planCropSelect" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Select Crop / પાક પસંદ કરો</label>
+                        <select id="planCropSelect" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                            <option value="tomato">Tomato (ટામેટા)</option>
+                            <option value="potato">Potato (બટાકા)</option>
+                            <option value="corn">Corn (મકાઈ)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="sowingDateInput" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Sowing Date / વાવણી તારીખ</label>
+                        <input id="sowingDateInput" type="date" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                    </div>
+                </div>
+                
+                <button id="generate-plan-btn" type="button" class="btn-submit" style="padding: 12px 24px; font-weight: bold; width: 100%; background-color: #1b4332; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; margin-top: 0; font-family: inherit; transition: background 0.2s;">Generate Timeline / સમયરેખા બનાવો</button>
+                
+                <!-- Milestones Output Container -->
+                <div id="calendar-timeline-container" style="display: none; margin-top: 35px;">
+                    <h4 style="color: #1b4332; margin-bottom: 20px; font-size: 16px; border-bottom: 2px dashed #e2f3e8; padding-bottom: 10px; font-weight: 700;">Lifecycle Milestones & Advisory:</h4>
+                    <div id="calendar-timeline" style="position: relative; padding-left: 25px; border-left: 2px solid #e2f3e8; margin-left: 10px; text-align: left;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
+    </footer>
+
+<script>
+const planCropSelect = document.getElementById('planCropSelect');
+const sowingDateInput = document.getElementById('sowingDateInput');
+const generatePlanBtn = document.getElementById('generate-plan-btn');
+const calendarTimelineContainer = document.getElementById('calendar-timeline-container');
+const calendarTimeline = document.getElementById('calendar-timeline');
+
+// Set default sowing date to today
+sowingDateInput.value = new Date().toISOString().split('T')[0];
+
+const CALENDAR_DATA = {
+    tomato: [
+        { days: 14, title: "Transplanting Stage / રોપણી", desc: "Transplant nursery seedlings into main field. Irrigate immediately.", warn: "Check for damping-off or early leaf spots." },
+        { days: 28, title: "Vegetative Development / છોડનો વિકાસ", desc: "Weed the area and apply Nitrogen-rich fertilizer (Urea).", warn: "Monitor for whiteflies which transmit Mosaic/Leaf Curl Virus." },
+        { days: 45, title: "Flowering Phase / ફૂલ બેસવા", desc: "Ensure soil remains moist. Spray neem oil to repel sucking pests.", warn: "Early leaf mold check. Look under lower leaves." },
+        { days: 65, title: "Fruiting Stage / ફળનો વિકાસ", desc: "Apply potassium-rich fertilizers. Maintain uniform irrigation.", warn: "Spray copper-based fungicides if Early Blight spots appear." },
+        { days: 85, title: "Harvesting Milestones / પાક લણણી", desc: "Harvest ripe red tomatoes. Sort and store in shaded boxes.", warn: "Avoid post-harvest decay by storing in dry conditions." }
+    ],
+    potato: [
+        { days: 15, title: "Sprouting Phase / અંકુરણ", desc: "Tuber sprouts emerge above soil. Keep soil loose.", warn: "Check for cutworms or soil pests." },
+        { days: 35, title: "Stolon & Tuber Initiation / કંદ નિર્માણ", desc: "Apply Nitrogen fertilizer and execute first earthing-up (માટી ચડાવવી).", warn: "Late blight warning. Highly critical phase if rain occurs." },
+        { days: 55, title: "Tuber Bulking / કંદનો વિકાસ", desc: "Maintain optimal irrigation. Prevent dry-wet soil oscillations.", warn: "Monitor for Early Blight. Check lower leaves." },
+        { days: 75, title: "Maturation Phase / પાક પકવવો", desc: "Stop watering 10 days before harvest to allow tuber skins to harden.", warn: "Check tuber skins for common scab." },
+        { days: 95, title: "Harvesting Phase / લણણી", desc: "Dig tubers carefully to avoid scratching skins. Keep in dark storage.", warn: "Avoid storing damaged tubers." }
+    ],
+    corn: [
+        { days: 15, title: "Seedling Growth / અંકુરણ અને વિકાસ", desc: "Apply starter fertilizer. Watch out for weeds.", warn: "Check for seedling blight." },
+        { days: 40, title: "Knee-High Stage / પાનનો વિકાસ", desc: "Execute side-dressing with Nitrogen fertilizer. Irrigate heavily.", warn: "Common rust check. Look for orange powdery spots." },
+        { days: 65, title: "Tasseling & Silking / મોર આવવા", desc: "Ensure high moisture. Pollination happens during this phase.", warn: "Northern Leaf Blight warning if weather is humid." },
+        { days: 90, title: "Grain Fill / દાણા ભરાવા", desc: "Kernels mature. Corn cobs grow plump and firm.", warn: "Stalk rot inspection." },
+        { days: 110, title: "Physiological Maturity / લણણી", desc: "Corn husks turn dry and brown. Safe for harvesting.", warn: "Keep dry to prevent grain molds." }
+    ]
+};
+
+generatePlanBtn.addEventListener('click', () => {
+    const crop = planCropSelect.value;
+    const sowingDate = new Date(sowingDateInput.value);
+    
+    if (isNaN(sowingDate.getTime())) {
+        alert("Please select a valid date.");
+        return;
+    }
+    
+    const today = new Date();
+    const diffTime = today - sowingDate;
+    const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+    
+    let html = "";
+    const milestones = CALENDAR_DATA[crop] || [];
+    
+    milestones.forEach((m, idx) => {
+        const isActive = (diffDays >= (idx === 0 ? 0 : milestones[idx-1].days) && diffDays < m.days);
+        const isPast = (diffDays >= m.days);
+        
+        let markerColor = "#e0e0e0";
+        let cardBg = "#ffffff";
+        let borderStyle = "1px solid #e0e0e0";
+        
+        if (isActive) {
+            markerColor = "#1b4332";
+            cardBg = "#f4fcf7";
+            borderStyle = "2px solid #52b788";
+        } else if (isPast) {
+            markerColor = "#52b788";
+            cardBg = "#f8faf8";
+        }
+        
+        html += `
+            <div style="position: relative; margin-bottom: 25px; padding: 15px; border-radius: 8px; background-color: ${cardBg}; border: ${borderStyle}; transition: all 0.3s; margin-left: 10px;">
+                <!-- Timeline Dot -->
+                <div style="position: absolute; left: -41px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background-color: ${markerColor}; border: 3px solid #ffffff; box-shadow: 0 0 0 2px ${markerColor === '#e0e0e0' ? '#f0f0f0' : markerColor}; z-index: 1;"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h5 style="margin: 0; color: #1b4332; font-size: 15px; font-weight: bold;">${m.title}</h5>
+                    <span style="font-size: 12px; font-weight: bold; background-color: ${isActive ? '#52b788' : '#e9ece9'}; color: ${isActive ? 'white' : '#555'}; padding: 2px 8px; border-radius: 20px;">Day ${m.days}</span>
+                </div>
+                <p style="margin: 0; font-size: 13.5px; color: #333;">${m.desc}</p>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-size: 12.5px; color: #b7094c; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                    ⚠️ Advisory: ${m.warn}
+                </div>
+                ${isActive ? '<div style="position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 700; color: #1b4332; background-color: #d8f3e5; padding: 2px 6px; border-radius: 4px;">CURRENT PHASE / સક્રિય તબક્કો</div>' : ''}
+            </div>
+        `;
+    });
+    
+    calendarTimeline.innerHTML = html;
+    calendarTimelineContainer.style.display = "block";
+    calendarTimelineContainer.scrollIntoView({ behavior: 'smooth' });
+});
+</script>
+
+</body>
+</html>
