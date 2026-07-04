@@ -6,6 +6,13 @@
     <title>Crop Buddy - Crop Disease Detector / પાક રોગ ઓળખકર્તા</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        @media (max-width: 900px) {
+            .result-details-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
     <!-- TensorFlow.js Web Model Inference Library -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
 </head>
@@ -27,10 +34,18 @@
     </header>
 
     <section id="analyze" class="analyze-section" style="min-height: 85vh;">
-        <div class="analyze-container" style="max-width: 700px;">
+        <div class="analyze-container" style="max-width: 1100px; width: 95%;">
             <div class="analysis-portal-wrapper">
-                <h2>Disease Analysis Portal</h2>
-                <p>Upload a clear photograph of the affected plant leaf to begin processing.</p>
+                <!-- Language Selector Toggle -->
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                    <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 4px; display: inline-flex; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
+                        <button id="lang-en-btn" type="button" style="padding: 6px 16px; border: none; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer; background-color: #1b4332; color: white; transition: all 0.2s;">English</button>
+                        <button id="lang-gu-btn" type="button" style="padding: 6px 16px; border: none; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer; background-color: transparent; color: #1b4332; transition: all 0.2s;">ગુજરાતી</button>
+                    </div>
+                </div>
+
+                <h2 id="portal-title">Disease Analysis Portal</h2>
+                <p id="portal-desc">Upload a clear photograph of the affected plant leaf to begin processing.</p>
 
                 <div class="crop-select-container" style="margin-bottom: 20px; text-align: left;">
                     <label for="cropSelect" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Crop</label>
@@ -138,49 +153,52 @@
                 </div>
 
                 <!-- Diagnostics & Treatments Split Columns -->
-                <div class="result-details-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-                    <!-- Treatment Box Section -->
-                    <div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-                        <div style="background-color: #1b4332; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px; display: flex; align-items: center;">
-                            💊 Recommended Medicines & Remedies / દવાઓ અને સારવાર
+                <div class="result-details-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+                    <!-- Left Column: Treatment Box Section -->
+                    <div style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
+                        <div id="label-remedies-header" style="background-color: #1b4332; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px; display: flex; align-items: center;">
+                            💊 Recommended Medicines & Remedies
                         </div>
-                        <div style="padding: 15px; min-height: 80px;">
+                        <div style="padding: 15px; flex: 1; background: #ffffff;">
                             <div id="res-treat" style="white-space: pre-line; line-height: 1.6; font-size: 15px; color: #333;"></div>
                         </div>
                     </div>
 
-                    <!-- Dosage Calculator Section (Only visible on diseased results) -->
-                    <div id="res-calc-section" style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: none;">
-                        <div style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
-                            🧮 Dosage & Water Calculator / દવાની માત્રાનું કેલ્ક્યુલેટર
-                        </div>
-                        <div style="padding: 15px;">
-                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px;">
-                                <div style="flex: 1; min-width: 120px;">
-                                    <label for="landSizeInput" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Land Size / જમીનનું માપ</label>
-                                    <input id="landSizeInput" type="number" value="1" min="0.1" step="0.1" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                    <!-- Right Column: Stack of Calculator and Fungicides -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Dosage Calculator Section (Only visible on diseased results) -->
+                        <div id="res-calc-section" style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: none;">
+                            <div id="label-calc-header" style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
+                                🧮 Dosage & Water Calculator
+                            </div>
+                            <div style="padding: 15px;">
+                                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px;">
+                                    <div style="flex: 1; min-width: 120px;">
+                                        <label for="landSizeInput" id="label-land-size" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Land Size</label>
+                                        <input id="landSizeInput" type="number" value="1" min="0.1" step="0.1" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                                    </div>
+                                    <div style="flex: 1; min-width: 120px;">
+                                        <label for="landUnitSelect" id="label-unit" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Unit</label>
+                                        <select id="landUnitSelect" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                                            <option value="acre" id="opt-acres">Acres</option>
+                                            <option value="bigha" id="opt-bighas">Bighas (Gujarat)</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div style="flex: 1; min-width: 120px;">
-                                    <label for="landUnitSelect" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Unit / એકમ</label>
-                                    <select id="landUnitSelect" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
-                                        <option value="acre">Acres (એકર)</option>
-                                        <option value="bigha">Bighas (વીઘા - Gujarat)</option>
-                                    </select>
+                                <div id="calc-output" style="padding: 12px; background-color: #f4fcf7; border: 1px solid #d8f3e5; border-radius: 6px; font-size: 14px; color: #1b4332; line-height: 1.5; font-weight: 500;">
+                                    Total Water & Chemical required will be displayed here.
                                 </div>
                             </div>
-                            <div id="calc-output" style="padding: 12px; background-color: #f4fcf7; border: 1px solid #d8f3e5; border-radius: 6px; font-size: 14px; color: #1b4332; line-height: 1.5; font-weight: 500;">
-                                Total Water & Chemical required will be displayed here.
-                            </div>
                         </div>
-                    </div>
 
-                    <!-- Fungicide Guidelines Section -->
-                    <div id="res-fungicides-section" style="background-color: #f4f9f4; border: 1px solid #d8ebd8; border-radius: 8px; overflow: hidden; display: none;">
-                        <div style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
-                            🛡️ Fungicide Spray Guidelines / ફૂગનાશક દવાઓ માટેની માર્ગદર્શિકા
-                        </div>
-                        <div style="padding: 15px;">
-                            <div id="res-fungicides-text" style="white-space: pre-line; line-height: 1.6; font-size: 14px; color: #2d5a45;"></div>
+                        <!-- Fungicide Guidelines Section -->
+                        <div id="res-fungicides-section" style="background-color: #f4f9f4; border: 1px solid #d8ebd8; border-radius: 8px; overflow: hidden; display: none;">
+                            <div id="label-fungicides-header" style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
+                                🛡️ Fungicide Spray Guidelines
+                            </div>
+                            <div style="padding: 15px;">
+                                <div id="res-fungicides-text" style="white-space: pre-line; line-height: 1.6; font-size: 14px; color: #2d5a45;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -273,14 +291,14 @@ async function initApp() {
 // Call on startup
 window.addEventListener('DOMContentLoaded', initApp);
 
-// Dictionary mapping supported crops to their detectable disease categories
-const CROP_DISEASES_INFO = {
+// Bilingual crop info translations
+const CROP_DISEASES_INFO_EN = {
     apple: "Detects: Apple Scab, Black Rot, Cedar Apple Rust, or Healthy status.",
     blueberry: "Detects: Healthy status.",
     cherry: "Detects: Powdery Mildew or Healthy status.",
     corn: "Detects: Cercospora Leaf Spot, Common Rust, Northern Leaf Blight, or Healthy status.",
     grape: "Detects: Black Rot, Esca (Black Measles), Leaf Blight, or Healthy status.",
-    orange: "Detects: Huanglongbing (Citrus Greening / Fungal-like).",
+    orange: "Detects: Huanglongbing (Citrus Greening).",
     peach: "Detects: Bacterial Spot or Healthy status.",
     pepper: "Detects: Bell Pepper Bacterial Spot or Healthy status.",
     potato: "Detects: Early Blight, Late Blight, or Healthy status.",
@@ -291,15 +309,32 @@ const CROP_DISEASES_INFO = {
     tomato: "Detects: Bacterial Spot, Early Blight, Late Blight, Leaf Mold, Septoria Leaf Spot, Spider Mites, Target Spot, Yellow Leaf Curl Virus, Mosaic Virus, or Healthy status."
 };
 
+const CROP_DISEASES_INFO_GU = {
+    apple: "તપાસે છે: સફરજનનો સ્કેબ રોગ, કાળો સડો, ગેરુ (કાટ) રોગ, અથવા તંદુરસ્ત પાન.",
+    blueberry: "તપાસે છે: તંદુરસ્ત પાન.",
+    cherry: "તપાસે છે: ભૂકી છારો (છારો) અથવા તંદુરસ્ત પાન.",
+    corn: "તપાસે છે: પાનાના ટપકાનો રોગ, ગેરુનો રોગ, પાનનો સુકારો, અથવા તંદુરસ્ત પાન.",
+    grape: "તપાસે છે: કાળો સડો, ઇસ્કા (કાળા ડાઘ), પાનનો સુકારો, અથવા તંદુરસ્ત પાન.",
+    orange: "તપાસે છે: સિટ્રસ ગ્રીનિંગ (લીલોતરી રોગ).",
+    peach: "તપાસે છે: બેક્ટેરિયલ ટપકા અથવા તંદુરસ્ત પાન.",
+    pepper: "તપાસે છે: શિમલા મરચાના બેક્ટેરિયલ ટપકા અથવા તંદુરસ્ત પાન.",
+    potato: "તપાસે છે: આગતરો સુકારો, પાછતરો સુકારો, અથવા તંદુરસ્ત પાન.",
+    raspberry: "તપાસે છે: તંદુરસ્ત પાન.",
+    soybean: "તપાસે છે: તંદુરસ્ત પાન.",
+    squash: "તપાસે છે: ભૂકી છારો રોગ.",
+    strawberry: "તપાસે છે: પાનનો કરમાવો અથવા તંદુરસ્ત પાન.",
+    tomato: "તપાસે છે: બેક્ટેરિયલ ટપકા, આગતરો સુકારો, પાછતરો સુકારો, પાનની ફૂગ, સેપ્ટોરિયા ટપકા, લાલ કરોળિયા, ટાર્ગેટ સ્પોટ, કોકડવો (પર્ણ વલન), મોઝેક વાયરસ, અથવા તંદુરસ્ત પાન."
+};
+
 const cropSelect = document.getElementById('cropSelect');
 const cropInfo = document.getElementById('crop-info');
 
 cropSelect.addEventListener('change', function() {
     const val = this.value;
     if (val === 'all') {
-        cropInfo.innerText = "Select a crop to view diseases the AI can detect.";
+        cropInfo.innerText = activeLang === 'en' ? "Select a crop to view diseases the AI can detect." : "એઆઈ કયા રોગો શોધી શકે છે તે જોવા માટે પાક પસંદ કરો.";
     } else {
-        cropInfo.innerText = CROP_DISEASES_INFO[val] || "";
+        cropInfo.innerText = activeLang === 'en' ? CROP_DISEASES_INFO_EN[val] : CROP_DISEASES_INFO_GU[val];
     }
 });
 
@@ -307,7 +342,7 @@ cropSelect.addEventListener('change', function() {
 fileInput.addEventListener('change', function() {
     if (this.files && this.files[0]) {
         const file = this.files[0];
-        fileNameDisplay.innerText = `Selected: ${file.name}`;
+        fileNameDisplay.innerText = `${activeLang === 'en' ? 'Selected' : 'પસંદ કરેલ'}: ${file.name}`;
         
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -317,7 +352,6 @@ fileInput.addEventListener('change', function() {
         }
         reader.readAsDataURL(file);
         
-        // Hide result box when a new file is uploaded
         resultBox.style.display = "none";
     }
 });
@@ -339,14 +373,264 @@ async function runLocalInference(imgElement) {
     return predictions;
 }
 
+// Global state variables for Dosage Calculator & TTS
+let activeLang = 'en';
+let lastPredictionIdx = -1;
+let lastPredictionVal = 0.0;
+let currentDosageRatioPerLiter = 2.0; 
+let chemicalName = "Recommended Product";
+let predictedCropNameEng = "";
+let predictedConditionNameEng = "";
+let activeRecommendations = [];
+
+const UI_LABELS = {
+    en: {
+        title: "Disease Analysis Portal",
+        desc: "Upload a clear photograph of the affected plant leaf to begin processing.",
+        chooseCrop: "Choose Crop",
+        browseText: "browse image",
+        clickTo: "Click to ",
+        useCamera: "📷 Use Camera",
+        analyzeBtn: "Analyze Leaf",
+        analyzingBtn: "Analyzing locally...",
+        loadingModel: "Loading AI Model...",
+        remediesHeader: "💊 Recommended Medicines & Remedies",
+        calcHeader: "🧮 Dosage & Water Calculator",
+        landSize: "Land Size",
+        unit: "Unit",
+        acres: "Acres",
+        bighas: "Bighas (Gujarat)",
+        calcDefault: "Total Water & Chemical required will be displayed here.",
+        fungicidesHeader: "🛡️ Fungicide Spray Guidelines",
+        alertNoImage: "Please upload a plant leaf photo first!"
+    },
+    gu: {
+        title: "પાક રોગ નિદાન પોર્ટલ",
+        desc: "પ્રક્રિયા શરૂ કરવા માટે રોગિષ્ઠ છોડના પાનનો સ્પષ્ટ ફોટો અપલોડ કરો.",
+        chooseCrop: "પાક પસંદ કરો",
+        browseText: "ફોટો પસંદ કરો",
+        clickTo: "ક્લિક કરીને ",
+        useCamera: "📷 કેમેરો વાપરો",
+        analyzeBtn: "રોગ નિદાન તપાસો",
+        analyzingBtn: "નિદાન ચાલુ છે...",
+        loadingModel: "એઆઈ મોડેલ લોડ થઈ રહ્યું છે...",
+        remediesHeader: "💊 ભલામણ કરેલ દવાઓ અને સારવાર",
+        calcHeader: "🧮 દવાની માત્રાનું કેલ્ક્યુલેટર",
+        landSize: "જમીનનું માપ",
+        unit: "એકમ",
+        acres: "એકર",
+        bighas: "વીઘા (ગુજરાત)",
+        calcDefault: "કુલ પાણી અને દવાની જરૂરી માત્રા અહીં બતાવવામાં આવશે.",
+        fungicidesHeader: "🛡️ ફૂગનાશક દવાઓ માટેની માર્ગદર્શિકા",
+        alertNoImage: "કૃપા કરીને પહેલા પાનનો ફોટો અપલોડ કરો!"
+    }
+};
+
+function updateUiLabels() {
+    const labels = UI_LABELS[activeLang];
+    
+    document.getElementById('portal-title').innerText = labels.title;
+    document.getElementById('portal-desc').innerText = labels.desc;
+    
+    const cropLabel = document.querySelector('label[for="cropSelect"]');
+    if (cropLabel) cropLabel.innerText = labels.chooseCrop;
+    
+    const uploadText = document.querySelector('#upload-prompt p');
+    if (uploadText) {
+        uploadText.innerHTML = `${labels.clickTo}<span class="browse-text" style="text-decoration: underline; color: #1b4332; font-weight: bold;">${labels.browseText}</span>`;
+    }
+    
+    document.getElementById('start-camera-btn').innerText = labels.useCamera;
+    
+    if (!model) {
+        submitBtn.innerText = labels.loadingModel;
+    } else {
+        submitBtn.innerText = labels.analyzeBtn;
+    }
+    
+    document.getElementById('label-remedies-header').innerText = labels.remediesHeader;
+    document.getElementById('label-calc-header').innerText = labels.calcHeader;
+    document.getElementById('label-land-size').innerText = labels.landSize;
+    document.getElementById('label-unit').innerText = labels.unit;
+    document.getElementById('opt-acres').innerText = labels.acres;
+    document.getElementById('opt-bighas').innerText = labels.bighas;
+    
+    const size = parseFloat(landSizeInput.value);
+    if (isNaN(size) || size <= 0) {
+        document.getElementById('calc-output').innerText = labels.calcDefault;
+    }
+    
+    document.getElementById('label-fungicides-header').innerText = labels.fungicidesHeader;
+    
+    const cropVal = cropSelect.value;
+    if (cropVal === 'all') {
+        cropInfo.innerText = activeLang === 'en' ? "Select a crop to view diseases the AI can detect." : "એઆઈ કયા રોગો શોધી શકે છે તે જોવા માટે પાક પસંદ કરો.";
+    } else {
+        cropInfo.innerText = activeLang === 'en' ? CROP_DISEASES_INFO_EN[cropVal] : CROP_DISEASES_INFO_GU[cropVal];
+    }
+}
+
+// Render dynamic analysis results strictly in active language
+function renderAnalysisResults() {
+    if (lastPredictionIdx === -1) return;
+    
+    const predictedClass = CLASS_NAMES[lastPredictionIdx];
+    const confidenceScore = (lastPredictionVal * 100).toFixed(2) + "%";
+    
+    const parts = predictedClass.split("___");
+    const plantName = parts[0].replace(/_/g, " ").replace(/\(maize\)/g, "");
+    const conditionName = parts[1].replace(/_/g, " ");
+    
+    predictedCropNameEng = plantName;
+    predictedConditionNameEng = conditionName;
+    
+    const cropKey = plantName.toLowerCase().trim();
+    const cropTranslation = CROP_TRANSLATIONS_GU[cropKey] || plantName;
+    
+    const conditionKey = conditionName.toLowerCase().replace(/_/g, " ").trim();
+    const diseaseTranslation = DISEASE_TRANSLATIONS_GU[conditionKey] || conditionName;
+    
+    let specificDiseaseName = "";
+    if (activeLang === 'en') {
+        specificDiseaseName = conditionName.toLowerCase() === "healthy" 
+            ? `${plantName} (Healthy)` 
+            : `${plantName} - ${conditionName}`;
+    } else {
+        specificDiseaseName = conditionName.toLowerCase() === "healthy" 
+            ? `${cropTranslation} (${diseaseTranslation})` 
+            : `${cropTranslation} - ${diseaseTranslation}`;
+    }
+    
+    document.getElementById('res-name').innerText = specificDiseaseName;
+    document.getElementById('res-conf').innerText = confidenceScore;
+    document.getElementById('res-conf-bar').style.width = confidenceScore;
+    
+    let pesticideRecommendations = [];
+    if (conditionName.toLowerCase() === "healthy") {
+        pesticideRecommendations = [];
+    } else if (conditionName.toLowerCase().includes("bacterial spot")) {
+        pesticideRecommendations = pesticideData.specializedTreatments.bactericides.medicines;
+    } else if (conditionName.toLowerCase().includes("spider mites")) {
+        pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[2].medicines;
+    } else if (conditionName.toLowerCase().includes("yellow_leaf_curl") || conditionName.toLowerCase().includes("yellow leaf curl")) {
+        pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[1].medicines;
+    } else if (conditionName.toLowerCase().includes("mosaic_virus") || conditionName.toLowerCase().includes("mosaic virus")) {
+        pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[0].medicines;
+    } else if (conditionName.toLowerCase().includes("common_rust") || conditionName.toLowerCase().includes("common rust") || conditionName.toLowerCase().includes("rust")) {
+        pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
+    } else if (plantName.toLowerCase().includes("potato")) {
+        pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[0].medicines;
+    } else if (plantName.toLowerCase().includes("tomato")) {
+        pesticideRecommendations = pesticideData.modernInsecticides.neonicotinoids.products;
+    } else {
+        pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
+    }
+    
+    activeRecommendations = pesticideRecommendations || [];
+    
+    let treatmentText = "";
+    if (pesticideRecommendations && pesticideRecommendations.length > 0) {
+        pesticideRecommendations.forEach((med) => {
+            if (activeLang === 'en') {
+                if (med.nameEnglish) {
+                    treatmentText += `🔹 ${med.nameEnglish}\n   • Dosage: ${med.recommendedDosage}\n\n`;
+                } else if (med.groupNameEnglish && med.items) {
+                    treatmentText += `📌 [${med.groupNameEnglish}]:\n`;
+                    med.items.forEach(subMed => {
+                        treatmentText += `   - ${subMed.nameEnglish} | Dosage: ${subMed.recommendedDosage}\n`;
+                    });
+                    treatmentText += `\n`;
+                } else if (med.genericNameEnglish) {
+                    treatmentText += `🔹 ${med.genericNameEnglish}\n   • Brands: ${med.tradeNamesEnglish || med.nameEnglish || "Common Brands"}\n   • Dosage: ${med.dosage}\n\n`;
+                }
+            } else {
+                if (med.nameGujarati) {
+                    treatmentText += `🔹 ${med.nameGujarati}\n   • માત્રા: ${med.recommendedDosage}\n\n`;
+                } else if (med.groupNameGujarati && med.items) {
+                    treatmentText += `📌 [${med.groupNameGujarati}]:\n`;
+                    med.items.forEach(subMed => {
+                        treatmentText += `   - ${subMed.nameGujarati} | માત્રા: ${subMed.recommendedDosage}\n`;
+                    });
+                    treatmentText += `\n`;
+                } else if (med.tradeNamesGujarati) {
+                    treatmentText += `🔹 ${med.genericNameEnglish || "દવા"}\n   • બ્રાન્ડ્સ: ${med.tradeNamesGujarati}\n   • માત્રા: ${med.dosage}\n\n`;
+                } else {
+                    treatmentText += `🔹 ${med.nameEnglish || med.genericNameEnglish}\n   • માત્રા: ${med.recommendedDosage || med.dosage}\n\n`;
+                }
+            }
+        });
+    } else {
+        if (activeLang === 'en') {
+            treatmentText += conditionName.toLowerCase() === "healthy"
+                ? "Excellent leaf condition. No chemical pesticide treatment needed."
+                : "No specific treatment entries found for this category in the local database.";
+        } else {
+            treatmentText += conditionName.toLowerCase() === "healthy"
+                ? "પાંદડાની સ્થિતિ ઉત્તમ છે. કોઈ રાસાયણિક દવાની સારવારની જરૂર નથી."
+                : "સ્થાનિક ડેટાબેઝમાં આ શ્રેણી માટે કોઈ ચોક્કસ સારવાર મળી નથી.";
+        }
+    }
+    
+    document.getElementById('res-treat').innerText = treatmentText;
+    
+    const calcSection = document.getElementById('res-calc-section');
+    if (pesticideRecommendations && pesticideRecommendations.length > 0 && conditionName.toLowerCase() !== "healthy") {
+        calcSection.style.display = "block";
+        const firstMed = pesticideRecommendations[0];
+        chemicalName = activeLang === 'en' 
+            ? (firstMed.nameEnglish || firstMed.genericNameEnglish || "chemical")
+            : (firstMed.nameGujarati || firstMed.genericNameEnglish || "દવા");
+            
+        const dosageString = firstMed.recommendedDosage || firstMed.dosage || "";
+        const ratioMatch = dosageString.match(/([0-9.]+)\s*(ml|g|gm|gram|lit)/i);
+        
+        if (ratioMatch) {
+            currentDosageRatioPerLiter = parseFloat(ratioMatch[1]);
+        } else {
+            currentDosageRatioPerLiter = 2.0;
+        }
+        calculateDosage();
+    } else {
+        calcSection.style.display = "none";
+    }
+    
+    const fungicidesSection = document.getElementById('res-fungicides-section');
+    const fungicidesTextContainer = document.getElementById('res-fungicides-text');
+    
+    if (pesticideData.fungicidesGuidelines && conditionName.toLowerCase() !== "healthy") {
+        const fg = pesticideData.fungicidesGuidelines;
+        let fungicidesText = "";
+        
+        if (activeLang === 'en') {
+            fungicidesText = `${fg.generalInfoEnglish}\n\n📋 Key Points:\n`;
+            fg.keyRecommendations.forEach((rec) => {
+                fungicidesText += `• ${rec.textEnglish}\n`;
+            });
+        } else {
+            fungicidesText = `${fg.generalInfoGujarati}\n\n📋 ખાસ સૂચનાઓ:\n`;
+            fg.keyRecommendations.forEach((rec) => {
+                fungicidesText += `• ${rec.textGujarati}\n`;
+            });
+        }
+        
+        fungicidesTextContainer.innerText = fungicidesText;
+        fungicidesSection.style.display = "block";
+    } else {
+        fungicidesSection.style.display = "none";
+    }
+    
+    resultBox.style.display = "block";
+    resultBox.scrollIntoView({ behavior: 'smooth' });
+}
+
 // Client-Side Image Analysis Pipeline
 submitBtn.addEventListener('click', async () => {
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert("Please upload a plant leaf photo first!");
+        alert(UI_LABELS[activeLang].alertNoImage);
         return;
     }
     
-    submitBtn.innerText = "Analyzing locally...";
+    submitBtn.innerText = UI_LABELS[activeLang].analyzingBtn;
     submitBtn.disabled = true;
     
     const loadingIndicator = document.getElementById('loading-indicator');
@@ -366,137 +650,46 @@ submitBtn.addEventListener('click', async () => {
             }
         }
         
-        const predictedClass = CLASS_NAMES[highestConfIdx];
-        const confidenceScore = (highestConfVal * 100).toFixed(2) + "%";
-        
-        const parts = predictedClass.split("___");
-        const plantName = parts[0].replace(/_/g, " ").replace(/\(maize\)/g, "");
-        const conditionName = parts[1].replace(/_/g, " ");
-        
-        // Save globally for the TTS voice narrator
-        predictedCropNameEng = plantName;
-        predictedConditionNameEng = conditionName;
-        
-        let specificDiseaseName = `${plantName} - ${conditionName}`;
-        let pesticideRecommendations = [];
-        
-        if (conditionName.toLowerCase() === "healthy") {
-            specificDiseaseName = `${plantName} (Healthy Leaf)`;
-            pesticideRecommendations = [];
-        } else if (conditionName.toLowerCase().includes("bacterial spot")) {
-            specificDiseaseName = `${plantName} - Bacterial Spot`;
-            pesticideRecommendations = pesticideData.specializedTreatments.bactericides.medicines;
-        } else if (conditionName.toLowerCase().includes("spider mites")) {
-            specificDiseaseName = `${plantName} - Spider Mites (Infestation)`;
-            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[2].medicines;
-        } else if (conditionName.toLowerCase().includes("yellow_leaf_curl") || conditionName.toLowerCase().includes("yellow leaf curl")) {
-            specificDiseaseName = `${plantName} - Yellow Leaf Curl Virus (Whitefly-transmitted)`;
-            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[1].medicines;
-        } else if (conditionName.toLowerCase().includes("mosaic_virus") || conditionName.toLowerCase().includes("mosaic virus")) {
-            specificDiseaseName = `${plantName} - Mosaic Virus`;
-            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[0].medicines;
-        } else if (conditionName.toLowerCase().includes("common_rust") || conditionName.toLowerCase().includes("common rust") || conditionName.toLowerCase().includes("rust")) {
-            specificDiseaseName = `${plantName} - Rust (Fungal)`;
-            pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
-        } else if (plantName.toLowerCase().includes("potato")) {
-            specificDiseaseName = `${plantName} - ${conditionName}`;
-            pesticideRecommendations = pesticideData.commonPesticides[1].subCategories[0].medicines;
-        } else if (plantName.toLowerCase().includes("tomato")) {
-            specificDiseaseName = `${plantName} - ${conditionName}`;
-            pesticideRecommendations = pesticideData.modernInsecticides.neonicotinoids.products;
-        } else {
-            specificDiseaseName = `${plantName} - ${conditionName}`;
-            pesticideRecommendations = pesticideData.commonPesticides[0].medicines;
-        }
-        
-        if (document.getElementById('res-name')) {
-            document.getElementById('res-name').innerText = specificDiseaseName;
-        }
-        document.getElementById('res-conf').innerText = confidenceScore;
-        
-        if (document.getElementById('res-conf-bar')) {
-            document.getElementById('res-conf-bar').style.width = confidenceScore;
-        }
-        
-        // Save globally for TTS
-        activeRecommendations = pesticideRecommendations || [];
-        
-        let treatmentText = "";
-        if (pesticideRecommendations && pesticideRecommendations.length > 0) {
-            pesticideRecommendations.forEach((med, index) => {
-                if (med.nameEnglish) {
-                    treatmentText += `🔹 ${med.nameEnglish} (${med.nameGujarati})\n   • Dosage: ${med.recommendedDosage}\n\n`;
-                } else if (med.groupNameEnglish && med.items) {
-                    treatmentText += `📌 [${med.groupNameEnglish} / ${med.groupNameGujarati}]:\n`;
-                    med.items.forEach(subMed => {
-                        treatmentText += `   - ${subMed.nameEnglish} (${subMed.nameGujarati}) | Dosage: ${subMed.recommendedDosage}\n`;
-                    });
-                    treatmentText += `\n`;
-                } else if (med.genericNameEnglish) {
-                    treatmentText += `🔹 ${med.genericNameEnglish}\n   • Brands: ${med.tradeNamesGujarati}\n   • Dosage: ${med.dosage}\n\n`;
-                }
-            });
-        } else {
-            treatmentText += conditionName.toLowerCase() === "healthy"
-                ? "Excellent leaf condition. No chemical pesticide treatment needed.\nભલામણ: કોઈ કેમિકલ ટ્રીટમેન્ટની જરૂર નથી."
-                : "No specific treatment entries found for this category in the local database.\nConsult an agricultural expert.";
-        }
-        document.getElementById('res-treat').innerText = treatmentText;
-        
-        const calcSection = document.getElementById('res-calc-section');
-        if (pesticideRecommendations && pesticideRecommendations.length > 0 && conditionName.toLowerCase() !== "healthy") {
-            calcSection.style.display = "block";
-            const firstMed = pesticideRecommendations[0];
-            chemicalName = firstMed.nameEnglish || firstMed.genericNameEnglish || "chemical";
-            const dosageString = firstMed.recommendedDosage || firstMed.dosage || "";
-            const ratioMatch = dosageString.match(/([0-9.]+)\s*(ml|g|gm|gram|lit)/i);
-            
-            if (ratioMatch) {
-                currentDosageRatioPerLiter = parseFloat(ratioMatch[1]);
-            } else {
-                currentDosageRatioPerLiter = 2.0;
-            }
-            if (typeof calculateDosage === 'function') {
-                calculateDosage();
-            }
-        } else {
-            calcSection.style.display = "none";
-        }
-        
-        const fungicidesSection = document.getElementById('res-fungicides-section');
-        const fungicidesTextContainer = document.getElementById('res-fungicides-text');
-        
-        if (pesticideData.fungicidesGuidelines && conditionName.toLowerCase() !== "healthy") {
-            const fg = pesticideData.fungicidesGuidelines;
-            let fungicidesText = `${fg.generalInfoEnglish}\n\nગુજરાતી: ${fg.generalInfoGujarati}\n\n📋 Key Points / ખાસ સૂચનાઓ:\n`;
-            fg.keyRecommendations.forEach((rec, idx) => {
-                fungicidesText += `• ${rec.textEnglish} (${rec.textGujarati})\n`;
-            });
-            fungicidesTextContainer.innerText = fungicidesText;
-            fungicidesSection.style.display = "block";
-        } else {
-            fungicidesSection.style.display = "none";
-        }
-        
-        resultBox.style.display = "block";
-        resultBox.scrollIntoView({ behavior: 'smooth' });
+        lastPredictionIdx = highestConfIdx;
+        lastPredictionVal = highestConfVal;
+        renderAnalysisResults();
         
     } catch (error) {
         console.error("Local pipeline analysis failure:", error);
-        alert(`ANALYSIS ERROR:\n${error.message}\n\nPlease try again with a different image.`);
+        alert(`ANALYSIS ERROR:\n${error.message}\n\nPlease try again.`);
     } finally {
-        submitBtn.innerText = "Analyze Image";
+        submitBtn.innerText = UI_LABELS[activeLang].analyzeBtn;
         submitBtn.disabled = false;
         if (loadingIndicator) loadingIndicator.style.display = "none";
     }
 });
 
-// Global state variables for Dosage Calculator & TTS
-let currentDosageRatioPerLiter = 2.0; 
-let chemicalName = "Recommended Product";
-let predictedCropNameEng = "";
-let predictedConditionNameEng = "";
-let activeRecommendations = [];
+// Bind Language selection events
+document.getElementById('lang-en-btn').addEventListener('click', function() {
+    activeLang = 'en';
+    this.style.backgroundColor = '#1b4332';
+    this.style.color = 'white';
+    const guBtn = document.getElementById('lang-gu-btn');
+    guBtn.style.backgroundColor = 'transparent';
+    guBtn.style.color = '#1b4332';
+    updateUiLabels();
+    if (resultBox.style.display === 'block') {
+        renderAnalysisResults();
+    }
+});
+
+document.getElementById('lang-gu-btn').addEventListener('click', function() {
+    activeLang = 'gu';
+    this.style.backgroundColor = '#1b4332';
+    this.style.color = 'white';
+    const enBtn = document.getElementById('lang-en-btn');
+    enBtn.style.backgroundColor = 'transparent';
+    enBtn.style.color = '#1b4332';
+    updateUiLabels();
+    if (resultBox.style.display === 'block') {
+        renderAnalysisResults();
+    }
+});
 
 // ==========================================
 // FEATURE 2: Voice Reader / Audio Narrator (TTS)
