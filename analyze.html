@@ -619,17 +619,17 @@ ttsSpeakGuBtn.addEventListener('click', () => {
     const conditionKey = predictedConditionNameEng.toLowerCase().replace(/_/g, " ").trim();
     const diseaseGu = DISEASE_TRANSLATIONS_GU[conditionKey] || predictedConditionNameEng;
     
-    let textGu = `પાકનું નિદાન: ${cropGu} ના છોડમાં ${diseaseGu} જોવા મળેલ છે. `;
+    let textGu = `પાકનું નિદાન: ${cropGu} (${predictedCropNameEng}) ના છોડમાં ${diseaseGu} (${predictedConditionNameEng}) જોવા મળેલ છે. `;
     
     if (activeRecommendations && activeRecommendations.length > 0 && predictedConditionNameEng.toLowerCase() !== "healthy") {
         textGu += "ભલામણ કરેલ દવાઓ અને સારવાર આ મુજબ છે. ";
         activeRecommendations.forEach(med => {
             if (med.nameGujarati) {
-                textGu += `દવાનું નામ ${med.nameGujarati}, દવાની માત્રા ${med.recommendedDosage}. `;
+                textGu += `દવાનું નામ ${med.nameGujarati} (${med.nameEnglish || ""}), દવાની માત્રા ${med.recommendedDosage}. `;
             } else if (med.groupNameGujarati && med.items) {
-                textGu += `${med.groupNameGujarati} ની દવાઓ જેમકે: `;
+                textGu += `${med.groupNameGujarati} (${med.groupNameEnglish || ""}) ની દવાઓ જેમકે: `;
                 med.items.forEach(subMed => {
-                    textGu += `${subMed.nameGujarati}, માત્રા ${subMed.recommendedDosage}. `;
+                    textGu += `${subMed.nameGujarati} (${subMed.nameEnglish || ""}), માત્રા ${subMed.recommendedDosage}. `;
                 });
             } else if (med.tradeNamesGujarati) {
                 textGu += `જેનેરિક દવા ${med.genericNameEnglish || "દવા"}. બ્રાન્ડ્સ ${med.tradeNamesGujarati}. માત્રા ${med.dosage || ""}. `;
