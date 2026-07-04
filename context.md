@@ -18,6 +18,7 @@ graph TD
     index[index.html - Dashboard] -->|Links to| analyze[analyze.html - Leaf Diagnosis]
     index -->|Links to| weather[weather.html - Weather Advisor]
     index -->|Links to| calendar[calendar.html - Crop Calendar]
+    index -->|Links to| advisor[advisor.html - AI Chatbot Advisor]
 
     analyze -->|Runs local inference| TFJS[TensorFlow.js Library]
     analyze -->|Loads model weights| Model[model.json + binary shards]
@@ -25,6 +26,10 @@ graph TD
     
     weather -->|Queries GPS| Geo[HTML5 Geolocation]
     weather -->|Fetches forecast| Meteo[Open-Meteo API]
+    
+    advisor -->|Queries voice recognition| Speech[HTML5 Web Speech API]
+    advisor -->|Secure POST request| Serverless[api/chat.js Serverless function]
+    Serverless -->|Retrieves answers| Gemini[Google Gemini 1.5 Flash API]
 ```
 
 1. **Frontend (Client-side HTML/CSS/JS)**:
@@ -32,6 +37,7 @@ graph TD
    - [analyze.html](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/analyze.html): The AI Disease Diagnostics portal. Embeds TensorFlow.js, handles leaf uploads and camera capture stream with an SVG overlay, runs local model prediction, reads treatments aloud via TTS, and runs the dosage calculator.
    - [weather.html](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/weather.html): The Weather Spray Advisor portal. Queries user GPS coordinates and uses the Open-Meteo API to generate bilingual wind, rain, and temperature safety advisories.
    - [calendar.html](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/calendar.html): The Sowing-to-Harvest milestone planner timeline.
+   - [advisor.html](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/advisor.html): The AI Crop Advisor chatbot conversation page. Utilizes browser Speech Recognition for voice input and text-to-speech for speaking answers.
    - [style.css](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/style.css): Common stylesheet for cohesive visuals across all pages.
 
 2. **Model Files (TensorFlow.js Web Model)**:
@@ -40,8 +46,9 @@ graph TD
 3. **Pesticides Database**:
    - [pesticides.json](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/pesticides.json): Standalone static JSON dataset containing pesticide details, modern insecticides, specialized treatments, and fungicide instructions in English and Gujarati.
 
-4. **Local Static Test Server (Node.js/Express)**:
+4. **Local Static Test Server & Serverless Backends**:
    - [server.js](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/server.js): A lightweight development server. It serves static assets from the root directory to resolve browser CORS blocks when loading the model and database JSON files locally.
+   - [api/chat.js](file:///C:/Users/Aryan/OneDrive/Desktop/cropbuddy/api/chat.js): Node.js Vercel serverless function that securely forwards chatbot queries to Google AI Studio's Gemini 1.5 Flash API using the server-configured environment variable.
 
 ---
 
@@ -49,6 +56,8 @@ graph TD
 
 ```
 C:\Users\Aryan\OneDrive\Desktop\cropbuddy\
+├── api/                           # Vercel Serverless Functions
+│   └── chat.js                    # Chatbot API broker linking to Gemini Flash
 ├── model/                         # TensorFlow.js model files
 │   ├── model.json                 # Model architecture configuration (128x128 shape)
 │   └── group1-shard1of8.bin to 8  # Model weight binary shards (loaded on-demand)
@@ -58,6 +67,7 @@ C:\Users\Aryan\OneDrive\Desktop\cropbuddy\
 ├── analyze.html                   # Leaf upload & AI diagnostics portal page
 ├── weather.html                   # Geolocation spray weather advisory page
 ├── calendar.html                  # Lifecycle timeline milstone scheduler page
+├── advisor.html                   # AI advisor chatbot conversation page
 ├── pesticides.json                # Standalone database containing pesticide recommendations
 ├── server.js                      # Static file server (express) for local development
 ├── style.css                      # Application styling stylesheet
@@ -72,6 +82,8 @@ C:\Users\Aryan\OneDrive\Desktop\cropbuddy\
 ├── CROPBUDDY REPORT.pdf           # Project documentation (PDF format)
 └── vercel.json                    # Vercel static routing configuration (cleanUrls enabled)
 ```
+
+---
 
 ---
 
