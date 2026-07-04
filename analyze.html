@@ -118,7 +118,10 @@
                             <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Inference processed locally on device</p>
                         </div>
                     </div>
-                    <button id="tts-speak-btn" type="button" style="padding: 8px 12px; background-color: #f8faf8; border: 1px solid #40916c; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" title="Read Aloud / મોટેથી વાંચો">🔊</button>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button id="tts-speak-btn" type="button" style="padding: 6px 12px; background-color: #f8faf8; border: 1.5px solid #1b4332; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="Read Aloud in English">🔊 English</button>
+                        <button id="tts-speak-gu-btn" type="button" style="padding: 6px 12px; background-color: #f4fcf7; border: 1.5px solid #40916c; color: #1b4332; border-radius: 20px; cursor: pointer; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: all 0.2s;" title="ગુજરાતીમાં સાંભળો">🔊 ગુજરાતી</button>
+                    </div>
                 </div>
 
                 <!-- Confidence Meter Section -->
@@ -369,6 +372,10 @@ submitBtn.addEventListener('click', async () => {
         const plantName = parts[0].replace(/_/g, " ").replace(/\(maize\)/g, "");
         const conditionName = parts[1].replace(/_/g, " ");
         
+        // Save globally for the TTS voice narrator
+        predictedCropNameEng = plantName;
+        predictedConditionNameEng = conditionName;
+        
         let specificDiseaseName = `${plantName} - ${conditionName}`;
         let pesticideRecommendations = [];
         
@@ -409,6 +416,9 @@ submitBtn.addEventListener('click', async () => {
         if (document.getElementById('res-conf-bar')) {
             document.getElementById('res-conf-bar').style.width = confidenceScore;
         }
+        
+        // Save globally for TTS
+        activeRecommendations = pesticideRecommendations || [];
         
         let treatmentText = "";
         if (pesticideRecommendations && pesticideRecommendations.length > 0) {
@@ -480,54 +490,172 @@ submitBtn.addEventListener('click', async () => {
     }
 });
 
-// Global state variables for Dosage Calculator
+// Global state variables for Dosage Calculator & TTS
 let currentDosageRatioPerLiter = 2.0; 
 let chemicalName = "Recommended Product";
+let predictedCropNameEng = "";
+let predictedConditionNameEng = "";
+let activeRecommendations = [];
 
 // ==========================================
 // FEATURE 2: Voice Reader / Audio Narrator (TTS)
 // ==========================================
 const ttsSpeakBtn = document.getElementById('tts-speak-btn');
+const ttsSpeakGuBtn = document.getElementById('tts-speak-gu-btn');
 let speaking = false;
 
+// English and Gujarati Dictionary Maps for translation
+const CROP_TRANSLATIONS_GU = {
+    "apple": "સફરજન",
+    "blueberry": "બ્લુબેરી",
+    "cherry": "ચેરી",
+    "corn": "મકાઈ",
+    "grape": "દ્રાક્ષ",
+    "orange": "નારંગી",
+    "peach": "પીચ",
+    "pepper": "શિમલા મરચા",
+    "potato": "બટાકા",
+    "raspberry": "રાસ્પબેરી",
+    "soybean": "સોયાબીન",
+    "squash": "કોળુ",
+    "strawberry": "સ્ટ્રોબેરી",
+    "tomato": "ટામેટા"
+};
+
+const DISEASE_TRANSLATIONS_GU = {
+    "healthy": "તંદુરસ્ત પાન",
+    "apple scab": "સફરજનનો સ્કેબ રોગ",
+    "black rot": "કાળો સડો રોગ",
+    "cedar apple rust": "ગેરુ કાટ રોગ",
+    "powdery mildew": "ભૂકી છારો રોગ",
+    "cercospora leaf spot gray leaf spot": "પાનાના ટપકાનો રોગ",
+    "common rust": "ગેરુ નો રોગ",
+    "northern leaf blight": "પાનનો સુકારો",
+    "esca (black measles)": "ઇસ્કા કાળા ડાઘ",
+    "leaf blight (isariopsis leaf spot)": "પાનનો સુકારો",
+    "huanglongbing (citrus greening)": "સિટ્રસ ગ્રીનિંગ રોગ",
+    "bacterial spot": "બેક્ટેરિયલ ટપકાનો રોગ",
+    "early blight": "આગતરો સુકારો",
+    "late blight": "પાછતરો સુકારો",
+    "leaf scorch": "પાનનો કરમાવો",
+    "leaf mold": "પાનની ફૂગ",
+    "septoria leaf spot": "સેપ્ટોરિયા ટપકાનો રોગ",
+    "spider mites two-spotted spider mite": "લાલ કરોળિયા જીવાત",
+    "target spot": "ટાર્ગેટ સ્પોટ",
+    "tomato yellow leaf curl virus": "કોકડવો પર્ણ વલન વાયરસ",
+    "tomato mosaic virus": "મોઝેક વાયરસ"
+};
+
+function resetTtsButtons() {
+    window.speechSynthesis.cancel();
+    ttsSpeakBtn.innerText = "🔊 English";
+    ttsSpeakGuBtn.innerText = "🔊 ગુજરાતી";
+    speaking = false;
+}
+
+// 1. English Narrator Event Listener
 ttsSpeakBtn.addEventListener('click', () => {
     if (speaking) {
-        window.speechSynthesis.cancel();
-        ttsSpeakBtn.innerText = "🔊";
-        speaking = false;
+        resetTtsButtons();
         return;
     }
     
-    const nameText = document.getElementById('res-name').innerText;
-    const treatText = document.getElementById('res-treat').innerText;
-    
-    const fullText = `Diagnosis: ${nameText}. ${treatText}`;
-    const utterance = new SpeechSynthesisUtterance(fullText);
-    const voices = window.speechSynthesis.getVoices();
-    
-    const isGujarati = /[\u0A80-\u0AFF]/.test(fullText);
-    
-    if (isGujarati) {
-        const guVoice = voices.find(v => v.lang.includes("gu-IN"));
-        if (guVoice) utterance.voice = guVoice;
-        utterance.lang = "gu-IN";
-    } else {
-        const enVoice = voices.find(v => v.lang.includes("en-IN")) || voices.find(v => v.lang.includes("en-US"));
-        if (enVoice) utterance.voice = enVoice;
-        utterance.lang = "en-IN";
+    if (!predictedCropNameEng) {
+        alert("Please run leaf analysis first!");
+        return;
     }
     
-    utterance.onend = () => {
-        ttsSpeakBtn.innerText = "🔊";
-        speaking = false;
-    };
+    // Compile English narrative text
+    let textEn = `Crop Diagnosis: ${predictedCropNameEng}. Condition is ${predictedConditionNameEng}. `;
+    if (activeRecommendations && activeRecommendations.length > 0 && predictedConditionNameEng.toLowerCase() !== "healthy") {
+        textEn += "Recommended treatments are: ";
+        activeRecommendations.forEach(med => {
+            if (med.nameEnglish) {
+                textEn += `${med.nameEnglish}, dosage ${med.recommendedDosage}. `;
+            } else if (med.groupNameEnglish && med.items) {
+                textEn += `Synthetic group ${med.groupNameEnglish} medicines including: `;
+                med.items.forEach(subMed => {
+                    textEn += `${subMed.nameEnglish}, dosage ${subMed.recommendedDosage}. `;
+                });
+            } else if (med.genericNameEnglish) {
+                textEn += `Generic insecticide ${med.genericNameEnglish}, dosage ${med.dosage}. `;
+            }
+        });
+    } else {
+        textEn += "Leaf condition is healthy. No chemical treatments required.";
+    }
     
-    utterance.onerror = () => {
-        ttsSpeakBtn.innerText = "🔊";
-        speaking = false;
-    };
+    const utterance = new SpeechSynthesisUtterance(textEn);
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.includes("en-IN")) || voices.find(v => v.lang.includes("en-US"));
+    if (enVoice) utterance.voice = enVoice;
+    utterance.lang = "en-US";
     
-    ttsSpeakBtn.innerText = "🛑";
+    utterance.onend = resetTtsButtons;
+    utterance.onerror = resetTtsButtons;
+    
+    ttsSpeakBtn.innerText = "🛑 Stop";
+    speaking = true;
+    window.speechSynthesis.speak(utterance);
+});
+
+// 2. Gujarati Narrator Event Listener
+ttsSpeakGuBtn.addEventListener('click', () => {
+    if (speaking) {
+        resetTtsButtons();
+        return;
+    }
+    
+    if (!predictedCropNameEng) {
+        alert("કૃપા કરીને પહેલા રોગ નિદાન તપાસો!");
+        return;
+    }
+    
+    // Translate Crop and Condition to Gujarati
+    const cropKey = predictedCropNameEng.toLowerCase().trim();
+    const cropGu = CROP_TRANSLATIONS_GU[cropKey] || predictedCropNameEng;
+    
+    const conditionKey = predictedConditionNameEng.toLowerCase().replace(/_/g, " ").trim();
+    const diseaseGu = DISEASE_TRANSLATIONS_GU[conditionKey] || predictedConditionNameEng;
+    
+    let textGu = `પાકનું નિદાન: ${cropGu} ના છોડમાં ${diseaseGu} જોવા મળેલ છે. `;
+    
+    if (activeRecommendations && activeRecommendations.length > 0 && predictedConditionNameEng.toLowerCase() !== "healthy") {
+        textGu += "ભલામણ કરેલ દવાઓ અને સારવાર આ મુજબ છે. ";
+        activeRecommendations.forEach(med => {
+            if (med.nameGujarati) {
+                textGu += `દવાનું નામ ${med.nameGujarati}, દવાની માત્રા ${med.recommendedDosage}. `;
+            } else if (med.groupNameGujarati && med.items) {
+                textGu += `${med.groupNameGujarati} ની દવાઓ જેમકે: `;
+                med.items.forEach(subMed => {
+                    textGu += `${subMed.nameGujarati}, માત્રા ${subMed.recommendedDosage}. `;
+                });
+            } else if (med.tradeNamesGujarati) {
+                textGu += `જેનેરિક દવા ${med.genericNameEnglish || "દવા"}. બ્રાન્ડ્સ ${med.tradeNamesGujarati}. માત્રા ${med.dosage || ""}. `;
+            }
+        });
+    } else {
+        textGu += "પાન તંદુરસ્ત છે. કોઈપણ રાસાયણિક દવાની સારવારની જરૂર નથી.";
+    }
+    
+    // Add general fungicides guidelines in Gujarati if applicable
+    if (pesticideData && pesticideData.fungicidesGuidelines && predictedConditionNameEng.toLowerCase() !== "healthy") {
+        textGu += ` ફૂગનાશક દવાઓ માટેની માર્ગદર્શિકા: ${pesticideData.fungicidesGuidelines.generalInfoGujarati}. `;
+        pesticideData.fungicidesGuidelines.keyRecommendations.forEach(rec => {
+            textGu += `${rec.textGujarati}. `;
+        });
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(textGu);
+    const voices = window.speechSynthesis.getVoices();
+    const guVoice = voices.find(v => v.lang.includes("gu-IN"));
+    if (guVoice) utterance.voice = guVoice;
+    utterance.lang = "gu-IN";
+    
+    utterance.onend = resetTtsButtons;
+    utterance.onerror = resetTtsButtons;
+    
+    ttsSpeakGuBtn.innerText = "🛑 સ્ટોપ";
     speaking = true;
     window.speechSynthesis.speak(utterance);
 });
