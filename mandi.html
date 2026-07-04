@@ -6,6 +6,25 @@
     <title>Crop Buddy - APMC Mandi Prices / માર્કેટ યાર્ડ ભાવો</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js Library via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @media (max-width: 900px) {
+            #mandi-dashboard-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        .mandi-row {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mandi-row:hover {
+            background-color: #f4fcf7;
+        }
+        .mandi-row.selected-row {
+            background-color: #d8f3e5 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -33,7 +52,7 @@
     </header>
 
     <section class="analyze-section" style="min-height: 85vh; padding: 40px 20px;">
-        <div class="analyze-container" style="max-width: 1000px; text-align: center;">
+        <div class="analyze-container" style="max-width: 1150px; text-align: center;">
             <div style="font-size: 50px; margin-bottom: 15px;">📊</div>
             <h2 id="mandi-title" style="color: #1b4332; font-size: 28px; font-weight: 700; margin-bottom: 10px;">APMC Mandi Price Tracker</h2>
             <p id="mandi-desc" style="color: #666; margin-bottom: 30px; font-size: 15px;">Live daily market rates of major agricultural commodities in Gujarat Mandis (per 20kg / મણ).</p>
@@ -54,22 +73,43 @@
                 </div>
             </div>
 
-            <!-- Price Table -->
-            <div style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2f3e8; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14.5px;">
-                    <thead>
-                        <tr style="background-color: #1b4332; color: white;">
-                            <th id="th-mandi" style="padding: 12px 15px;">Mandi (માર્કેટ યાર્ડ)</th>
-                            <th id="th-crop" style="padding: 12px 15px;">Crop (પાક)</th>
-                            <th id="th-min" style="padding: 12px 15px;">Min Price (ન્યુનતમ)</th>
-                            <th id="th-max" style="padding: 12px 15px;">Max Price (મહત્તમ)</th>
-                            <th id="th-modal" style="padding: 12px 15px;">Average (સરેરાશ)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mandi-table-body">
-                        <!-- Dynamic Data Rows -->
-                    </tbody>
-                </table>
+            <!-- Split Dashboard: Table & Sharemarket Chart -->
+            <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 25px; align-items: start;" id="mandi-dashboard-grid">
+                
+                <!-- Table Side -->
+                <div style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2f3e8; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14.5px;">
+                        <thead>
+                            <tr style="background-color: #1b4332; color: white;">
+                                <th id="th-mandi" style="padding: 12px 15px;">Mandi (માર્કેટ યાર્ડ)</th>
+                                <th id="th-crop" style="padding: 12px 15px;">Crop (પાક)</th>
+                                <th id="th-min" style="padding: 12px 15px;">Min Price (ન્યુનતમ)</th>
+                                <th id="th-max" style="padding: 12px 15px;">Max Price (મહત્તમ)</th>
+                                <th id="th-modal" style="padding: 12px 15px;">Average (સરેરાશ)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mandi-table-body">
+                            <!-- Dynamic Data Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Live Chart Side -->
+                <div style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2f3e8; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2f3e8; padding-bottom: 10px; margin-bottom: 15px;">
+                        <h3 id="chart-header-title" style="color: #1b4332; margin: 0; font-size: 16px; font-weight: bold;">📈 Price Trend (6 Months)</h3>
+                        <span id="chart-active-label" style="font-size: 12px; font-weight: bold; background-color: #e2f3e8; color: #1b4332; padding: 3px 8px; border-radius: 12px;">Rajkot - Cotton</span>
+                    </div>
+                    
+                    <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                    
+                    <div style="margin-top: 15px; font-size: 12px; color: #666; font-style: italic; line-height: 1.4;" id="chart-help-text">
+                        *Click any row in the Mandi table to inspect its detailed price movement history.
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -102,6 +142,9 @@ const UI_LABELS_MANDI = {
         thMin: "Min Price (Per 20kg)",
         thMax: "Max Price (Per 20kg)",
         thModal: "Average Price",
+        chartTitle: "📈 Price Trend (6 Months)",
+        chartHelp: "*Click any row in the Mandi table to inspect its detailed price movement history.",
+        chartYLabel: "Price (₹) / મણ દીઠ ભાવ",
         cTomato: "Tomato",
         cPotato: "Potato",
         cCotton: "Cotton",
@@ -127,6 +170,9 @@ const UI_LABELS_MANDI = {
         thMin: "ન્યુનતમ ભાવ (૨૦ કિલો દીઠ)",
         thMax: "મહત્તમ ભાવ (૨૦ કિલો દીઠ)",
         thModal: "સરેરાશ ભાવ",
+        chartTitle: "📈 બજાર ભાવ ઇતિહાસ (૬ મહિના)",
+        chartHelp: "*દરેક પાકના પાછલા ૬ મહિનાના ભાવ જોવા માટે કોષ્ટકમાં કોઈપણ લાઇન પર ક્લિક કરો.",
+        chartYLabel: "ભાવ (₹)",
         cTomato: "ટામેટા",
         cPotato: "બટાકા",
         cCotton: "કપાસ (નવો)",
@@ -137,22 +183,25 @@ const UI_LABELS_MANDI = {
 };
 
 const MANDI_DATA = [
-    { location: "Rajkot", cropEn: "Cotton", cropGu: "કપાસ (નવો)", min: 1350, max: 1680 },
-    { location: "Rajkot", cropEn: "Groundnut", cropGu: "મગફળી", min: 1100, max: 1450 },
-    { location: "Rajkot", cropEn: "Wheat", cropGu: "ઘઉં", min: 460, max: 530 },
-    { location: "Gondal", cropEn: "Cotton", cropGu: "કપાસ (નવો)", min: 1380, max: 1710 },
-    { location: "Gondal", cropEn: "Groundnut", cropGu: "મગફળી", min: 1120, max: 1480 },
-    { location: "Gondal", cropEn: "Tomato", cropGu: "ટામેટા", min: 300, max: 850 },
-    { location: "Unjha", cropEn: "Cumin Seeds", cropGu: "જીરું", min: 9500, max: 12400 },
-    { location: "Unjha", cropEn: "Mustard Seeds", cropGu: "રાયડો", min: 950, max: 1200 },
-    { location: "Surat", cropEn: "Tomato", cropGu: "ટામેટા", min: 350, max: 900 },
-    { location: "Surat", cropEn: "Potato", cropGu: "બટાકા", min: 280, max: 480 },
-    { location: "Surat", cropEn: "Wheat", cropGu: "ઘઉં", min: 480, max: 550 }
+    { id: 0, location: "Rajkot", cropEn: "Cotton", cropGu: "કપાસ (નવો)", min: 1350, max: 1680, history: [1420, 1450, 1490, 1510, 1550, 1680] },
+    { id: 1, location: "Rajkot", cropEn: "Groundnut", cropGu: "મગફળી", min: 1100, max: 1450, history: [1300, 1280, 1310, 1340, 1390, 1450] },
+    { id: 2, location: "Rajkot", cropEn: "Wheat", cropGu: "ઘઉં", min: 460, max: 530, history: [490, 480, 500, 510, 505, 530] },
+    { id: 3, location: "Gondal", cropEn: "Cotton", cropGu: "કપાસ (નવો)", min: 1380, max: 1710, history: [1400, 1430, 1480, 1520, 1580, 1710] },
+    { id: 4, location: "Gondal", cropEn: "Groundnut", cropGu: "મગફળી", min: 1120, max: 1480, history: [1290, 1310, 1340, 1380, 1420, 1480] },
+    { id: 5, location: "Gondal", cropEn: "Tomato", cropGu: "ટામેટા", min: 300, max: 850, history: [400, 500, 750, 900, 600, 850] },
+    { id: 6, location: "Unjha", cropEn: "Cumin Seeds", cropGu: "જીરું", min: 9500, max: 12400, history: [10200, 10800, 11500, 11200, 11900, 12400] },
+    { id: 7, location: "Unjha", cropEn: "Mustard Seeds", cropGu: "રાયડો", min: 950, max: 1200, history: [1000, 1050, 1090, 1120, 1150, 1200] },
+    { id: 8, location: "Surat", cropEn: "Tomato", cropGu: "ટામેટા", min: 350, max: 900, history: [420, 520, 780, 950, 650, 900] },
+    { id: 9, location: "Surat", cropEn: "Potato", cropGu: "બટાકા", min: 280, max: 480, history: [300, 320, 350, 390, 420, 480] },
+    { id: 10, location: "Surat", cropEn: "Wheat", cropGu: "ઘઉં", min: 480, max: 550, history: [500, 490, 510, 525, 530, 550] }
 ];
 
 const mandiSearchInput = document.getElementById('mandi-search-input');
 const mandiSelect = document.getElementById('mandi-select');
 const mandiTableBody = document.getElementById('mandi-table-body');
+
+let activeRowId = 0;
+let myChart = null;
 
 function initLanguageToggle() {
     const enBtn = document.getElementById('lang-en-btn');
@@ -218,7 +267,11 @@ function updatePageLanguage() {
     document.getElementById('th-max').innerText = labels.thMax;
     document.getElementById('th-modal').innerText = labels.thModal;
     
+    document.getElementById('chart-header-title').innerText = labels.chartTitle;
+    document.getElementById('chart-help-text').innerText = labels.chartHelp;
+    
     renderMandiTable();
+    updateChart();
 }
 
 function renderMandiTable() {
@@ -234,13 +287,15 @@ function renderMandiTable() {
         
         if (matchesMandi && matchesSearch) {
             const avg = Math.round((row.min + row.max) / 2);
+            const isSelected = (row.id === activeRowId) ? "selected-row" : "";
+            const translatedLocation = row.location === "Rajkot" ? (activeLang === 'en' ? 'Rajkot' : 'રાજકોટ') :
+                                       row.location === "Gondal" ? (activeLang === 'en' ? 'Gondal' : 'ગોંડલ') :
+                                       row.location === "Unjha" ? (activeLang === 'en' ? 'Unjha' : 'ઊંઝા') : (activeLang === 'en' ? 'Surat' : 'સુરત');
             
             html += `
-                <tr style="border-bottom: 1px solid #f0fdf4; transition: background 0.2s;">
+                <tr class="mandi-row ${isSelected}" onclick="selectMandiRow(${row.id})" style="border-bottom: 1px solid #f0fdf4; transition: background 0.2s;">
                     <td style="padding: 12px 15px; color: #1b4332; font-weight: bold;">
-                        ${row.location === "Rajkot" ? (activeLang === 'en' ? 'Rajkot' : 'રાજકોટ') :
-                          row.location === "Gondal" ? (activeLang === 'en' ? 'Gondal' : 'ગોંડલ') :
-                          row.location === "Unjha" ? (activeLang === 'en' ? 'Unjha' : 'ઊંઝા') : (activeLang === 'en' ? 'Surat' : 'સુરત')}
+                        ${translatedLocation}
                     </td>
                     <td style="padding: 12px 15px; font-weight: 500;">${cropName}</td>
                     <td style="padding: 12px 15px; color: #666;">₹ ${row.min}</td>
@@ -254,8 +309,85 @@ function renderMandiTable() {
     mandiTableBody.innerHTML = html || `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #888;">No price records found. / કોઈ પરિણામ મળ્યા નથી.</td></tr>`;
 }
 
+function selectMandiRow(id) {
+    activeRowId = id;
+    renderMandiTable();
+    updateChart();
+}
+
+function updateChart() {
+    const item = MANDI_DATA.find(r => r.id === activeRowId);
+    if (!item) return;
+    
+    const cropName = activeLang === 'en' ? item.cropEn : item.cropGu;
+    const translatedLocation = item.location === "Rajkot" ? (activeLang === 'en' ? 'Rajkot' : 'રાજકોટ') :
+                               item.location === "Gondal" ? (activeLang === 'en' ? 'Gondal' : 'ગોંડલ') :
+                               item.location === "Unjha" ? (activeLang === 'en' ? 'Unjha' : 'ઊંઝા') : (activeLang === 'en' ? 'Surat' : 'સુરત');
+    
+    document.getElementById('chart-active-label').innerText = `${translatedLocation} - ${cropName}`;
+    
+    const labelsList = activeLang === 'en' 
+        ? ['January', 'February', 'March', 'April', 'May', 'June']
+        : ['જાન્યુઆરી', 'ફેબ્રુઆરી', 'માર્ચ', 'એપ્રિલ', 'મે', 'જૂન'];
+        
+    const data = {
+        labels: labelsList,
+        datasets: [{
+            label: activeLang === 'en' ? 'Average Price (₹)' : 'સરેરાશ ભાવ (₹)',
+            data: item.history,
+            borderColor: '#1b4332',
+            backgroundColor: 'rgba(40, 145, 108, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#40916c',
+            pointRadius: 6,
+            pointHoverRadius: 8
+        }]
+    };
+    
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: UI_LABELS_MANDI[activeLang].chartYLabel,
+                        font: { family: 'Inter', weight: 'bold', size: 12 }
+                    },
+                    grid: { color: '#f0fdf4' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    };
+    
+    if (myChart) {
+        myChart.destroy();
+    }
+    
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    myChart = new Chart(ctx, config);
+}
+
 mandiSearchInput.addEventListener('input', renderMandiTable);
-mandiSelect.addEventListener('change', renderMandiTable);
+mandiSelect.addEventListener('change', () => {
+    // Select first matching mandi item
+    const filter = mandiSelect.value;
+    const match = MANDI_DATA.find(r => filter === 'all' || r.location === filter);
+    if (match) activeRowId = match.id;
+    renderMandiTable();
+    updateChart();
+});
 
 window.addEventListener('DOMContentLoaded', () => {
     initLanguageToggle();
