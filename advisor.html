@@ -287,48 +287,123 @@ function speakReply(text) {
     window.speechSynthesis.speak(currentUtteranceObj);
 }
 
-// Voice Input using Browser SpeechRecognition
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    
-    micBtn.addEventListener('click', () => {
-        const labels = UI_LABELS_ADVISOR[activeLang];
+// Voice Input using local MediaRecorder and Hugging Face ASR Endpoint
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+function resetMicBtn() {
+    isRecording = false;
+    micBtn.innerText = "🎙️";
+    micBtn.style.backgroundColor = "#f4fcf7";
+    micBtn.style.borderColor = "#40916c";
+    micBtn.title = activeLang === 'en' ? "Speak question" : "પ્રશ્ન પૂછો";
+}
+
+function runBrowserSpeechRecognitionFallback() {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.continuous = false;
+        recognition.interimResults = false;
         recognition.lang = activeLang === 'gu' ? 'gu-IN' : 'en-US';
         
-        try {
-            recognition.start();
+        recognition.onstart = () => {
+            isRecording = true;
             micBtn.innerText = "🛑";
             micBtn.style.backgroundColor = "#ffebeb";
             micBtn.style.borderColor = "#d90429";
-            micBtn.title = labels.micListening;
-        } catch (e) {
-            recognition.stop();
+        };
+        
+        recognition.onresult = (event) => {
+            chatInput.value = event.results[0][0].transcript;
+            sendQuery();
+        };
+        
+        recognition.onend = resetMicBtn;
+        recognition.onerror = resetMicBtn;
+        
+        recognition.start();
+    } else {
+        alert(UI_LABELS_ADVISOR[activeLang].micError);
+    }
+}
+
+micBtn.addEventListener('click', async () => {
+    const labels = UI_LABELS_ADVISOR[activeLang];
+    
+    if (isRecording) {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
         }
-    });
-    
-    recognition.onresult = (event) => {
-        const resultText = event.results[0][0].transcript;
-        chatInput.value = resultText;
-    };
-    
-    function resetMicBtn() {
-        micBtn.innerText = "🎙️";
-        micBtn.style.backgroundColor = "#f4fcf7";
-        micBtn.style.borderColor = "#40916c";
-        micBtn.title = activeLang === 'en' ? "Speak question" : "પ્રશ્ન પૂછો";
+        return;
     }
     
-    recognition.onend = resetMicBtn;
-    recognition.onerror = resetMicBtn;
-} else {
-    micBtn.addEventListener('click', () => {
-        alert(UI_LABELS_ADVISOR[activeLang].micError);
-    });
-}
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+            stream.getTracks().forEach(track => track.stop());
+            
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = async () => {
+                const base64data = reader.result.split(',')[1];
+                
+                micBtn.innerText = "⏳";
+                micBtn.style.backgroundColor = "#fffbeb";
+                micBtn.style.borderColor = "#fbbf24";
+                micBtn.title = "Processing speech...";
+                chatInput.placeholder = "Transcribing voice using AI...";
+                
+                try {
+                    const res = await fetch('/api/asr', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ audio: base64data })
+                    });
+                    
+                    if (!res.ok) throw new Error("ASR request failed.");
+                    const data = await res.json();
+                    
+                    if (data.text) {
+                        chatInput.value = data.text;
+                        sendQuery();
+                    } else {
+                        console.warn("ASR returned empty text.");
+                    }
+                } catch (err) {
+                    console.error("ASR Error, trying fallback SpeechRecognition:", err);
+                    alert(activeLang === 'en' ? "Failed to recognize speech using AI. Please try typing." : "વોઈસ ટ્રાન્સક્રિપ્શન નિષ્ફળ ગયું. કૃપા કરીને ટાઈપ કરો.");
+                } finally {
+                    resetMicBtn();
+                    chatInput.placeholder = labels.placeholder;
+                }
+            };
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        
+        micBtn.innerText = "🛑";
+        micBtn.style.backgroundColor = "#ffebeb";
+        micBtn.style.borderColor = "#d90429";
+        micBtn.title = labels.micListening;
+        
+    } catch (err) {
+        console.warn("Audio recording error, falling back to browser API:", err);
+        runBrowserSpeechRecognitionFallback();
+    }
+});
 
 // Send user query to Backend / Gemini API
 async function sendQuery() {
