@@ -401,9 +401,15 @@ fileInput.addEventListener('change', function() {
 async function runLocalInference(imgElement) {
     if (!model) throw new Error("AI model is not loaded yet.");
     
+    // Get expected input height and width dynamically from the loaded model topology
+    const inputShape = model.inputs[0].shape;
+    const inputHeight = inputShape[1] || 128;
+    const inputWidth = inputShape[2] || 128;
+    console.log(`Resizing input image tensor to model dimensions: [${inputHeight}, ${inputWidth}]`);
+    
     const predictions = tf.tidy(() => {
         let tensor = tf.browser.fromPixels(imgElement);
-        tensor = tf.image.resizeBilinear(tensor, [128, 128]);
+        tensor = tf.image.resizeBilinear(tensor, [inputHeight, inputWidth]);
         const offset = tf.scalar(127.5);
         const normalized = tensor.sub(offset).div(offset);
         const batched = normalized.expandDims(0);
