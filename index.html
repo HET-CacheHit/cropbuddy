@@ -82,6 +82,17 @@
                     <div id="crop-info" style="margin-top: 10px; font-size: 13px; color: #40916c; font-weight: 500; min-height: 20px; line-height: 1.4;">
                         Select a crop to view diseases the AI can detect.
                     </div>
+                    
+                    <!-- Weather Spray Advisory Widget -->
+                    <div id="weather-advisor" style="margin-top: 20px; padding: 15px; border-radius: 8px; background-color: #f8faf8; border: 1px solid #e9ece9; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-weight: 700; color: #1b4332; font-size: 14px;">🌦️ Weather Spray Advisor / હવામાન સલાહ</span>
+                            <button id="check-weather-btn" type="button" style="padding: 5px 10px; background-color: #40916c; color: white; border: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: background 0.2s;">Check Forecast / હવામાન તપાસો</button>
+                        </div>
+                        <div id="weather-info" style="font-size: 13px; color: #555; line-height: 1.4;">
+                            Click to check if current wind, rain, and temperature are safe for chemical spraying.
+                        </div>
+                    </div>
                 </div>
 
                 <div class="upload-box" onclick="document.getElementById('file-upload').click()" style="cursor: pointer; border: 2px dashed #ccc; padding: 30px; text-align: center; border-radius: 8px;">
@@ -92,6 +103,32 @@
                     <img id="image-preview" src="#" alt="Crop Preview" style="display: none; max-width: 100%; max-height: 200px; margin: 0 auto; border-radius: 5px;">
                     <input type="file" id="file-upload" accept="image/*" hidden>
                     <p id="file-name-display" style="margin-top: 15px; color: #1b4332; font-weight: bold;"></p>
+                </div>
+
+                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button id="start-camera-btn" type="button" style="padding: 10px 18px; background-color: #ffffff; border: 1.5px solid #1b4332; color: #1b4332; border-radius: 5px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        📷 Use Camera / કેમેરો વાપરો
+                    </button>
+                </div>
+
+                <!-- Camera Modal Overlay -->
+                <div id="camera-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="position: relative; width: 100%; max-width: 500px; height: 75vh; background-color: #000; overflow: hidden; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 15px;">
+                        <video id="camera-stream" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        <!-- SVG Leaf Overlay Stencil -->
+                        <svg viewBox="0 0 100 100" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+                            <path d="M 50 15 C 65 30 75 45 75 60 C 75 75 65 85 50 85 C 35 85 25 75 25 60 C 25 45 35 30 50 15 Z" fill="none" stroke="#52b788" stroke-width="2" stroke-dasharray="3 3" />
+                            <line x1="50" y1="45" x2="50" y2="55" stroke="#52b788" stroke-width="1" />
+                            <line x1="45" y1="50" x2="55" y2="50" stroke="#52b788" stroke-width="1" />
+                        </svg>
+                        <div style="position: absolute; bottom: 20px; width: 100%; text-align: center; color: #52b788; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); padding: 0 10px; box-sizing: border-box; line-height: 1.4;">
+                            Align leaf lesion inside the dashed outline.<br>પાનના રોગિષ્ઠ ભાગને તૂટક રેખાની અંદર ગોઠવો.
+                        </div>
+                        <button id="close-camera-btn" type="button" style="position: absolute; top: 15px; right: 15px; border-radius: 50%; border: none; background-color: rgba(255,255,255,0.4); color: white; width: 35px; height: 35px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center;">✕</button>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button id="capture-image-btn" type="button" style="padding: 12px 30px; background-color: #52b788; color: white; border: none; border-radius: 30px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">📸 Capture Photo / ફોટો લો</button>
+                    </div>
                 </div>
 
                 <button type="button" class="btn-submit" id="submit-btn" style="margin-top: 20px; padding: 12px 24px; font-weight: bold; cursor: pointer;" disabled>Loading AI Model...</button>
@@ -113,12 +150,15 @@
             <!-- Beautiful, Sectioned Results Container -->
             <div id="result-box" style="display: none; margin-top: 35px; text-align: left; padding: 25px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid #1b4332;">
                 <!-- Result Header -->
-                <div style="display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px;">
-                    <div style="font-size: 32px; margin-right: 15px;">🌿</div>
-                    <div>
-                        <h3 style="color: #1b4332; margin: 0; font-size: 22px; font-weight: 700;">Diagnosis: <span id="res-name" style="color: #40916c;"></span></h3>
-                        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Inference processed locally on device</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #f2f2f2; padding-bottom: 15px;">
+                    <div style="display: flex; align-items: center;">
+                        <div style="font-size: 32px; margin-right: 15px;">🌿</div>
+                        <div>
+                            <h3 style="color: #1b4332; margin: 0; font-size: 22px; font-weight: 700;">Diagnosis: <span id="res-name" style="color: #40916c;"></span></h3>
+                            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Inference processed locally on device</p>
+                        </div>
                     </div>
+                    <button id="tts-speak-btn" type="button" style="padding: 8px 12px; background-color: #f8faf8; border: 1px solid #40916c; border-radius: 50%; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.2s;" title="Read Aloud / મોટેથી વાંચો">🔊</button>
                 </div>
 
                 <!-- Confidence Meter Section -->
@@ -145,6 +185,31 @@
                         </div>
                     </div>
 
+                    <!-- Dosage Calculator Section (Only visible on diseased results) -->
+                    <div id="res-calc-section" style="background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; display: none;">
+                        <div style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
+                            🧮 Dosage & Water Calculator / દવાની માત્રાનું કેલ્ક્યુલેટર
+                        </div>
+                        <div style="padding: 15px;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px;">
+                                <div style="flex: 1; min-width: 120px;">
+                                    <label for="landSizeInput" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Land Size / જમીનનું માપ</label>
+                                    <input id="landSizeInput" type="number" value="1" min="0.1" step="0.1" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                                </div>
+                                <div style="flex: 1; min-width: 120px;">
+                                    <label for="landUnitSelect" style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Unit / એકમ</label>
+                                    <select id="landUnitSelect" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">
+                                        <option value="acre">Acres (એકર)</option>
+                                        <option value="bigha">Bighas (વીઘા - Gujarat)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="calc-output" style="padding: 12px; background-color: #f4fcf7; border: 1px solid #d8f3e5; border-radius: 6px; font-size: 14px; color: #1b4332; line-height: 1.5; font-weight: 500;">
+                                Total Water & Chemical required will be displayed here.
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Fungicide Guidelines Section -->
                     <div id="res-fungicides-section" style="background-color: #f4f9f4; border: 1px solid #d8ebd8; border-radius: 8px; overflow: hidden; display: none;">
                         <div style="background-color: #40916c; color: #ffffff; padding: 12px 15px; font-weight: bold; font-size: 15px;">
@@ -154,6 +219,39 @@
                             <div id="res-fungicides-text" style="white-space: pre-line; line-height: 1.6; font-size: 14px; color: #2d5a45;"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Crop Calendar Planner Section -->
+    <section id="planner" class="planner-section" style="padding: 60px 20px; background-color: #f4fcf7; border-top: 1px solid #e2f3e8; text-align: center;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <h2 style="color: #1b4332; font-size: 28px; font-weight: 700; margin-bottom: 10px;">🗓️ Crop Calendar Planner / પાક સમયપત્રક આયોજક</h2>
+            <p style="color: #666; margin-bottom: 30px; font-size: 15px;">Plan your crop lifecycle milestones from sowing to harvest and check for dynamic disease warnings.</p>
+            
+            <div style="background-color: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: left; border: 1px solid #e0e0e0;">
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="planCropSelect" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Select Crop / પાક પસંદ કરો</label>
+                        <select id="planCropSelect" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                            <option value="tomato">Tomato (ટામેટા)</option>
+                            <option value="potato">Potato (બટાકા)</option>
+                            <option value="corn">Corn (મકાઈ)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="sowingDateInput" style="font-weight: 600; display: block; margin-bottom: 8px; color: #333; font-size: 14px;">Sowing Date / વાવણી તારીખ</label>
+                        <input id="sowingDateInput" type="date" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit;">
+                    </div>
+                </div>
+                
+                <button id="generate-plan-btn" type="button" style="padding: 12px 24px; font-weight: bold; width: 100%; background-color: #1b4332; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; transition: background 0.2s;">Generate Timeline / સમયરેખા બનાવો</button>
+                
+                <!-- Milestones Output Container -->
+                <div id="calendar-timeline-container" style="display: none; margin-top: 30px;">
+                    <h4 style="color: #1b4332; margin-bottom: 20px; font-size: 16px; border-bottom: 2px dashed #e0e0e0; padding-bottom: 10px; font-weight: 700;">Lifecycle Milestones & Advisory:</h4>
+                    <div id="calendar-timeline" style="position: relative; padding-left: 25px; border-left: 2px solid #e2f3e8; margin-left: 10px;"></div>
                 </div>
             </div>
         </div>
@@ -432,6 +530,31 @@ submitBtn.addEventListener('click', async () => {
         }
         document.getElementById('res-treat').innerText = treatmentText;
         
+        // Update dosage calculator values dynamically based on predicted disease
+        const calcSection = document.getElementById('res-calc-section');
+        if (pesticideRecommendations && pesticideRecommendations.length > 0 && conditionName.toLowerCase() !== "healthy") {
+            calcSection.style.display = "block";
+            
+            // Extract the first medicine name and dosage ratio
+            const firstMed = pesticideRecommendations[0];
+            chemicalName = firstMed.nameEnglish || firstMed.genericNameEnglish || "chemical";
+            
+            // Extract numbers from dosage string (e.g. "2 ml per Liter" or "1.5 grams")
+            const dosageString = firstMed.recommendedDosage || firstMed.dosage || "";
+            const ratioMatch = dosageString.match(/([0-9.]+)\s*(ml|g|gm|gram|lit)/i);
+            
+            if (ratioMatch) {
+                currentDosageRatioPerLiter = parseFloat(ratioMatch[1]);
+            } else {
+                currentDosageRatioPerLiter = 2.0; // Fallback default
+            }
+            if (typeof calculateDosage === 'function') {
+                calculateDosage();
+            }
+        } else {
+            calcSection.style.display = "none";
+        }
+        
         // Render Fungicides Guidelines separately in a clean highlighted section
         const fungicidesSection = document.getElementById('res-fungicides-section');
         const fungicidesTextContainer = document.getElementById('res-fungicides-text');
@@ -462,6 +585,327 @@ submitBtn.addEventListener('click', async () => {
         const loadingIndicator = document.getElementById('loading-indicator');
         if (loadingIndicator) loadingIndicator.style.display = "none";
     }
+});
+
+// Global state variables for Dosage Calculator
+let currentDosageRatioPerLiter = 2.0; 
+let chemicalName = "Recommended Product";
+
+// ==========================================
+// FEATURE 1: Weather-Based Spray Advisories
+// ==========================================
+const checkWeatherBtn = document.getElementById('check-weather-btn');
+const weatherInfo = document.getElementById('weather-info');
+
+checkWeatherBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        weatherInfo.innerHTML = "❌ Geolocation is not supported by your browser.<br>ગુજરાતી: લોકેશન તમારા બ્રાઉઝર દ્વારા સપોર્ટેડ નથી.";
+        return;
+    }
+    
+    weatherInfo.innerHTML = "Fetching GPS coordinates... / સ્થાન શોધી રહ્યાં છીએ...";
+    
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude.toFixed(4);
+            const lon = position.coords.longitude.toFixed(4);
+            weatherInfo.innerHTML = `Location: Lat ${lat}, Lon ${lon}. Fetching forecast...`;
+            
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability,wind_speed_10m&forecast_days=1`);
+                if (!res.ok) throw new Error("Weather API fetch error");
+                const data = await res.json();
+                
+                // Get conditions for the next 4 hours
+                const nowHour = new Date().getHours();
+                let maxRainProb = 0;
+                let maxWind = 0;
+                let maxTemp = 0;
+                
+                for (let i = 0; i < 4; i++) {
+                    const idx = (nowHour + i) % 24;
+                    maxRainProb = Math.max(maxRainProb, data.hourly.precipitation_probability[idx] || 0);
+                    maxWind = Math.max(maxWind, data.hourly.wind_speed_10m[idx] || 0);
+                    maxTemp = Math.max(maxTemp, data.hourly.temperature_2m[idx] || 0);
+                }
+                
+                // Determine safety
+                let safetyBadge = "";
+                let adviceEnglish = "";
+                let adviceGujarati = "";
+                
+                if (maxWind > 15 || maxRainProb > 30 || maxTemp > 35) {
+                    safetyBadge = `<span style="background-color: #d90429; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; display: inline-block;">🔴 Avoid Spraying / દવાનો છંટકાવ ટાળો</span>`;
+                    if (maxWind > 15) {
+                        adviceEnglish = `High winds (${maxWind} km/h) detected. High risk of chemical drift.`;
+                        adviceGujarati = `ભારે પવન (${maxWind} કિમી/કલાક) છે. પવનથી દવા ઉડી જવાનું જોખમ રહેલું છે.`;
+                    } else if (maxRainProb > 30) {
+                        adviceEnglish = `High rain probability (${maxRainProb}%) detected. Chemicals will wash off.`;
+                        adviceGujarati = `વરસાદની ઉંચી સંભાવના (${maxRainProb}%) છે. દવા વરસાદથી ધોવાઈ જશે.`;
+                    } else {
+                        adviceEnglish = `Extreme heat (${maxTemp}°C) detected. Risk of evaporation and leaf scorch.`;
+                        adviceGujarati = `ખૂબ જ ગરમી (${maxTemp}°C) છે. દવા બાષ્પીભવન થવા કે પાંદડા બળવાનું જોખમ છે.`;
+                    }
+                } else if (maxWind > 10 || maxRainProb > 15 || maxTemp > 30) {
+                    safetyBadge = `<span style="background-color: #f77f00; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; display: inline-block;">🟡 Caution / સાવચેતી</span>`;
+                    adviceEnglish = `Moderate wind/heat. Spray during early morning or late evening. Temp: ${maxTemp}°C, Wind: ${maxWind} km/h, Rain: ${maxRainProb}%.`;
+                    adviceGujarati = `મધ્યમ પવન/ગરમી છે. સવારે વહેલા અથવા સાંજે ઠંડકમાં છંટકાવ કરવો. તાપમાન: ${maxTemp}°C, પવન: ${maxWind} કિમી/કલાક, વરસાદ: ${maxRainProb}%.`;
+                } else {
+                    safetyBadge = `<span style="background-color: #40916c; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; display: inline-block;">🟢 Safe / દવા છાંટવા યોગ્ય</span>`;
+                    adviceEnglish = `Excellent weather. Wind: ${maxWind} km/h, Temp: ${maxTemp}°C, Rain: ${maxRainProb}%. Safe to spray.`;
+                    adviceGujarati = `હવામાન અનુકૂળ છે. પવન: ${maxWind} કિમી/કલાક, તાપમાન: ${maxTemp}°C, વરસાદ: ${maxRainProb}%. છંટકાવ કરો.`;
+                }
+                
+                weatherInfo.innerHTML = `
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                        <strong>Status:</strong> ${safetyBadge}
+                    </div>
+                    <div style="margin-top: 10px; border-top: 1px solid #e9ece9; padding-top: 8px; font-size: 13px;">
+                        <strong>English:</strong> ${adviceEnglish}<br>
+                        <strong>ગુજરાતી:</strong> ${adviceGujarati}
+                    </div>
+                `;
+            } catch (err) {
+                weatherInfo.innerHTML = "❌ Failed to load weather forecast details from API.<br>ગુજરાતી: વેધર ફોરકાસ્ટ મેળવવામાં નિષ્ફળતા મળી.";
+            }
+        },
+        () => {
+            weatherInfo.innerHTML = "❌ Geolocation permission denied by user.<br>ગુજરાતી: લોકેશન પરમિશન નકારવામાં આવી છે.";
+        }
+    );
+});
+
+// ==========================================
+// FEATURE 2: Voice Reader / Audio Narrator (TTS)
+// ==========================================
+const ttsSpeakBtn = document.getElementById('tts-speak-btn');
+let speaking = false;
+
+ttsSpeakBtn.addEventListener('click', () => {
+    if (speaking) {
+        window.speechSynthesis.cancel();
+        ttsSpeakBtn.innerText = "🔊";
+        speaking = false;
+        return;
+    }
+    
+    const nameText = document.getElementById('res-name').innerText;
+    const treatText = document.getElementById('res-treat').innerText;
+    
+    const fullText = `Diagnosis: ${nameText}. ${treatText}`;
+    const utterance = new SpeechSynthesisUtterance(fullText);
+    const voices = window.speechSynthesis.getVoices();
+    
+    // Check if the text contains Gujarati characters to load proper voice locale
+    const isGujarati = /[\u0A80-\u0AFF]/.test(fullText);
+    
+    if (isGujarati) {
+        const guVoice = voices.find(v => v.lang.includes("gu-IN"));
+        if (guVoice) utterance.voice = guVoice;
+        utterance.lang = "gu-IN";
+    } else {
+        const enVoice = voices.find(v => v.lang.includes("en-IN")) || voices.find(v => v.lang.includes("en-US"));
+        if (enVoice) utterance.voice = enVoice;
+        utterance.lang = "en-IN";
+    }
+    
+    utterance.onend = () => {
+        ttsSpeakBtn.innerText = "🔊";
+        speaking = false;
+    };
+    
+    utterance.onerror = () => {
+        ttsSpeakBtn.innerText = "🔊";
+        speaking = false;
+    };
+    
+    ttsSpeakBtn.innerText = "🛑";
+    speaking = true;
+    window.speechSynthesis.speak(utterance);
+});
+
+// ==========================================
+// FEATURE 3: Dosage & Water Calculator
+// ==========================================
+const landSizeInput = document.getElementById('landSizeInput');
+const landUnitSelect = document.getElementById('landUnitSelect');
+const calcOutput = document.getElementById('calc-output');
+
+function calculateDosage() {
+    const size = parseFloat(landSizeInput.value);
+    if (isNaN(size) || size <= 0) {
+        calcOutput.innerText = "Please enter a valid land size. / કૃપા કરીને સાચું માપ દાખલ કરો.";
+        return;
+    }
+    
+    const unit = landUnitSelect.value;
+    const sizeInAcres = (unit === "bigha") ? (size / 2.5) : size;
+    
+    // Standard rule: 150 liters of water per acre
+    const totalWater = Math.round(sizeInAcres * 150);
+    const totalChemical = (totalWater * currentDosageRatioPerLiter).toFixed(1);
+    
+    const displayUnit = (currentDosageRatioPerLiter < 1.0 || chemicalName.toLowerCase().includes("powder") || chemicalName.toLowerCase().includes("carbendazim") || chemicalName.toLowerCase().includes("copper")) ? "grams" : "mL";
+    
+    calcOutput.innerHTML = `
+        <strong>Total Water needed:</strong> ${totalWater} Liters (લીટર પાણી)<br>
+        <strong>Total ${chemicalName} needed:</strong> ${totalChemical} ${displayUnit} (દવાની માત્રા)
+        <div style="font-size: 12px; margin-top: 5px; color: #666; font-weight: normal;">
+            *Calculated at standard spray rate of 150L/acre using ${currentDosageRatioPerLiter} ${displayUnit}/L ratio.
+        </div>
+    `;
+}
+
+landSizeInput.addEventListener('input', calculateDosage);
+landUnitSelect.addEventListener('change', calculateDosage);
+
+// ==========================================
+// FEATURE 4: Interactive Crop Calendar
+// ==========================================
+const planCropSelect = document.getElementById('planCropSelect');
+const sowingDateInput = document.getElementById('sowingDateInput');
+const generatePlanBtn = document.getElementById('generate-plan-btn');
+const calendarTimelineContainer = document.getElementById('calendar-timeline-container');
+const calendarTimeline = document.getElementById('calendar-timeline');
+
+// Default sowing date to today
+sowingDateInput.value = new Date().toISOString().split('T')[0];
+
+const CALENDAR_DATA = {
+    tomato: [
+        { days: 14, title: "Transplanting Stage / રોપણી", desc: "Transplant nursery seedlings into main field. Irrigate immediately.", warn: "Check for damping-off or early leaf spots." },
+        { days: 28, title: "Vegetative Development / છોડનો વિકાસ", desc: "Weed the area and apply Nitrogen-rich fertilizer (Urea).", warn: "Monitor for whiteflies which transmit Mosaic/Leaf Curl Virus." },
+        { days: 45, title: "Flowering Phase / ફૂલ બેસવા", desc: "Ensure soil remains moist. Spray neem oil to repel sucking pests.", warn: "Early leaf mold check. Look under lower leaves." },
+        { days: 65, title: "Fruiting Stage / ફળનો વિકાસ", desc: "Apply potassium-rich fertilizers. Maintain uniform irrigation.", warn: "Spray copper-based fungicides if Early Blight spots appear." },
+        { days: 85, title: "Harvesting Milestones / પાક લણણી", desc: "Harvest ripe red tomatoes. Sort and store in shaded boxes.", warn: "Avoid post-harvest decay by storing in dry conditions." }
+    ],
+    potato: [
+        { days: 15, title: "Sprouting Phase / અંકુરણ", desc: "Tuber sprouts emerge above soil. Keep soil loose.", warn: "Check for cutworms or soil pests." },
+        { days: 35, title: "Stolon & Tuber Initiation / કંદ નિર્માણ", desc: "Apply Nitrogen fertilizer and execute first earthing-up (માટી ચડાવવી).", warn: "Late blight warning. Highly critical phase if rain occurs." },
+        { days: 55, title: "Tuber Bulking / કંદનો વિકાસ", desc: "Maintain optimal irrigation. Prevent dry-wet soil oscillations.", warn: "Monitor for Early Blight. Check lower leaves." },
+        { days: 75, title: "Maturation Phase / પાક પકવવો", desc: "Stop watering 10 days before harvest to allow tuber skins to harden.", warn: "Check tuber skins for common scab." },
+        { days: 95, title: "Harvesting Phase / લણણી", desc: "Dig tubers carefully to avoid scratching skins. Keep in dark storage.", warn: "Avoid storing damaged tubers." }
+    ],
+    corn: [
+        { days: 15, title: "Seedling Growth / અંકુરણ અને વિકાસ", desc: "Apply starter fertilizer. Watch out for weeds.", warn: "Check for seedling blight." },
+        { days: 40, title: "Knee-High Stage / પાનનો વિકાસ", desc: "Execute side-dressing with Nitrogen fertilizer. Irrigate heavily.", warn: "Common rust check. Look for orange powdery spots." },
+        { days: 65, title: "Tasseling & Silking / મોર આવવા", desc: "Ensure high moisture. Pollination happens during this phase.", warn: "Northern Leaf Blight warning if weather is humid." },
+        { days: 90, title: "Grain Fill / દાણા ભરાવા", desc: "Kernels mature. Corn cobs grow plump and firm.", warn: "Stalk rot inspection." },
+        { days: 110, title: "Physiological Maturity / લણણી", desc: "Corn husks turn dry and brown. Safe for harvesting.", warn: "Keep dry to prevent grain molds." }
+    ]
+};
+
+generatePlanBtn.addEventListener('click', () => {
+    const crop = planCropSelect.value;
+    const sowingDate = new Date(sowingDateInput.value);
+    
+    if (isNaN(sowingDate.getTime())) {
+        alert("Please select a valid date.");
+        return;
+    }
+    
+    const today = new Date();
+    const diffTime = today - sowingDate;
+    const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+    
+    let html = "";
+    const milestones = CALENDAR_DATA[crop] || [];
+    
+    milestones.forEach((m, idx) => {
+        const isActive = (diffDays >= (idx === 0 ? 0 : milestones[idx-1].days) && diffDays < m.days);
+        const isPast = (diffDays >= m.days);
+        
+        let markerColor = "#e0e0e0";
+        let cardBg = "#ffffff";
+        let borderStyle = "1px solid #e0e0e0";
+        
+        if (isActive) {
+            markerColor = "#1b4332";
+            cardBg = "#f4fcf7";
+            borderStyle = "2px solid #52b788";
+        } else if (isPast) {
+            markerColor = "#52b788";
+            cardBg = "#f8faf8";
+        }
+        
+        html += `
+            <div style="position: relative; margin-bottom: 25px; padding: 15px; border-radius: 8px; background-color: ${cardBg}; border: ${borderStyle}; transition: all 0.3s;">
+                <!-- Timeline Dot -->
+                <div style="position: absolute; left: -31px; top: 22px; width: 14px; height: 14px; border-radius: 50%; background-color: ${markerColor}; border: 3px solid #ffffff; box-shadow: 0 0 0 2px ${markerColor === '#e0e0e0' ? '#f0f0f0' : markerColor}; z-index: 1;"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h5 style="margin: 0; color: #1b4332; font-size: 15px; font-weight: bold;">${m.title}</h5>
+                    <span style="font-size: 12px; font-weight: bold; background-color: ${isActive ? '#52b788' : '#e9ece9'}; color: ${isActive ? 'white' : '#555'}; padding: 2px 8px; border-radius: 20px;">Day ${m.days}</span>
+                </div>
+                <p style="margin: 0; font-size: 13.5px; color: #333;">${m.desc}</p>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #eee; font-size: 12.5px; color: #b7094c; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                    ⚠️ Advisory: ${m.warn}
+                </div>
+                ${isActive ? '<div style="position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: 700; color: #1b4332; background-color: #d8f3e5; padding: 2px 6px; border-radius: 4px;">CURRENT PHASE / સક્રિય તબક્કો</div>' : ''}
+            </div>
+        `;
+    });
+    
+    calendarTimeline.innerHTML = html;
+    calendarTimelineContainer.style.display = "block";
+    calendarTimelineContainer.scrollIntoView({ behavior: 'smooth' });
+});
+
+// ==========================================
+// FEATURE 5: Camera Overlay Guides & Capture
+// ==========================================
+const startCameraBtn = document.getElementById('start-camera-btn');
+const closeCameraBtn = document.getElementById('close-camera-btn');
+const captureImageBtn = document.getElementById('capture-image-btn');
+const cameraModal = document.getElementById('camera-modal');
+const cameraStream = document.getElementById('camera-stream');
+let activeStream = null;
+
+startCameraBtn.addEventListener('click', async () => {
+    try {
+        activeStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+        });
+        cameraStream.srcObject = activeStream;
+        cameraModal.style.display = "flex";
+    } catch (err) {
+        alert("Unable to access camera. Please upload an image instead.\nકેમેરા ચાલુ કરવામાં નિષ્ફળતા.");
+    }
+});
+
+function stopCamera() {
+    if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+        activeStream = null;
+    }
+    cameraModal.style.display = "none";
+}
+
+closeCameraBtn.addEventListener('click', stopCamera);
+
+captureImageBtn.addEventListener('click', () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = cameraStream.videoWidth || 640;
+    canvas.height = cameraStream.videoHeight || 480;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
+    
+    const dataUrl = canvas.toDataURL('image/jpeg');
+    imagePreview.src = dataUrl;
+    imagePreview.style.display = "block";
+    uploadPrompt.style.display = "none";
+    
+    fileNameDisplay.innerText = "Captured Photo / કેમેરાથી લીધેલ ફોટો";
+    resultBox.style.display = "none";
+    
+    stopCamera();
+    
+    // Simulate File selection for TFJS pipeline compatibility
+    const file = new File([new Uint8Array()], "captured_photo.jpg", { type: "image/jpeg" });
+    const container = new DataTransfer();
+    container.items.add(file);
+    fileInput.files = container.files;
 });
 </script>
         

@@ -63,3 +63,8 @@ desktop.ini
 *.h5
 *.keras
 *.pb
+
+# Local Images & Screenshots
+*.png
+*.jpg
+*.jpeg
