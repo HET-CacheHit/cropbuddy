@@ -45,28 +45,41 @@
                 <h2 id="portal-title">Disease Analysis Portal</h2>
                 <p id="portal-desc">Upload a clear photograph of the affected plant leaf to begin processing.</p>
 
-                <div class="crop-select-container" style="margin-bottom: 20px; text-align: left;">
-                    <label for="cropSelect" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Crop</label>
-                    <select id="cropSelect" style="padding: 10px 20px; border-radius: 5px; width: 100%; max-width: 300px; font-family: inherit;">
-                        <option value="all">All Supported Crops (બધા પાક)</option>
-                        <option value="apple">Apple (સફરજન)</option>
-                        <option value="blueberry">Blueberry (બ્લુબેરી)</option>
-                        <option value="cherry">Cherry (ચેરી)</option>
-                        <option value="corn">Corn (મકાઈ)</option>
-                        <option value="grape">Grape (દ્રાક્ષ)</option>
-                        <option value="orange">Orange (નારંગી)</option>
-                        <option value="peach">Peach (પીચ)</option>
-                        <option value="pepper">Pepper Bell (શિમલા મરચા)</option>
-                        <option value="potato">Potato (બટાકા)</option>
-                        <option value="raspberry">Raspberry (રાસ્પબેરી)</option>
-                        <option value="soybean">Soybean (સોયાબીન)</option>
-                        <option value="squash">Squash (કોળુ)</option>
-                        <option value="strawberry">Strawberry (સ્ટ્રોબેરી)</option>
-                        <option value="tomato">Tomato (ટામેટા)</option>
-                    </select>
-                    <div id="crop-info" style="margin-top: 10px; font-size: 13px; color: #40916c; font-weight: 500; min-height: 20px; line-height: 1.4;">
-                        Select a crop to view diseases the AI can detect.
+                <!-- Model and Crop Select Grid -->
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; text-align: left;">
+                    <!-- Model Selection -->
+                    <div style="flex: 1; min-width: 250px;">
+                        <label for="modelSelect" id="label-choose-model" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Model</label>
+                        <select id="modelSelect" style="padding: 10px 20px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit; height: 44px; box-sizing: border-box; background: white;">
+                            <option value="default" id="opt-model-default">Default PlantVillage Model (38 Classes)</option>
+                            <option value="custom" id="opt-model-custom">Custom Model (2 Classes)</option>
+                        </select>
                     </div>
+                    <!-- Crop Selection -->
+                    <div class="crop-select-container" style="flex: 1; min-width: 250px;">
+                        <label for="cropSelect" style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Crop</label>
+                        <select id="cropSelect" style="padding: 10px 20px; border-radius: 5px; border: 1px solid #ccc; width: 100%; font-family: inherit; height: 44px; box-sizing: border-box; background: white;">
+                            <option value="all">All Supported Crops (બધા પાક)</option>
+                            <option value="apple">Apple (સફરજન)</option>
+                            <option value="blueberry">Blueberry (બ્લુબેરી)</option>
+                            <option value="cherry">Cherry (ચેરી)</option>
+                            <option value="corn">Corn (મકાઈ)</option>
+                            <option value="grape">Grape (દ્રાક્ષ)</option>
+                            <option value="orange">Orange (નારંગી)</option>
+                            <option value="peach">Peach (પીચ)</option>
+                            <option value="pepper">Pepper Bell (શિમલા મરચા)</option>
+                            <option value="potato">Potato (બટાકા)</option>
+                            <option value="raspberry">Raspberry (રાસ્પબેરી)</option>
+                            <option value="soybean">Soybean (સોયાબીન)</option>
+                            <option value="squash">Squash (કોળુ)</option>
+                            <option value="strawberry">Strawberry (સ્ટ્રોબેરી)</option>
+                            <option value="tomato">Tomato (ટામેટા)</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Crop Info Warning -->
+                <div id="crop-info" style="margin-top: -10px; margin-bottom: 20px; font-size: 13px; color: #40916c; font-weight: 500; min-height: 20px; line-height: 1.4; text-align: left;">
+                    Select a crop to view diseases the AI can detect.
                 </div>
 
                 <div class="upload-box" onclick="document.getElementById('file-upload').click()" style="cursor: pointer; border: 2px dashed #95d5b2; padding: 40px 20px; text-align: center; border-radius: 8px; background-color: #f8fbf9;">
@@ -262,30 +275,56 @@ const CLASS_NAMES = [
 ];
 
 // Load Model and Pesticides Dataset on Page Load
+async function loadSelectedModel(type) {
+    submitBtn.disabled = true;
+    if (model) {
+        model.dispose();
+        model = null;
+    }
+    
+    const labels = UI_LABELS[activeLang];
+    submitBtn.innerText = labels.loadingModel;
+    
+    try {
+        if (type === 'default') {
+            model = await tf.loadLayersModel('./model/model.json');
+            activeClassNames = [...CLASS_NAMES];
+            console.log("Default 38-class model loaded.");
+        } else {
+            model = await tf.loadLayersModel('./model_custom/tfjs_model/model.json');
+            activeClassNames = [...CUSTOM_CLASS_NAMES];
+            console.log("Custom 2-class model loaded.");
+        }
+        submitBtn.disabled = false;
+        submitBtn.innerText = labels.analyzeBtn;
+    } catch (err) {
+        console.error("Error loading model:", err);
+        submitBtn.innerText = "Error Loading Model";
+    }
+}
+
 async function initApp() {
     try {
-        console.log("Loading TensorFlow.js model and pesticides dataset...");
+        console.log("Loading pesticides dataset...");
         
-        // 1. Fetch pesticides database
         const res = await fetch('./pesticides.json');
         if (!res.ok) throw new Error("Failed to load pesticides.json database.");
         pesticideData = await res.json();
         console.log("Pesticides dataset loaded successfully.");
         
-        // 2. Load TFJS model from local static folder
-        model = await tf.loadLayersModel('./model/model.json');
-        console.log("TensorFlow.js model loaded successfully.");
+        const modelSelect = document.getElementById('modelSelect');
+        await loadSelectedModel(modelSelect.value);
         
-        // 3. Enable UI submit button
-        submitBtn.innerText = "Analyze Image";
-        submitBtn.disabled = false;
+        modelSelect.addEventListener('change', async function() {
+            resultBox.style.display = "none";
+            await loadSelectedModel(this.value);
+        });
+        
     } catch (error) {
         console.error("Initialization error:", error);
         submitBtn.innerText = "Error Loading AI";
-        alert("Failed to load the AI model or database locally. Ensure model/model.json and pesticides.json exist and are hosted correctly.");
     }
 }
-
 // Call on startup
 window.addEventListener('DOMContentLoaded', () => {
     initLanguageToggle();
@@ -385,10 +424,19 @@ let predictedCropNameEng = "";
 let predictedConditionNameEng = "";
 let activeRecommendations = [];
 
+const CUSTOM_CLASS_NAMES = [
+    "New Plant Diseases Dataset(Augmented)",
+    "test"
+];
+let activeClassNames = [];
+
 const UI_LABELS = {
     en: {
         title: "Disease Analysis Portal",
         desc: "Upload a clear photograph of the affected plant leaf to begin processing.",
+        chooseModel: "Choose Model",
+        modelDefault: "Default PlantVillage Model (38 Classes)",
+        modelCustom: "Custom Model (2 Classes)",
         chooseCrop: "Choose Crop",
         browseText: "browse image",
         clickTo: "Click to ",
@@ -409,6 +457,9 @@ const UI_LABELS = {
     gu: {
         title: "પાક રોગ નિદાન પોર્ટલ",
         desc: "પ્રક્રિયા શરૂ કરવા માટે રોગિષ્ઠ છોડના પાનનો સ્પષ્ટ ફોટો અપલોડ કરો.",
+        chooseModel: "એઆઈ મોડેલ પસંદ કરો",
+        modelDefault: "ડિફોલ્ટ પ્લાન્ટવિલેજ મોડેલ (૩૮ વર્ગો)",
+        modelCustom: "કસ્ટમ મોડેલ (૨ વર્ગો)",
         chooseCrop: "પાક પસંદ કરો",
         browseText: "ફોટો પસંદ કરો",
         clickTo: "ક્લિક કરીને ",
@@ -434,7 +485,11 @@ function updateUiLabels() {
     document.getElementById('portal-title').innerText = labels.title;
     document.getElementById('portal-desc').innerText = labels.desc;
     
-    const cropLabel = document.querySelector('label[for="cropSelect"]');
+    document.getElementById('label-choose-model').innerText = labels.chooseModel;
+    document.getElementById('opt-model-default').innerText = labels.modelDefault;
+    document.getElementById('opt-model-custom').innerText = labels.modelCustom;
+    
+    const cropLabel = document.querySelector('.crop-select-container label');
     if (cropLabel) cropLabel.innerText = labels.chooseCrop;
     
     const uploadText = document.querySelector('#upload-prompt p');
