@@ -19,16 +19,21 @@
 <body>
 
     <header>
-        <div class="navbar">
+        <div class="navbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div class="logo">Crop<span>Buddy</span></div>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="analyze.html" class="active">Analyze Leaf</a></li>
-                    <li><a href="weather.html">Weather Advisor</a></li>
-                    <li><a href="calendar.html">Crop Calendar</a></li>
-                    <li><a href="advisor.html">AI Advisor</a></li>
+            <nav style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+                    <li><a href="index.html" id="nav-home">Home</a></li>
+                    <li><a href="analyze.html" class="active" id="nav-analyze">Analyze Leaf</a></li>
+                    <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
+                    <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
                 </ul>
+                <!-- Global Language Switcher -->
+                <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-left: 10px;">
+                    <button id="lang-en-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">EN</button>
+                    <button id="lang-gu-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">ગુજ</button>
+                </div>
             </nav>
         </div>
     </header>
@@ -36,13 +41,6 @@
     <section id="analyze" class="analyze-section" style="min-height: 85vh;">
         <div class="analyze-container" style="max-width: 1100px; width: 95%;">
             <div class="analysis-portal-wrapper">
-                <!-- Language Selector Toggle -->
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                    <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 4px; display: inline-flex; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
-                        <button id="lang-en-btn" type="button" style="padding: 6px 16px; border: none; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer; background-color: #1b4332; color: white; transition: all 0.2s;">English</button>
-                        <button id="lang-gu-btn" type="button" style="padding: 6px 16px; border: none; border-radius: 15px; font-size: 13px; font-weight: bold; cursor: pointer; background-color: transparent; color: #1b4332; transition: all 0.2s;">ગુજરાતી</button>
-                    </div>
-                </div>
 
                 <h2 id="portal-title">Disease Analysis Portal</h2>
                 <p id="portal-desc">Upload a clear photograph of the affected plant leaf to begin processing.</p>
@@ -289,7 +287,11 @@ async function initApp() {
 }
 
 // Call on startup
-window.addEventListener('DOMContentLoaded', initApp);
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguageToggle();
+    updateUiLabels();
+    initApp();
+});
 
 // Bilingual crop info translations
 const CROP_DISEASES_INFO_EN = {
@@ -664,32 +666,50 @@ submitBtn.addEventListener('click', async () => {
     }
 });
 
-// Bind Language selection events
-document.getElementById('lang-en-btn').addEventListener('click', function() {
-    activeLang = 'en';
-    this.style.backgroundColor = '#1b4332';
-    this.style.color = 'white';
-    const guBtn = document.getElementById('lang-gu-btn');
-    guBtn.style.backgroundColor = 'transparent';
-    guBtn.style.color = '#1b4332';
-    updateUiLabels();
-    if (resultBox.style.display === 'block') {
-        renderAnalysisResults();
-    }
-});
-
-document.getElementById('lang-gu-btn').addEventListener('click', function() {
-    activeLang = 'gu';
-    this.style.backgroundColor = '#1b4332';
-    this.style.color = 'white';
+function initLanguageToggle() {
     const enBtn = document.getElementById('lang-en-btn');
-    enBtn.style.backgroundColor = 'transparent';
-    enBtn.style.color = '#1b4332';
-    updateUiLabels();
-    if (resultBox.style.display === 'block') {
-        renderAnalysisResults();
+    const guBtn = document.getElementById('lang-gu-btn');
+    
+    if (!enBtn || !guBtn) return;
+    
+    function applyBtnStyles() {
+        if (activeLang === 'en') {
+            enBtn.style.backgroundColor = '#1b4332';
+            enBtn.style.color = 'white';
+            guBtn.style.backgroundColor = 'transparent';
+            guBtn.style.color = '#1b4332';
+        } else {
+            guBtn.style.backgroundColor = '#1b4332';
+            guBtn.style.color = 'white';
+            enBtn.style.backgroundColor = 'transparent';
+            enBtn.style.color = '#1b4332';
+        }
     }
-});
+    
+    applyBtnStyles();
+    
+    enBtn.addEventListener('click', () => {
+        if (activeLang === 'en') return;
+        activeLang = 'en';
+        localStorage.setItem('preferred_lang', 'en');
+        applyBtnStyles();
+        updateUiLabels();
+        if (resultBox.style.display === 'block') {
+            renderAnalysisResults();
+        }
+    });
+    
+    guBtn.addEventListener('click', () => {
+        if (activeLang === 'gu') return;
+        activeLang = 'gu';
+        localStorage.setItem('preferred_lang', 'gu');
+        applyBtnStyles();
+        updateUiLabels();
+        if (resultBox.style.display === 'block') {
+            renderAnalysisResults();
+        }
+    });
+}
 
 // ==========================================
 // FEATURE 2: Voice Reader / Audio Narrator (TTS)

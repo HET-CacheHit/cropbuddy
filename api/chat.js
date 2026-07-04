@@ -23,12 +23,12 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: "GEMINI_API_KEY environment variable is not set. Please set it in Vercel." });
     }
 
-    const { message, history } = req.body;
+    const { message, history, systemPrompt } = req.body;
     if (!message) {
       return res.status(400).json({ error: "Message is required." });
     }
     
-    const systemPrompt = `You are Crop Buddy, a friendly agricultural AI advisor. 
+    const activeSystemPrompt = systemPrompt || `You are Crop Buddy, a friendly agricultural AI advisor. 
 You help Indian farmers solve crop problems, identify pests, and manage plant diseases.
 Respond clearly, politely, and keep your answers practical and concise.
 You MUST support bilingual communication in both Gujarati and English. If the user asks in Gujarati, respond in Gujarati.
@@ -40,7 +40,7 @@ If the query is unrelated to farming or crops, politely guide the user back to c
     // Add system instruction inside content context
     contents.push({
       role: 'user',
-      parts: [{ text: `System Instruction: ${systemPrompt}` }]
+      parts: [{ text: `System Instruction: ${activeSystemPrompt}` }]
     });
     contents.push({
       role: 'model',

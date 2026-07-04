@@ -10,16 +10,21 @@
 <body>
 
     <header>
-        <div class="navbar">
+        <div class="navbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div class="logo">Crop<span>Buddy</span></div>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="analyze.html">Analyze Leaf</a></li>
-                    <li><a href="weather.html" class="active">Weather Advisor</a></li>
-                    <li><a href="calendar.html">Crop Calendar</a></li>
-                    <li><a href="advisor.html">AI Advisor</a></li>
+            <nav style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+                    <li><a href="index.html" id="nav-home">Home</a></li>
+                    <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
+                    <li><a href="weather.html" class="active" id="nav-weather">Weather Advisor</a></li>
+                    <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
                 </ul>
+                <!-- Global Language Switcher -->
+                <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-left: 10px;">
+                    <button id="lang-en-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">EN</button>
+                    <button id="lang-gu-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">ગુજ</button>
+                </div>
             </nav>
         </div>
     </header>
@@ -27,17 +32,17 @@
     <section class="analyze-section" style="min-height: 85vh; padding: 60px 20px;">
         <div class="analyze-container" style="max-width: 650px; text-align: center;">
             <div style="font-size: 50px; margin-bottom: 15px;">🌦️</div>
-            <h2 style="color: #1b4332; font-size: 28px; font-weight: 700;">Weather Spray Advisor / હવામાન સલાહ</h2>
-            <p style="color: #666; margin-bottom: 30px; font-size: 15px;">Check if the current weather parameters (temperature, wind, and rain) are safe for spraying pesticides or fungicides on your fields.</p>
+            <h2 id="weather-title" style="color: #1b4332; font-size: 28px; font-weight: 700;">Weather Spray Advisor</h2>
+            <p id="weather-desc" style="color: #666; margin-bottom: 30px; font-size: 15px;">Check if the current weather parameters (temperature, wind, and rain) are safe for spraying pesticides or fungicides on your fields.</p>
 
             <div style="background-color: #f8faf8; padding: 25px; border-radius: 12px; border: 1px solid #e9ece9; text-align: left; margin-bottom: 25px;">
-                <h4 style="margin-top: 0; color: #1b4332; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #e2f3e8; padding-bottom: 8px;">Advisory Status:</h4>
+                <h4 id="label-advisory-status" style="margin-top: 0; color: #1b4332; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid #e2f3e8; padding-bottom: 8px;">Advisory Status:</h4>
                 <div id="weather-info" style="font-size: 14px; color: #555; line-height: 1.6; min-height: 80px;">
                     Please click the button below to allow location access and calculate the spray safety advisory.
                 </div>
             </div>
 
-            <button id="check-weather-btn" type="button" class="btn-submit" style="padding: 12px 30px; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit;">Check Forecast / હવામાન તપાસો</button>
+            <button id="check-weather-btn" type="button" class="btn-submit" style="padding: 12px 30px; font-weight: bold; cursor: pointer; width: 100%; font-family: inherit;">Check Forecast</button>
         </div>
     </section>
 
@@ -46,29 +51,202 @@
     </footer>
 
 <script>
+// Global Language State Manager
+let activeLang = localStorage.getItem('preferred_lang') || 'en';
+
+const UI_LABELS_WEATHER = {
+    en: {
+        navHome: "Home",
+        navAnalyze: "Analyze Leaf",
+        navWeather: "Weather Advisor",
+        navCalendar: "Crop Calendar",
+        navAdvisor: "AI Advisor",
+        title: "Weather Spray Advisor",
+        desc: "Check if the current weather parameters (temperature, wind, and rain) are safe for spraying pesticides or fungicides on your fields.",
+        statusHeader: "Advisory Status:",
+        initialInfo: "Please click the button below to allow location access and calculate the spray safety advisory.",
+        checkBtn: "Check Forecast",
+        fetchingGPS: "Fetching GPS coordinates...",
+        fetchingForecast: "GPS Coordinates found. Fetching forecast details...",
+        gpsError: "❌ Geolocation is not supported by your browser.",
+        apiError: "❌ Failed to load weather forecast details from API.",
+        permissionDenied: "❌ Geolocation permission denied by user.",
+        windText: "Wind",
+        tempText: "Temp",
+        rainText: "Rain"
+    },
+    gu: {
+        navHome: "હોમ",
+        navAnalyze: "પાક રોગ ઓળખકર્તા",
+        navWeather: "હવામાન સલાહકાર",
+        navCalendar: "પાક સમયપત્રક",
+        navAdvisor: "એઆઈ સલાહકાર",
+        title: "હવામાન છંટકાવ સલાહકાર",
+        desc: "ચેક કરો કે તાપમાન, પવન અને વરસાદ જેવા હવામાન પરિમાણો તમારા ખેતરમાં જંતુનાશકો અથવા ફૂગનાશક દવાઓ છાંટવા માટે સલામત છે કે નહીં.",
+        statusHeader: "સલાહકાર સ્થિતિ:",
+        initialInfo: "કૃપા કરીને લોકેશનની પરમિશન આપવા અને દવાની છંટકાવ સલાહકાર જાણવા નીચેના બટન પર ક્લિક કરો.",
+        checkBtn: "હવામાન તપાસો",
+        fetchingGPS: "સ્થાન (જીપીએસ) શોધી રહ્યાં છીએ...",
+        fetchingForecast: "સ્થાન મળી ગયું. હવામાન ડેટા ઓનલાઈન લોડ કરી રહ્યા છીએ...",
+        gpsError: "❌ લોકેશન ટ્રેકિંગ તમારા બ્રાઉઝર દ્વારા સપોર્ટેડ નથી.",
+        apiError: "❌ હવામાન ડેટા ઓનલાઈન મેળવવામાં નિષ્ફળતા મળી.",
+        permissionDenied: "❌ લોકેશન પરમિશન નકારવામાં આવી છે.",
+        windText: "પવનની ગતિ",
+        tempText: "તાપમાન",
+        rainText: "વરસાદ"
+    }
+};
+
+let lastWeatherData = null;
+
+function initLanguageToggle() {
+    const enBtn = document.getElementById('lang-en-btn');
+    const guBtn = document.getElementById('lang-gu-btn');
+    
+    if (!enBtn || !guBtn) return;
+    
+    function applyBtnStyles() {
+        if (activeLang === 'en') {
+            enBtn.style.backgroundColor = '#1b4332';
+            enBtn.style.color = 'white';
+            guBtn.style.backgroundColor = 'transparent';
+            guBtn.style.color = '#1b4332';
+        } else {
+            guBtn.style.backgroundColor = '#1b4332';
+            guBtn.style.color = 'white';
+            enBtn.style.backgroundColor = 'transparent';
+            enBtn.style.color = '#1b4332';
+        }
+    }
+    
+    applyBtnStyles();
+    
+    enBtn.addEventListener('click', () => {
+        if (activeLang === 'en') return;
+        activeLang = 'en';
+        localStorage.setItem('preferred_lang', 'en');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+    
+    guBtn.addEventListener('click', () => {
+        if (activeLang === 'gu') return;
+        activeLang = 'gu';
+        localStorage.setItem('preferred_lang', 'gu');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+}
+
+function updatePageLanguage() {
+    const labels = UI_LABELS_WEATHER[activeLang];
+    
+    // Navbar
+    document.getElementById('nav-home').innerText = labels.navHome;
+    document.getElementById('nav-analyze').innerText = labels.navAnalyze;
+    document.getElementById('nav-weather').innerText = labels.navWeather;
+    document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-advisor').innerText = labels.navAdvisor;
+    
+    // Titles & Labels
+    document.getElementById('weather-title').innerText = labels.title;
+    document.getElementById('weather-desc').innerText = labels.desc;
+    document.getElementById('label-advisory-status').innerText = labels.statusHeader;
+    checkWeatherBtn.innerText = labels.checkBtn;
+    
+    // If no weather data has been checked yet
+    if (!lastWeatherData) {
+        weatherInfo.innerText = labels.initialInfo;
+    } else {
+        renderWeatherReport();
+    }
+}
+
+function renderWeatherReport() {
+    if (!lastWeatherData) return;
+    const { maxWind, maxRainProb, maxTemp } = lastWeatherData;
+    const labels = UI_LABELS_WEATHER[activeLang];
+    
+    let safetyBadge = "";
+    let adviceText = "";
+    
+    if (maxWind > 15 || maxRainProb > 30 || maxTemp > 35) {
+        if (activeLang === 'en') {
+            safetyBadge = `<span style="background-color: #d90429; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🔴 Avoid Spraying</span>`;
+            if (maxWind > 15) {
+                adviceText = `High winds (${maxWind} km/h) detected. High risk of chemical drift. Do not spray.`;
+            } else if (maxRainProb > 30) {
+                adviceText = `High rain probability (${maxRainProb}%) detected. Chemicals will wash off.`;
+            } else {
+                adviceText = `Extreme heat (${maxTemp}°C) detected. Risk of evaporation and leaf injury.`;
+            }
+        } else {
+            safetyBadge = `<span style="background-color: #d90429; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🔴 છંટકાવ ટાળો</span>`;
+            if (maxWind > 15) {
+                adviceText = `ભારે પવન (${maxWind} કિમી/કલાક) છે. પવનથી દવા ઉડી જવાનું જોખમ હોવાથી છંટકાવ કરશો નહી.`;
+            } else if (maxRainProb > 30) {
+                adviceText = `વરસાદની ઉંચી સંભાવના (${maxRainProb}%) છે. દવા વરસાદથી ધોવાઈ જશે.`;
+            } else {
+                adviceText = `ખૂબ જ ગરમી (${maxTemp}°C) છે. દવા બાષ્પીભવન થવા કે પાંદડા બળવાનું જોખમ છે.`;
+            }
+        }
+    } else if (maxWind > 10 || maxRainProb > 15 || maxTemp > 30) {
+        if (activeLang === 'en') {
+            safetyBadge = `<span style="background-color: #f77f00; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟡 Caution</span>`;
+            adviceText = `Moderate wind/heat. Temp: ${maxTemp}°C, Wind: ${maxWind} km/h, Rain: ${maxRainProb}%. Try spraying during early morning or late evening.`;
+        } else {
+            safetyBadge = `<span style="background-color: #f77f00; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟡 સાવચેતી</span>`;
+            adviceText = `મધ્યમ પવન/ગરમી છે. તાપમાન: ${maxTemp}°C, પવન: ${maxWind} કિમી/કલાક, વરસાદ: ${maxRainProb}%. સવારે વહેલા અથવા સાંજે ઠંડકમાં છંટકાવ કરો.`;
+        }
+    } else {
+        if (activeLang === 'en') {
+            safetyBadge = `<span style="background-color: #40916c; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟢 Safe to Spray</span>`;
+            adviceText = `Excellent weather. Wind: ${maxWind} km/h, Temp: ${maxTemp}°C, Rain: ${maxRainProb}%. Safe to spray.`;
+        } else {
+            safetyBadge = `<span style="background-color: #40916c; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟢 છંટકાવ કરવા યોગ્ય</span>`;
+            adviceText = `હવામાન અનુકૂળ છે. પવન: ${maxWind} કિમી/કલાક, તાપમાન: ${maxTemp}°C, વરસાદ: ${maxRainProb}%. છંટકાવ કરો.`;
+        }
+    }
+    
+    weatherInfo.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 15px;">
+            <strong>${activeLang === 'en' ? 'Current Status:' : 'ચાલુ સ્થિતિ:'}</strong> ${safetyBadge}
+        </div>
+        <div style="border-top: 1px solid #e2f3e8; padding-top: 15px;">
+            <p style="margin: 0; line-height: 1.6; font-size: 14.5px; color: #333;">${adviceText}</p>
+        </div>
+        <div style="margin-top: 15px; font-size: 12px; color: #666; display: flex; justify-content: space-between; border-top: 1px dashed #e9ece9; padding-top: 8px;">
+            <span>${labels.windText}: ${maxWind} km/h</span>
+            <span>${labels.tempText}: ${maxTemp}°C</span>
+            <span>${labels.rainText}: ${maxRainProb}%</span>
+        </div>
+    `;
+}
+
 const checkWeatherBtn = document.getElementById('check-weather-btn');
 const weatherInfo = document.getElementById('weather-info');
 
 checkWeatherBtn.addEventListener('click', () => {
+    const labels = UI_LABELS_WEATHER[activeLang];
+    
     if (!navigator.geolocation) {
-        weatherInfo.innerHTML = "❌ Geolocation is not supported by your browser.<br>ગુજરાતી: લોકેશન તમારા બ્રાઉઝર દ્વારા સપોર્ટેડ નથી.";
+        weatherInfo.innerHTML = labels.gpsError;
         return;
     }
     
-    weatherInfo.innerHTML = "Fetching GPS coordinates... / સ્થાન શોધી રહ્યાં છીએ...";
+    weatherInfo.innerText = labels.fetchingGPS;
     
     navigator.geolocation.getCurrentPosition(
         async (position) => {
             const lat = position.coords.latitude.toFixed(4);
             const lon = position.coords.longitude.toFixed(4);
-            weatherInfo.innerHTML = `GPS Coordinates found: Lat ${lat}, Lon ${lon}. Fetching forecast...`;
+            weatherInfo.innerText = labels.fetchingForecast;
             
             try {
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability,wind_speed_10m&forecast_days=1`);
                 if (!res.ok) throw new Error("Weather API fetch error");
                 const data = await res.json();
                 
-                // Get conditions for the next 4 hours
                 const nowHour = new Date().getHours();
                 let maxRainProb = 0;
                 let maxWind = 0;
@@ -81,55 +259,22 @@ checkWeatherBtn.addEventListener('click', () => {
                     maxTemp = Math.max(maxTemp, data.hourly.temperature_2m[idx] || 0);
                 }
                 
-                // Determine safety status
-                let safetyBadge = "";
-                let adviceEnglish = "";
-                let adviceGujarati = "";
+                lastWeatherData = { maxWind, maxRainProb, maxTemp };
+                renderWeatherReport();
                 
-                if (maxWind > 15 || maxRainProb > 30 || maxTemp > 35) {
-                    safetyBadge = `<span style="background-color: #d90429; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🔴 Avoid Spraying / દવાનો છંટકાવ ટાળો</span>`;
-                    if (maxWind > 15) {
-                        adviceEnglish = `High winds (${maxWind} km/h) detected. High risk of chemical drift. Do not spray.`;
-                        adviceGujarati = `ભારે પવન (${maxWind} કિમી/કલાક) છે. પવનથી દવા ઉડી જવાનું જોખમ હોવાથી છંટકાવ કરશો નહી.`;
-                    } else if (maxRainProb > 30) {
-                        adviceEnglish = `High rain probability (${maxRainProb}%) detected. Chemicals will wash off.`;
-                        adviceGujarati = `વરસાદની ઉંચી સંભાવના (${maxRainProb}%) છે. દવા વરસાદથી ધોવાઈ જશે.`;
-                    } else {
-                        adviceEnglish = `Extreme heat (${maxTemp}°C) detected. Risk of evaporation and leaf injury.`;
-                        adviceGujarati = `ખૂબ જ ગરમી (${maxTemp}°C) છે. દવા બાષ્પીભવન થવા કે પાંદડા બળવાનું જોખમ છે.`;
-                    }
-                } else if (maxWind > 10 || maxRainProb > 15 || maxTemp > 30) {
-                    safetyBadge = `<span style="background-color: #f77f00; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟡 Caution / સાવચેતી</span>`;
-                    adviceEnglish = `Moderate wind/heat. Temp: ${maxTemp}°C, Wind: ${maxWind} km/h, Rain: ${maxRainProb}%. Try spraying during early morning or late evening.`;
-                    adviceGujarati = `મધ્યમ પવન/ગરમી છે. તાપમાન: ${maxTemp}°C, પવન: ${maxWind} કિમી/કલાક, વરસાદ: ${maxRainProb}%. સવારે વહેલા અથવા સાંજે ઠંડકમાં છંટકાવ કરો.`;
-                } else {
-                    safetyBadge = `<span style="background-color: #40916c; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;">🟢 Safe / દવા છાંટવા યોગ્ય</span>`;
-                    adviceEnglish = `Excellent weather. Wind: ${maxWind} km/h, Temp: ${maxTemp}°C, Rain: ${maxRainProb}%. Safe to spray.`;
-                    adviceGujarati = `હવામાન અનુકૂળ છે. પવન: ${maxWind} કિમી/કલાક, તાપમાન: ${maxTemp}°C, વરસાદ: ${maxRainProb}%. છંટકાવ કરો.`;
-                }
-                
-                weatherInfo.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 15px;">
-                        <strong>Current Status:</strong> ${safetyBadge}
-                    </div>
-                    <div style="border-top: 1px solid #e2f3e8; padding-top: 15px;">
-                        <p style="margin: 0 0 10px 0;"><strong>English</strong>: ${adviceEnglish}</p>
-                        <p style="margin: 0; color: #2d6a4f;"><strong>ગુજરાતી</strong>: ${adviceGujarati}</p>
-                    </div>
-                    <div style="margin-top: 15px; font-size: 12px; color: #888; display: flex; justify-content: space-between; border-top: 1px dashed #e9ece9; padding-top: 8px;">
-                        <span>Wind: ${maxWind} km/h</span>
-                        <span>Temp: ${maxTemp}°C</span>
-                        <span>Rain: ${maxRainProb}%</span>
-                    </div>
-                `;
             } catch (err) {
-                weatherInfo.innerHTML = "❌ Failed to load weather forecast details from API.<br>ગુજરાતી: વેધર ફોરકાસ્ટ મેળવવામાં નિષ્ફળતા મળી.";
+                weatherInfo.innerHTML = labels.apiError;
             }
         },
         () => {
-            weatherInfo.innerHTML = "❌ Geolocation permission denied by user.<br>ગુજરાતી: લોકેશન પરમિશન નકારવામાં આવી છે.";
+            weatherInfo.innerHTML = labels.permissionDenied;
         }
     );
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguageToggle();
+    updatePageLanguage();
 });
 </script>
 

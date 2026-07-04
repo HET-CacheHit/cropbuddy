@@ -10,16 +10,21 @@
 <body>
 
     <header>
-        <div class="navbar">
+        <div class="navbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div class="logo">Crop<span>Buddy</span></div>
-            <nav>
-                <ul>
-                    <li><a href="index.html" class="active">Home</a></li>
-                    <li><a href="analyze.html">Analyze Leaf</a></li>
-                    <li><a href="weather.html">Weather Advisor</a></li>
-                    <li><a href="calendar.html">Crop Calendar</a></li>
-                    <li><a href="advisor.html">AI Advisor</a></li>
+            <nav style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <ul style="display: flex; list-style: none; gap: 15px; margin: 0; padding: 0;">
+                    <li><a href="index.html" class="active" id="nav-home">Home</a></li>
+                    <li><a href="analyze.html" id="nav-analyze">Analyze Leaf</a></li>
+                    <li><a href="weather.html" id="nav-weather">Weather Advisor</a></li>
+                    <li><a href="calendar.html" id="nav-calendar">Crop Calendar</a></li>
+                    <li><a href="advisor.html" id="nav-advisor">AI Advisor</a></li>
                 </ul>
+                <!-- Global Language Switcher -->
+                <div style="background-color: #f0fdf4; border: 1.5px solid #95d5b2; border-radius: 20px; padding: 2px; display: inline-flex; gap: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-left: 10px;">
+                    <button id="lang-en-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">EN</button>
+                    <button id="lang-gu-btn" type="button" style="padding: 4px 12px; border: none; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: inherit;">ગુજ</button>
+                </div>
             </nav>
         </div>
     </header>
@@ -68,6 +73,138 @@
     <footer>
         <p>&copy; 2026 Crop Buddy Project. Built for Sustainable Agriculture.</p>
     </footer>
+
+<script>
+// Global Language State Manager
+let activeLang = localStorage.getItem('preferred_lang') || 'en';
+
+const UI_LABELS_HOME = {
+    en: {
+        navHome: "Home",
+        navAnalyze: "Analyze Leaf",
+        navWeather: "Weather Advisor",
+        navCalendar: "Crop Calendar",
+        navAdvisor: "AI Advisor",
+        heroTitle: "AI-Powered <span>Crop Care</span> at Your Fingertips",
+        heroDesc: "Empowering farmers with on-device disease diagnostics, real-time spray safety weather forecast, and interactive crop lifecycle milestone timelines.",
+        heroBtn: "Get Started / શરુ કરો",
+        servicesHeading: "Our Agricultural Services",
+        card1Title: "Disease Detector",
+        card1Desc: "Take a photo or upload leaf images to diagnose 38 crop disease combinations instantly using local AI.",
+        card1Link: "Open Detector →",
+        card2Title: "Weather Spray Advisor",
+        card2Desc: "Get GPS-based forecasts to know if current wind speeds, rain probabilities, and temperature are safe for chemical spraying.",
+        card2Link: "Check Forecast →",
+        card3Title: "Crop Calendar",
+        card3Desc: "Plan growth milestones from sowing to harvest and check for dynamic disease warnings during each growth stage.",
+        card3Link: "Open Calendar →",
+        card4Title: "AI Crop Advisor",
+        card4Desc: "Chat with our AI bot using text or voice to ask custom questions about plant care, pest management, and fertilizers.",
+        card4Link: "Start Chat →"
+    },
+    gu: {
+        navHome: "હોમ",
+        navAnalyze: "પાક રોગ ઓળખકર્તા",
+        navWeather: "હવામાન સલાહકાર",
+        navCalendar: "પાક સમયપત્રક",
+        navAdvisor: "એઆઈ સલાહકાર",
+        heroTitle: "એઆઈ આધારિત <span>પાક કાળજી</span> હવે તમારી આંગળીના ટેરવે",
+        heroDesc: "ઓન-ડીવાઈસ રોગ નિદાન, હવામાન સલાહકાર અને પાક સમયપત્રક આયોજક સાથે ખેડૂતોનું સશક્તિકરણ.",
+        heroBtn: "શરૂ કરો",
+        servicesHeading: "અમારી કૃષિ સેવાઓ",
+        card1Title: "રોગ નિદાન",
+        card1Desc: "ઓન-ડીવાઈસ એઆઈ દ્વારા ત્વરિત ૩૮ પાક રોગોનું નિદાન કરવા માટે પાનનો ફોટો લો અથવા અપલોડ કરો.",
+        card1Link: "રોગ નિદાન ખોલો →",
+        card2Title: "હવામાન સલાહ",
+        card2Desc: "દવાના છંટકાવ માટે પવનની ગતિ, તાપમાન અને વરસાદની સંભાવના જાણવા જીપીએસ આધારિત હવામાન મેળવો.",
+        card2Link: "હવામાન જુઓ →",
+        card3Title: "પાક સમયપત્રક આયોજક",
+        card3Desc: "વાવણીથી લણણી સુધીના તબક્કાઓનું આયોજન કરો અને પાકના વિકાસ દરમિયાન રોગની ચેતવણી મેળવો.",
+        card3Link: "કેલેન્ડર જુઓ →",
+        card4Title: "પાક સલાહકાર ચેટ",
+        card4Desc: "પાકની સંભાળ, જીવાત નિયંત્રણ અને ખાતર વિશે કસ્ટમ પ્રશ્નો પૂછવા માટે એઆઈ બોટ સાથે ચેટ કરો.",
+        card4Link: "ચેટ શરૂ કરો →"
+    }
+};
+
+function initLanguageToggle() {
+    const enBtn = document.getElementById('lang-en-btn');
+    const guBtn = document.getElementById('lang-gu-btn');
+    
+    if (!enBtn || !guBtn) return;
+    
+    function applyBtnStyles() {
+        if (activeLang === 'en') {
+            enBtn.style.backgroundColor = '#1b4332';
+            enBtn.style.color = 'white';
+            guBtn.style.backgroundColor = 'transparent';
+            guBtn.style.color = '#1b4332';
+        } else {
+            guBtn.style.backgroundColor = '#1b4332';
+            guBtn.style.color = 'white';
+            enBtn.style.backgroundColor = 'transparent';
+            enBtn.style.color = '#1b4332';
+        }
+    }
+    
+    applyBtnStyles();
+    
+    enBtn.addEventListener('click', () => {
+        if (activeLang === 'en') return;
+        activeLang = 'en';
+        localStorage.setItem('preferred_lang', 'en');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+    
+    guBtn.addEventListener('click', () => {
+        if (activeLang === 'gu') return;
+        activeLang = 'gu';
+        localStorage.setItem('preferred_lang', 'gu');
+        applyBtnStyles();
+        updatePageLanguage();
+    });
+}
+
+function updatePageLanguage() {
+    const labels = UI_LABELS_HOME[activeLang];
+    
+    document.getElementById('nav-home').innerText = labels.navHome;
+    document.getElementById('nav-analyze').innerText = labels.navAnalyze;
+    document.getElementById('nav-weather').innerText = labels.navWeather;
+    document.getElementById('nav-calendar').innerText = labels.navCalendar;
+    document.getElementById('nav-advisor').innerText = labels.navAdvisor;
+    
+    document.querySelector('.hero-content h1').innerHTML = labels.heroTitle;
+    document.querySelector('.hero-content p').innerText = labels.heroDesc;
+    document.querySelector('.hero-content .btn').innerText = labels.heroBtn;
+    
+    document.querySelector('.features h2').innerText = labels.servicesHeading;
+    
+    const cards = document.querySelectorAll('.feature-card');
+    
+    cards[0].querySelector('h3').innerText = labels.card1Title;
+    cards[0].querySelector('p').innerText = labels.card1Desc;
+    cards[0].querySelector('span').innerText = labels.card1Link;
+    
+    cards[1].querySelector('h3').innerText = labels.card2Title;
+    cards[1].querySelector('p').innerText = labels.card2Desc;
+    cards[1].querySelector('span').innerText = labels.card2Link;
+    
+    cards[2].querySelector('h3').innerText = labels.card3Title;
+    cards[2].querySelector('p').innerText = labels.card3Desc;
+    cards[2].querySelector('span').innerText = labels.card3Link;
+    
+    cards[3].querySelector('h3').innerText = labels.card4Title;
+    cards[3].querySelector('p').innerText = labels.card4Desc;
+    cards[3].querySelector('span').innerText = labels.card4Link;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguageToggle();
+    updatePageLanguage();
+});
+</script>
 
 </body>
 </html>
