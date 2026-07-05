@@ -3,11 +3,12 @@ const express = require('express');
 const path = require('path');
 const chatHandler = require('./api/chat.js');
 const asrHandler = require('./api/asr.js');
+const predictCustomHandler = require('./api/predict_custom.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Enable JSON body parsing for API requests (increased limit to support base64 audio uploads)
+// Enable JSON body parsing for API requests (increased limit to support base64 audio and image uploads)
 app.use(express.json({ limit: '10mb' }));
 
 // Serve static files from the root directory
@@ -16,6 +17,7 @@ app.use(express.static(__dirname));
 // Mount the serverless chat function locally for development
 app.post('/api/chat', chatHandler);
 app.post('/api/asr', asrHandler);
+app.post('/api/predict_custom', predictCustomHandler);
 
 // Route to serve the main HTML file
 app.get('/', (req, res) => {
