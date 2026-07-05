@@ -403,8 +403,18 @@ async function loadSelectedModel(type) {
             console.log("Default 38-class model loaded.");
         } else {
             model = await tf.loadLayersModel('./model_custom/tfjs_model/model.json');
-            activeClassNames = [...CUSTOM_CLASS_NAMES];
-            console.log("Custom 2-class model loaded.");
+            try {
+                const classNamesRes = await fetch('./model_custom/tfjs_model/class_names.json');
+                if (classNamesRes.ok) {
+                    activeClassNames = await classNamesRes.json();
+                } else {
+                    activeClassNames = [...CUSTOM_CLASS_NAMES];
+                }
+            } catch (classErr) {
+                console.warn("Could not load custom class names, using fallback:", classErr);
+                activeClassNames = [...CUSTOM_CLASS_NAMES];
+            }
+            console.log(`Custom model loaded with ${activeClassNames.length} classes.`);
         }
         submitBtn.disabled = false;
         submitBtn.innerText = labels.analyzeBtn;
