@@ -385,9 +385,18 @@ const CLASS_NAMES = [
  'Tomato___healthy'
 ];
 
+// Concurrency lock to prevent duplicate/overlapping model loads
+let isModelLoading = false;
+
 // Load Model and Pesticides Dataset on Page Load
 async function loadSelectedModel(type) {
+    if (isModelLoading) {
+        console.warn("Model loading is already in progress. Ignoring duplicate request.");
+        return;
+    }
+    isModelLoading = true;
     submitBtn.disabled = true;
+    
     if (model) {
         model.dispose();
         model = null;
@@ -396,32 +405,41 @@ async function loadSelectedModel(type) {
     const labels = UI_LABELS[activeLang];
     submitBtn.innerText = labels.loadingModel;
     
-    try {
-        if (type === 'default') {
-            model = await tf.loadLayersModel('./model/model.json');
-            activeClassNames = [...CLASS_NAMES];
-            console.log("Default 38-class model loaded.");
-        } else {
-            model = await tf.loadLayersModel('./model_custom/tfjs_model/model.json');
-            try {
-                const classNamesRes = await fetch('./model_custom/tfjs_model/class_names.json');
-                if (classNamesRes.ok) {
-                    activeClassNames = await classNamesRes.json();
-                } else {
+    // Defer the execution slightly to let the browser render the "Loading..." UI state first
+    setTimeout(async () => {
+        try {
+            // Ensure the TFJS backend (WebGL/WebGPU) is fully initialized before loading layers
+            await tf.ready();
+            console.log("TensorFlow.js backend initialized:", tf.getBackend());
+            
+            if (type === 'default') {
+                model = await tf.loadLayersModel('./model/model.json');
+                activeClassNames = [...CLASS_NAMES];
+                console.log("Default 38-class model loaded.");
+            } else {
+                model = await tf.loadLayersModel('./model_custom/tfjs_model/model.json');
+                try {
+                    const classNamesRes = await fetch('./model_custom/tfjs_model/class_names.json');
+                    if (classNamesRes.ok) {
+                        activeClassNames = await classNamesRes.json();
+                    } else {
+                        activeClassNames = [...CUSTOM_CLASS_NAMES];
+                    }
+                } catch (classErr) {
+                    console.warn("Could not load custom class names, using fallback:", classErr);
                     activeClassNames = [...CUSTOM_CLASS_NAMES];
                 }
-            } catch (classErr) {
-                console.warn("Could not load custom class names, using fallback:", classErr);
-                activeClassNames = [...CUSTOM_CLASS_NAMES];
+                console.log(`Custom model loaded with ${activeClassNames.length} classes.`);
             }
-            console.log(`Custom model loaded with ${activeClassNames.length} classes.`);
+            submitBtn.disabled = false;
+            submitBtn.innerText = labels.analyzeBtn;
+        } catch (err) {
+            console.error("Error loading model:", err);
+            submitBtn.innerText = "Error Loading Model";
+        } finally {
+            isModelLoading = false;
         }
-        submitBtn.disabled = false;
-        submitBtn.innerText = labels.analyzeBtn;
-    } catch (err) {
-        console.error("Error loading model:", err);
-        submitBtn.innerText = "Error Loading Model";
-    }
+    }, 50);
 }
 
 async function initApp() {
@@ -438,6 +456,7 @@ async function initApp() {
         
         modelSelect.addEventListener('change', async function() {
             resultBox.style.display = "none";
+            ocrResultBox.style.display = "none";
             await loadSelectedModel(this.value);
         });
         
