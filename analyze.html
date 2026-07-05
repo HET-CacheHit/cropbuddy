@@ -385,6 +385,53 @@ const CLASS_NAMES = [
  'Tomato___healthy'
 ];
 
+// Initialize Web Worker for background thread processing
+let modelWorker = new Worker('model_worker.js');
+let workerLoadResolver = null;
+let workerPredictResolver = null;
+let activeModelType = 'default';
+let activeModelShape = [128, 128]; // Height, Width
+let isModelLoaded = false;
+
+modelWorker.onmessage = function(e) {
+    const { status, type, prediction, error } = e.data;
+    if (type === 'load') {
+        if (workerLoadResolver) {
+            if (status === 'success') {
+                isModelLoaded = true;
+                workerLoadResolver();
+            } else {
+                isModelLoaded = false;
+                workerLoadResolver(Promise.reject(new Error(error)));
+            }
+            workerLoadResolver = null;
+        }
+    } else if (type === 'predict') {
+        if (workerPredictResolver) {
+            if (status === 'success') {
+                workerPredictResolver(prediction);
+            } else {
+                workerPredictResolver(Promise.reject(new Error(error)));
+            }
+            workerPredictResolver = null;
+        }
+    }
+};
+
+function loadModelInWorker(modelUrl) {
+    return new Promise((resolve, reject) => {
+        workerLoadResolver = resolve;
+        modelWorker.postMessage({ action: 'load', payload: { modelUrl } });
+    });
+}
+
+function predictInWorker(rgbValues, shape) {
+    return new Promise((resolve, reject) => {
+        workerPredictResolver = resolve;
+        modelWorker.postMessage({ action: 'predict', payload: { rgbValues, shape } }, [rgbValues.buffer]);
+    });
+}
+
 // Concurrency lock to prevent duplicate/overlapping model loads
 let isModelLoading = false;
 
@@ -396,11 +443,7 @@ async function loadSelectedModel(type) {
     }
     isModelLoading = true;
     submitBtn.disabled = true;
-    
-    if (model) {
-        model.dispose();
-        model = null;
-    }
+    isModelLoaded = false;
     
     const labels = UI_LABELS[activeLang];
     submitBtn.innerText = labels.loadingModel;
@@ -408,16 +451,16 @@ async function loadSelectedModel(type) {
     // Defer the execution slightly to let the browser render the "Loading..." UI state first
     setTimeout(async () => {
         try {
-            // Ensure the TFJS backend (WebGL/WebGPU) is fully initialized before loading layers
-            await tf.ready();
-            console.log("TensorFlow.js backend initialized:", tf.getBackend());
-            
             if (type === 'default') {
-                model = await tf.loadLayersModel('./model/model.json');
+                activeModelType = 'default';
+                activeModelShape = [128, 128];
+                await loadModelInWorker('./model/model.json');
                 activeClassNames = [...CLASS_NAMES];
-                console.log("Default 38-class model loaded.");
+                console.log("Default 38-class model loaded in background worker.");
             } else {
-                model = await tf.loadLayersModel('./model_custom/tfjs_model/model.json');
+                activeModelType = 'custom';
+                activeModelShape = [180, 180];
+                await loadModelInWorker('./model_custom/tfjs_model/model.json');
                 try {
                     const classNamesRes = await fetch('./model_custom/tfjs_model/class_names.json');
                     if (classNamesRes.ok) {
@@ -429,12 +472,12 @@ async function loadSelectedModel(type) {
                     console.warn("Could not load custom class names, using fallback:", classErr);
                     activeClassNames = [...CUSTOM_CLASS_NAMES];
                 }
-                console.log(`Custom model loaded with ${activeClassNames.length} classes.`);
+                console.log(`Custom model loaded in background worker with ${activeClassNames.length} classes.`);
             }
             submitBtn.disabled = false;
             submitBtn.innerText = labels.analyzeBtn;
         } catch (err) {
-            console.error("Error loading model:", err);
+            console.error("Error loading model inside worker:", err);
             submitBtn.innerText = "Error Loading Model";
         } finally {
             isModelLoading = false;
@@ -539,25 +582,39 @@ fileInput.addEventListener('change', function() {
     }
 });
 
-// Run Inference using local TFJS model
+// Preprocess image to normalized Float32Array on canvas to match Keras normalization: (pixel - 127.5) / 127.5
+function preprocessImage(imgElement, targetWidth, targetHeight) {
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(imgElement, 0, 0, targetWidth, targetHeight);
+    
+    const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+    const data = imgData.data;
+    const numPixels = targetWidth * targetHeight;
+    const rgbValues = new Float32Array(numPixels * 3);
+    
+    for (let i = 0; i < numPixels; i++) {
+        rgbValues[i * 3] = (data[i * 4] - 127.5) / 127.5;         // R
+        rgbValues[i * 3 + 1] = (data[i * 4 + 1] - 127.5) / 127.5; // G
+        rgbValues[i * 3 + 2] = (data[i * 4 + 2] - 127.5) / 127.5; // B
+    }
+    return rgbValues;
+}
+
+// Run Inference using local TFJS model in Web Worker background thread
 async function runLocalInference(imgElement) {
-    if (!model) throw new Error("AI model is not loaded yet.");
+    if (!isModelLoaded) throw new Error("AI model is not loaded yet.");
     
-    // Get expected input height and width dynamically from the loaded model topology
-    const inputShape = model.inputs[0].shape;
-    const inputHeight = inputShape[1] || 128;
-    const inputWidth = inputShape[2] || 128;
-    console.log(`Resizing input image tensor to model dimensions: [${inputHeight}, ${inputWidth}]`);
+    const inputHeight = activeModelShape[0];
+    const inputWidth = activeModelShape[1];
+    console.log(`Preprocessing input image to dimensions: [${inputHeight}, ${inputWidth}]`);
     
-    const predictions = tf.tidy(() => {
-        let tensor = tf.browser.fromPixels(imgElement);
-        tensor = tf.image.resizeBilinear(tensor, [inputHeight, inputWidth]);
-        const offset = tf.scalar(127.5);
-        const normalized = tensor.sub(offset).div(offset);
-        const batched = normalized.expandDims(0);
-        const prediction = model.predict(batched);
-        return prediction.arraySync()[0]; 
-    });
+    const rgbValues = preprocessImage(imgElement, inputWidth, inputHeight);
+    
+    console.log("Sending prediction job to background Web Worker...");
+    const predictions = await predictInWorker(rgbValues, activeModelShape);
     
     return predictions;
 }
@@ -708,7 +765,7 @@ function updateUiLabels() {
     if (currentActiveMode === 'leaf') {
         document.getElementById('portal-title').innerText = labels.title;
         document.getElementById('portal-desc').innerText = labels.desc;
-        submitBtn.innerText = model ? labels.analyzeBtn : labels.loadingModel;
+        submitBtn.innerText = isModelLoaded ? labels.analyzeBtn : labels.loadingModel;
     } else {
         document.getElementById('portal-title').innerText = labels.titleBottle;
         document.getElementById('portal-desc').innerText = labels.descBottle;
