@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "builds": [
     {
-      "src": "api/chat.js",
+      "src": "api/*.js",
       "use": "@vercel/node"
     },
     {
@@ -20,6 +20,18 @@
     },
     {
       "src": "model/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "model_custom/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "model_worker.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "tf.min.js",
       "use": "@vercel/static"
     }
   ]
