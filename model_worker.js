@@ -1,6 +1,6 @@
 // Web Worker for offloading TensorFlow.js model execution from the main UI thread
 
-importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js");
+importScripts("tf.min.js");
 
 let model = null;
 

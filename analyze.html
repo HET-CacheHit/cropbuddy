@@ -30,7 +30,7 @@
         }
     </style>
     <!-- TensorFlow.js Web Model Inference Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+    <script src="tf.min.js"></script>
 </head>
 <body>
 
@@ -388,39 +388,75 @@ const CLASS_NAMES = [
 // Initialize Web Worker for background thread processing
 let modelWorker = new Worker('model_worker.js');
 let workerLoadResolver = null;
+let workerLoadRejecter = null;
 let workerPredictResolver = null;
+let workerPredictRejecter = null;
 let activeModelType = 'default';
 let activeModelShape = [128, 128]; // Height, Width
 let isModelLoaded = false;
 
+// Handle Worker internal crashes (e.g. failed to load tf.min.js)
+modelWorker.onerror = function(err) {
+    console.error("Background Web Worker execution crashed:", err);
+    isModelLoaded = false;
+    if (workerLoadRejecter) {
+        workerLoadRejecter(new Error("Web Worker crashed: " + err.message));
+        workerLoadResolver = null;
+        workerLoadRejecter = null;
+    }
+    if (workerPredictRejecter) {
+        workerPredictRejecter(new Error("Prediction Web Worker crashed: " + err.message));
+        workerPredictResolver = null;
+        workerPredictRejecter = null;
+    }
+};
+
 modelWorker.onmessage = function(e) {
     const { status, type, prediction, error } = e.data;
     if (type === 'load') {
-        if (workerLoadResolver) {
+        if (workerLoadResolver && workerLoadRejecter) {
             if (status === 'success') {
                 isModelLoaded = true;
                 workerLoadResolver();
             } else {
                 isModelLoaded = false;
-                workerLoadResolver(Promise.reject(new Error(error)));
+                workerLoadRejecter(new Error(error));
             }
             workerLoadResolver = null;
+            workerLoadRejecter = null;
         }
     } else if (type === 'predict') {
-        if (workerPredictResolver) {
+        if (workerPredictResolver && workerPredictRejecter) {
             if (status === 'success') {
                 workerPredictResolver(prediction);
             } else {
-                workerPredictResolver(Promise.reject(new Error(error)));
+                workerPredictRejecter(new Error(error));
             }
             workerPredictResolver = null;
+            workerPredictRejecter = null;
         }
     }
 };
 
 function loadModelInWorker(modelUrl) {
     return new Promise((resolve, reject) => {
-        workerLoadResolver = resolve;
+        // Safe timeout lock: fail after 15 seconds to prevent permanent page hangs
+        const timeout = setTimeout(() => {
+            isModelLoaded = false;
+            workerLoadResolver = null;
+            workerLoadRejecter = null;
+            reject(new Error("Model loading timed out (15 seconds). Check model folder or network."));
+        }, 15000);
+        
+        workerLoadResolver = () => {
+            clearTimeout(timeout);
+            resolve();
+        };
+        workerLoadRejecter = (err) => {
+            clearTimeout(timeout);
+            reject(err);
+        };
+        
         modelWorker.postMessage({ action: 'load', payload: { modelUrl } });
     });
 }
@@ -428,6 +464,7 @@ function loadModelInWorker(modelUrl) {
 function predictInWorker(rgbValues, shape) {
     return new Promise((resolve, reject) => {
         workerPredictResolver = resolve;
+        workerPredictRejecter = reject;
         modelWorker.postMessage({ action: 'predict', payload: { rgbValues, shape } }, [rgbValues.buffer]);
     });
 }
