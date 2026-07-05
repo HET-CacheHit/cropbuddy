@@ -465,7 +465,7 @@ function predictInWorker(rgbValues, shape) {
     return new Promise((resolve, reject) => {
         workerPredictResolver = resolve;
         workerPredictRejecter = reject;
-        modelWorker.postMessage({ action: 'predict', payload: { rgbValues, shape } }, [rgbValues.buffer]);
+        modelWorker.postMessage({ action: 'predict', payload: { rgbValues, shape } });
     });
 }
 
