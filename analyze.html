@@ -1135,14 +1135,45 @@ submitBtn.addEventListener('click', async () => {
         
         try {
             const predictionScores = await runLocalInference(imagePreview);
-            console.log("Prediction scores:", predictionScores);
+            console.log("Original prediction scores:", predictionScores);
+            
+            // Apply Crop-Specific Filtering if a specific crop is chosen
+            const selectedCrop = document.getElementById('cropSelect').value;
+            let filteredScores = [...predictionScores];
+            
+            if (selectedCrop && selectedCrop !== 'all') {
+                console.log(`Filtering predictions for crop: ${selectedCrop}`);
+                for (let i = 0; i < filteredScores.length; i++) {
+                    const className = activeClassNames[i] || "";
+                    // Map class name to crop key (e.g. 'Apple___Apple_scab' -> 'apple')
+                    const classCrop = className.split('___')[0].toLowerCase().replace(/[^a-z]/g, '');
+                    const targetCrop = selectedCrop.toLowerCase().replace(/[^a-z]/g, '');
+                    
+                    // Simple check if class name starts with the selected crop name
+                    // e.g. "pepper,_bell" starts with "pepper"
+                    if (!classCrop.startsWith(targetCrop) && !targetCrop.startsWith(classCrop)) {
+                        filteredScores[i] = -1; // Exclude
+                    }
+                }
+            }
             
             let highestConfIdx = 0;
             let highestConfVal = -1;
-            for (let i = 0; i < predictionScores.length; i++) {
-                if (predictionScores[i] > highestConfVal) {
-                    highestConfVal = predictionScores[i];
+            for (let i = 0; i < filteredScores.length; i++) {
+                if (filteredScores[i] > highestConfVal) {
+                    highestConfVal = filteredScores[i];
                     highestConfIdx = i;
+                }
+            }
+            
+            // If all filtered scores are -1 (no match within filtered subset), fallback to original scores
+            if (highestConfVal === -1) {
+                console.warn("No predictions matched the selected crop. Falling back to default top classification.");
+                for (let i = 0; i < predictionScores.length; i++) {
+                    if (predictionScores[i] > highestConfVal) {
+                        highestConfVal = predictionScores[i];
+                        highestConfIdx = i;
+                    }
                 }
             }
             
@@ -1252,6 +1283,86 @@ let ocrDetectedName = "";
 let ocrDetectedCategory = "";
 let ocrDetectedDosage = "";
 let ocrDetectedSafetyList = [];
+let googleAudioPlayer = null;
+
+function splitTextIntoChunks(text, maxLen = 150) {
+    const sentences = text.match(/[^.!?।]+[.!?।]*|\s+/g) || [text];
+    const chunks = [];
+    let currentChunk = "";
+    
+    sentences.forEach(sentence => {
+        if ((currentChunk + sentence).length > maxLen) {
+            if (currentChunk.trim()) {
+                chunks.push(currentChunk.trim());
+            }
+            currentChunk = sentence;
+        } else {
+            currentChunk += sentence;
+        }
+    });
+    
+    if (currentChunk.trim()) {
+        chunks.push(currentChunk.trim());
+    }
+    return chunks;
+}
+
+function speakTextViaGoogle(text, lang, buttonElement) {
+    if (speaking) {
+        resetTtsButtons();
+        return;
+    }
+    
+    const chunks = splitTextIntoChunks(text, 150);
+    if (chunks.length === 0) return;
+    
+    speaking = true;
+    let currentIndex = 0;
+    
+    // Update button text to STOP
+    const isGu = lang === 'gu';
+    buttonElement.innerText = isGu ? "🛑 સ્ટોપ" : "🛑 Stop";
+    
+    function playNext() {
+        if (!speaking) return;
+        
+        if (currentIndex >= chunks.length) {
+            resetTtsButtons();
+            return;
+        }
+        
+        const q = chunks[currentIndex];
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(q)}`;
+        
+        googleAudioPlayer = new Audio(url);
+        googleAudioPlayer.onended = () => {
+            currentIndex++;
+            playNext();
+        };
+        googleAudioPlayer.onerror = (err) => {
+            console.error("Google TTS playback error:", err);
+            resetTtsButtons();
+        };
+        googleAudioPlayer.play().catch(e => {
+            console.error("Audio playback blocked:", e);
+            resetTtsButtons();
+        });
+    }
+    
+    playNext();
+}
+
+function resetTtsButtons() {
+    if (googleAudioPlayer) {
+        googleAudioPlayer.pause();
+        googleAudioPlayer = null;
+    }
+    ttsSpeakBtn.innerText = "🔊 English";
+    ttsSpeakGuBtn.innerText = "🔊 ગુજરાતી";
+    ocrTtsBtnEn.innerText = "🔊 English";
+    ocrTtsBtnGu.innerText = "🔊 ગુજરાતી";
+    speaking = false;
+}
 
 // English and Gujarati Dictionary Maps for translation
 const CROP_TRANSLATIONS_GU = {
@@ -1295,15 +1406,6 @@ const DISEASE_TRANSLATIONS_GU = {
     "tomato mosaic virus": "મોઝેક વાયરસ"
 };
 
-function resetTtsButtons() {
-    window.speechSynthesis.cancel();
-    ttsSpeakBtn.innerText = "🔊 English";
-    ttsSpeakGuBtn.innerText = "🔊 ગુજરાતી";
-    ocrTtsBtnEn.innerText = "🔊 English";
-    ocrTtsBtnGu.innerText = "🔊 ગુજરાતી";
-    speaking = false;
-}
-
 // 1. English Narrator Event Listener
 ttsSpeakBtn.addEventListener('click', () => {
     if (speaking) {
@@ -1335,18 +1437,7 @@ ttsSpeakBtn.addEventListener('click', () => {
         textEn += "Leaf condition is healthy. No chemical treatments required.";
     }
     
-    let currentUtteranceObj = new SpeechSynthesisUtterance(textEn);
-    const voices = window.speechSynthesis.getVoices();
-    const enVoice = voices.find(v => v.lang.includes("en-IN")) || voices.find(v => v.lang.includes("en-US"));
-    if (enVoice) currentUtteranceObj.voice = enVoice;
-    currentUtteranceObj.lang = "en-US";
-    
-    currentUtteranceObj.onend = resetTtsButtons;
-    currentUtteranceObj.onerror = resetTtsButtons;
-    
-    ttsSpeakBtn.innerText = "🛑 Stop";
-    speaking = true;
-    window.speechSynthesis.speak(currentUtteranceObj);
+    speakTextViaGoogle(textEn, 'en', ttsSpeakBtn);
 });
 
 // 2. Gujarati Narrator Event Listener
@@ -1394,21 +1485,10 @@ ttsSpeakGuBtn.addEventListener('click', () => {
         });
     }
     
-    let currentUtteranceObj = new SpeechSynthesisUtterance(textGu);
-    const voices = window.speechSynthesis.getVoices();
-    const guVoice = voices.find(v => v.lang.includes("gu-IN"));
-    if (guVoice) currentUtteranceObj.voice = guVoice;
-    currentUtteranceObj.lang = "gu-IN";
-    
-    currentUtteranceObj.onend = resetTtsButtons;
-    currentUtteranceObj.onerror = resetTtsButtons;
-    
-    ttsSpeakGuBtn.innerText = "🛑 સ્ટોપ";
-    speaking = true;
-    window.speechSynthesis.speak(currentUtteranceObj);
+    speakTextViaGoogle(textGu, 'gu', ttsSpeakGuBtn);
 });
 
-// 3. OCR English Narrator Event Listener
+// 3. English Bottle Scanner Narrator Event Listener
 ocrTtsBtnEn.addEventListener('click', () => {
     if (speaking) {
         resetTtsButtons();
@@ -1421,14 +1501,7 @@ ocrTtsBtnEn.addEventListener('click', () => {
         textEn += "Safety precautions: " + ocrDetectedSafetyList.join(". ");
     }
     
-    let currentUtteranceObj = new SpeechSynthesisUtterance(textEn);
-    currentUtteranceObj.lang = "en-US";
-    currentUtteranceObj.onend = resetTtsButtons;
-    currentUtteranceObj.onerror = resetTtsButtons;
-    
-    ocrTtsBtnEn.innerText = "🛑 Stop";
-    speaking = true;
-    window.speechSynthesis.speak(currentUtteranceObj);
+    speakTextViaGoogle(textEn, 'en', ocrTtsBtnEn);
 });
 
 // 4. OCR Gujarati Narrator Event Listener
@@ -1444,18 +1517,7 @@ ocrTtsBtnGu.addEventListener('click', () => {
         textGu += "દવા છાંટતી વખતે રાખવાની સાવચેતીઓ આ મુજબ છે: " + ocrDetectedSafetyList.join(". ");
     }
     
-    let currentUtteranceObj = new SpeechSynthesisUtterance(textGu);
-    const voices = window.speechSynthesis.getVoices();
-    const guVoice = voices.find(v => v.lang.includes("gu-IN"));
-    if (guVoice) currentUtteranceObj.voice = guVoice;
-    currentUtteranceObj.lang = "gu-IN";
-    
-    currentUtteranceObj.onend = resetTtsButtons;
-    currentUtteranceObj.onerror = resetTtsButtons;
-    
-    ocrTtsBtnGu.innerText = "🛑 સ્ટોપ";
-    speaking = true;
-    window.speechSynthesis.speak(currentUtteranceObj);
+    speakTextViaGoogle(textGu, 'gu', ocrTtsBtnGu);
 });
 
 // Helper to trigger auto speak based on language
