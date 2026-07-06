@@ -1,5 +1,6 @@
+import React from 'react';
 import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/Colors';

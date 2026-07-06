@@ -38,7 +38,7 @@ export default function TabThreeScreen() {
   ]);
 
   // Server LAN connection configuration
-  const [serverIp, setServerIp] = useState<string>('192.168.1.100:3000');
+  const [serverIp, setServerIp] = useState<string>('192.168.29.18:3000');
   const [showSettings, setShowSettings] = useState<boolean>(false);
 
   // Audio Recording States
@@ -149,7 +149,6 @@ export default function TabThreeScreen() {
     const textToSend = inputText.trim();
     if (!textToSend) return;
 
-    // Append user message
     const userMessage: Message = {
       id: `msg-${Date.now()}-user`,
       sender: 'user',
@@ -161,11 +160,9 @@ export default function TabThreeScreen() {
     setInputText('');
     setIsAiResponding(true);
 
-    // Auto scroll bottom
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
 
     try {
-      // Send chat message to local backend server
       const url = `http://${serverIp}/api/chat`;
       const response = await fetch(url, {
         method: 'POST',
@@ -189,8 +186,6 @@ export default function TabThreeScreen() {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      
-      // Auto speak response if enabled
       speakText(data.reply, lang);
 
     } catch (err: any) {
@@ -248,7 +243,7 @@ export default function TabThreeScreen() {
             style={styles.settingsInput}
             value={serverIp}
             onChangeText={setServerIp}
-            placeholder="e.g. 192.168.1.100:3000"
+            placeholder="e.g. 192.168.29.18:3000"
           />
         </View>
       )}

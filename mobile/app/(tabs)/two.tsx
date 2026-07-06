@@ -37,7 +37,7 @@ export default function TabTwoScreen() {
   const [lang, setLang] = useState<'en' | 'gu'>('gu');
   
   // Server configuration for LAN testing
-  const [serverIp, setServerIp] = useState<string>('192.168.1.100:3000');
+  const [serverIp, setServerIp] = useState<string>('192.168.29.18:3000');
   const [showSettings, setShowSettings] = useState<boolean>(false);
 
   // Leaf Diagnostic States
@@ -135,7 +135,6 @@ export default function TabTwoScreen() {
       const data = await response.json();
       
       // Let's ask Gemini Chatbot via Server to summarize predictions and recommend treatments!
-      // This is a highly robust pipeline combining prediction + LLM recommendation
       const chatUrl = `http://${serverIp}/api/chat`;
       const chatRes = await fetch(chatUrl, {
         method: 'POST',
@@ -152,7 +151,6 @@ export default function TabTwoScreen() {
       const chatData = await chatRes.json();
       const rawText = chatData.reply;
 
-      // Extract details
       setLeafResult({
         crop: selectedCrop === 'all' ? 'Detecting...' : selectedCrop.toUpperCase(),
         condition: "Diagnosed Condition",
@@ -182,7 +180,6 @@ export default function TabTwoScreen() {
 
     setIsBottleLoading(true);
     try {
-      // Send base64 image directly to Gemini via /api/chat with vision instructions
       const url = `http://${serverIp}/api/chat`;
       const response = await fetch(url, {
         method: 'POST',
@@ -198,7 +195,6 @@ export default function TabTwoScreen() {
 
       const data = await response.json();
       
-      // Parse structured JSON block from Gemini output
       const jsonStart = data.reply.indexOf('{');
       const jsonEnd = data.reply.lastIndexOf('}');
       if (jsonStart === -1 || jsonEnd === -1) {
@@ -276,7 +272,7 @@ export default function TabTwoScreen() {
               style={styles.settingsInput}
               value={serverIp}
               onChangeText={setServerIp}
-              placeholder="e.g. 192.168.1.5:3000"
+              placeholder="e.g. 192.168.29.18:3000"
             />
             <Text style={styles.settingsNote}>
               Note: Ensure your phone and computer are on the same WiFi network.
@@ -456,7 +452,7 @@ export default function TabTwoScreen() {
                       onPress={() => speakText(`Chemical is ${bottleResult.chemicalName}. Category ${bottleResult.category}. Safe recommended dosage is ${bottleResult.dosage}.`, 'en')}
                     >
                       <Ionicons name="volume-medium-sharp" size={16} color="white" />
-                      <Text style={styles.speakerBtnText}>EN</Text>
+                      <Text style={speakerBtnText}>EN</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                       style={[styles.speakerBtn, { backgroundColor: '#40916c' }]}
