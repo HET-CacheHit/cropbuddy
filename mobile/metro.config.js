@@ -3,12 +3,15 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-// Exclude parent project node_modules and other folders to stop Metro from recursively scanning them on Windows
+// Escape backslashes for Windows path regex matching
+const parentNodeModules = path.resolve(__dirname, '../node_modules').replace(/\\/g, '\\\\');
+const parentModelCustom = path.resolve(__dirname, '../model_custom').replace(/\\/g, '\\\\');
+const parentModel = path.resolve(__dirname, '../model').replace(/\\/g, '\\\\');
+
 config.resolver.blockList = [
-  new RegExp(path.resolve(__dirname, '../node_modules')),
-  new RegExp(path.resolve(__dirname, '../model_custom')),
-  new RegExp(path.resolve(__dirname, '../model')),
-  new RegExp(path.resolve(__dirname, '../mobile/node_modules/.*\/node_modules')),
+  new RegExp(parentNodeModules),
+  new RegExp(parentModelCustom),
+  new RegExp(parentModel),
 ];
 
 module.exports = config;
