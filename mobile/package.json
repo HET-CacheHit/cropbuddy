@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "cross-env EXPO_PACKAGER_IP=192.168.29.18 EXPO_OFFLINE=true expo start --host lan",
+    "start": "cross-env EXPO_PACKAGER_IP=192.168.29.18 EXPO_OFFLINE=true expo start --host lan --clear",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
