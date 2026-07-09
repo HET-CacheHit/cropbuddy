@@ -1,0 +1,14 @@
+# Ignore everything in the repository by default
+*
+
+# Allow the mobile subdirectory
+!mobile
+!mobile/**
+
+# Ignore mobile-specific build artifacts and node_modules
+mobile/node_modules/
+mobile/android/
+mobile/ios/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
