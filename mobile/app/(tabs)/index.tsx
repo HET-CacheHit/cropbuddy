@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -9,6 +9,7 @@ import {
   Dimensions 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function TabOneScreen() {
   const [lang, setLang] = useState<'en' | 'gu'>('gu');
@@ -18,6 +19,15 @@ export default function TabOneScreen() {
   const [soilType, setSoilType] = useState<'alluvial' | 'black' | 'red' | 'laterite' | 'desert'>('alluvial');
   const [soilFertility, setSoilFertility] = useState<'low' | 'medium' | 'high'>('medium');
   const [calcResult, setCalcResult] = useState<{ urea: number; dap: number; mop: number } | null>(null);
+
+  const params = useLocalSearchParams<{ detectedSoil?: string }>();
+
+  // Automatically update soilType when navigated from the Soil Scanner tab
+  useEffect(() => {
+    if (params?.detectedSoil && ['alluvial', 'black', 'red', 'laterite', 'desert'].includes(params.detectedSoil)) {
+      setSoilType(params.detectedSoil as any);
+    }
+  }, [params?.detectedSoil]);
 
   // UI labels in English & Gujarati
   const labels = {
