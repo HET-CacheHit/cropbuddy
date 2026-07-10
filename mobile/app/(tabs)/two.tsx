@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Speech from 'expo-speech';
+import { useRouter } from 'expo-router';
 
 const CROP_OPTIONS = [
   { label: 'All Supported Crops (બધા)', value: 'all' },
@@ -33,7 +34,8 @@ const CROP_OPTIONS = [
 ];
 
 export default function TabTwoScreen() {
-  const [activeMode, setActiveMode] = useState<'leaf' | 'bottle'>('leaf');
+  const router = useRouter();
+  const [activeMode, setActiveMode] = useState<'leaf' | 'bottle' | 'soil'>('leaf');
   const [lang, setLang] = useState<'en' | 'gu'>('gu');
   
   // Server configuration for LAN testing
@@ -61,6 +63,14 @@ export default function TabTwoScreen() {
     precautions: string[];
   } | null>(null);
 
+  // Soil Scanner States
+  const [soilImage, setSoilImage] = useState<{ uri: string; base64?: string } | null>(null);
+  const [isSoilLoading, setIsSoilLoading] = useState<boolean>(false);
+  const [soilResult, setSoilResult] = useState<{
+    soilType: string;
+    explanation: string;
+  } | null>(null);
+
   // Text-To-Speech Narrator using expo-speech
   const speakText = (text: string, locale: 'en' | 'gu') => {
     Speech.stop();
@@ -71,7 +81,7 @@ export default function TabTwoScreen() {
   };
 
   // Image Selection Utility
-  const handleSelectImage = async (mode: 'leaf' | 'bottle', useCamera = false) => {
+  const handleSelectImage = async (mode: 'leaf' | 'bottle' | 'soil', useCamera = false) => {
     const permissionResult = useCamera 
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -101,9 +111,12 @@ export default function TabTwoScreen() {
       if (mode === 'leaf') {
         setLeafImage({ uri: asset.uri, base64: asset.base64 || undefined });
         setLeafResult(null);
-      } else {
+      } else if (mode === 'bottle') {
         setBottleImage({ uri: asset.uri, base64: asset.base64 || undefined });
         setBottleResult(null);
+      } else {
+        setSoilImage({ uri: asset.uri, base64: asset.base64 || undefined });
+        setSoilResult(null);
       }
     }
   };
@@ -220,6 +233,56 @@ export default function TabTwoScreen() {
     }
   };
 
+  // Soil Classifier via Gemini Vision on Backend
+  const handleAnalyzeSoil = async () => {
+    if (!soilImage?.base64) {
+      Alert.alert(
+        lang === 'en' ? "No Image" : "કોઈ ફોટો નથી",
+        lang === 'en' ? "Please capture or choose a soil image first." : "કૃપા કરીને માટીનો ફોટો પસંદ કરો."
+      );
+      return;
+    }
+
+    setIsSoilLoading(true);
+    try {
+      const url = `http://${serverIp}/api/chat`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: "Analyze this soil photo. Identify which of these Indian soil types is in the picture: alluvial, black, red, laterite, or desert. Also give a short explanation of its properties. Return the result strictly in this JSON format: {\"soilType\":\"alluvial | black | red | laterite | desert\",\"explanation\":\"...\"}"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const jsonStart = data.reply.indexOf('{');
+      const jsonEnd = data.reply.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) {
+        throw new Error("Could not parse soil JSON details from model output.");
+      }
+
+      const parsedResult = JSON.parse(data.reply.substring(jsonStart, jsonEnd + 1));
+      setSoilResult({
+        soilType: parsedResult.soilType || "alluvial",
+        explanation: parsedResult.explanation || "Alluvial clayey soil."
+      });
+
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert(
+        "Soil Classifier Error",
+        `Failed to reach server: ${err.message}. Please verify the Server IP in settings.`
+      );
+    } finally {
+      setIsSoilLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Tab Selector Header */}
@@ -244,6 +307,17 @@ export default function TabTwoScreen() {
         >
           <Text style={[styles.modeTabText, activeMode === 'bottle' && styles.modeTabTextActive]}>
             {lang === 'en' ? "Bottle Scanner" : "બોટલ સ્કેનર"}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.modeTab, activeMode === 'soil' && styles.modeTabActive]}
+          onPress={() => {
+            setActiveMode('soil');
+            Speech.stop();
+          }}
+        >
+          <Text style={[styles.modeTabText, activeMode === 'soil' && styles.modeTabTextActive]}>
+            {lang === 'en' ? "Soil Scanner" : "જમીન સ્કેનર"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -385,7 +459,7 @@ export default function TabTwoScreen() {
               </View>
             )}
           </View>
-        ) : (
+        ) : activeMode === 'bottle' ? (
           /* PESTICIDE BOTTLE SCANNER INTERFACE */
           <View style={styles.card}>
             <TouchableOpacity 
@@ -452,7 +526,7 @@ export default function TabTwoScreen() {
                       onPress={() => speakText(`Chemical is ${bottleResult.chemicalName}. Category ${bottleResult.category}. Safe recommended dosage is ${bottleResult.dosage}.`, 'en')}
                     >
                       <Ionicons name="volume-medium-sharp" size={16} color="white" />
-                      <Text style={speakerBtnText}>EN</Text>
+                      <Text style={styles.speakerBtnText}>EN</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                       style={[styles.speakerBtn, { backgroundColor: '#40916c' }]}
@@ -493,6 +567,119 @@ export default function TabTwoScreen() {
                     ))}
                   </View>
                 )}
+              </View>
+            )}
+          </View>
+        ) : (
+          /* SOIL SCANNER INTERFACE */
+          <View style={styles.card}>
+            <TouchableOpacity 
+              style={styles.imagePlaceholder} 
+              onPress={() => handleSelectImage('soil', false)}
+            >
+              {soilImage ? (
+                <Image source={{ uri: soilImage.uri }} style={styles.previewImage} />
+              ) : (
+                <View style={styles.imagePlaceholderInner}>
+                  <Ionicons name="earth" size={50} color="#b7e4c7" />
+                  <Text style={styles.placeholderText}>
+                    {lang === 'en' ? "Take Photo of Soil" : "જમીનનો ફોટો લો"}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.cameraRow}>
+              <TouchableOpacity 
+                style={styles.actionBtnSecondary} 
+                onPress={() => handleSelectImage('soil', true)}
+              >
+                <Ionicons name="camera" size={20} color="#1b4332" />
+                <Text style={styles.actionBtnSecondaryText}>{lang === 'en' ? "Use Camera" : "કેમેરો વાપરો"}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.actionBtnSecondary} 
+                onPress={() => handleSelectImage('soil', false)}
+              >
+                <Ionicons name="images" size={20} color="#1b4332" />
+                <Text style={styles.actionBtnSecondaryText}>{lang === 'en' ? "Gallery" : "ગેલેરી"}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.actionBtnPrimary} 
+              onPress={handleAnalyzeSoil}
+              disabled={isSoilLoading}
+            >
+              {isSoilLoading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons name="scan-circle" size={22} color="white" />
+                  <Text style={styles.actionBtnPrimaryText}>
+                    {lang === 'en' ? "Analyze Soil Type" : "જમીન પ્રકાર નિદાન કરો"}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {soilResult && (
+              <View style={styles.resultsBox}>
+                <View style={styles.resultsHeader}>
+                  <Text style={styles.resultsTitle}>
+                    {lang === 'en' ? "Detected Soil Type" : "ઓળખાયેલ જમીનનો પ્રકાર"}
+                  </Text>
+                  
+                  <View style={styles.speakerRow}>
+                    <TouchableOpacity 
+                      style={styles.speakerBtn}
+                      onPress={() => speakText(`Detected soil type is ${soilResult.soilType}. ${soilResult.explanation}`, 'en')}
+                    >
+                      <Ionicons name="volume-medium-sharp" size={16} color="white" />
+                      <Text style={styles.speakerBtnText}>EN</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.speakerBtn, { backgroundColor: '#40916c' }]}
+                      onPress={() => speakText(`ઓળખાયેલ જમીનનો પ્રકાર છે ${soilResult.soilType}. ${soilResult.explanation}`, 'gu')}
+                    >
+                      <Ionicons name="volume-medium-sharp" size={16} color="white" />
+                      <Text style={styles.speakerBtnText}>GJ</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.speakerBtn, { backgroundColor: '#d90429' }]}
+                      onPress={() => Speech.stop()}
+                    >
+                      <Ionicons name="stop" size={14} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.resultItem}>
+                  <Text style={styles.resultItemLabel}>{lang === 'en' ? "Soil Type:" : "જમીનનો પ્રકાર:"}</Text>
+                  <Text style={styles.resultItemVal}>{soilResult.soilType.toUpperCase()}</Text>
+                </View>
+
+                <View style={{ marginTop: 10, marginBottom: 15 }}>
+                  <Text style={styles.resultItemLabel}>{lang === 'en' ? "Properties / Advice:" : "ગુણધર્મો અને સલાહ:"}</Text>
+                  <Text style={styles.precautionText}>{soilResult.explanation}</Text>
+                </View>
+
+                <TouchableOpacity 
+                  style={[styles.actionBtnPrimary, { backgroundColor: '#40916c', marginBottom: 0 }]}
+                  onPress={() => {
+                    Speech.stop();
+                    router.replace({
+                      pathname: '/(tabs)',
+                      params: { detectedSoil: soilResult.soilType }
+                    });
+                  }}
+                >
+                  <Ionicons name="calculator-outline" size={20} color="white" />
+                  <Text style={styles.actionBtnPrimaryText}>
+                    {lang === 'en' ? "Use in NPK Calculator" : "NPK કેલ્ક્યુલેટરમાં વાપરો"}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
