@@ -14,6 +14,9 @@ export default function TabOneScreen() {
   const [lang, setLang] = useState<'en' | 'gu'>('gu');
   const [landSize, setLandSize] = useState<string>('');
   const [landUnit, setLandUnit] = useState<'bigha' | 'acre' | 'hectare'>('bigha');
+  const [crop, setCrop] = useState<'paddy' | 'wheat' | 'cotton' | 'sugarcane' | 'groundnut'>('paddy');
+  const [soilType, setSoilType] = useState<'alluvial' | 'black' | 'red' | 'laterite' | 'desert'>('alluvial');
+  const [soilFertility, setSoilFertility] = useState<'low' | 'medium' | 'high'>('medium');
   const [calcResult, setCalcResult] = useState<{ urea: number; dap: number; mop: number } | null>(null);
 
   // UI labels in English & Gujarati
@@ -34,7 +37,23 @@ export default function TabOneScreen() {
       mandiTitle: "APMC Market Prices (Gujarat)",
       cropHeader: "Crop",
       priceHeader: "Avg Price (per 20kg)",
-      trendHeader: "Trend"
+      trendHeader: "Trend",
+      cropLabel: "Select Crop",
+      soilTypeLabel: "Select Soil Type",
+      fertilityLabel: "Soil Fertility level (Soil Health)",
+      cropPaddy: "Paddy (Rice)",
+      cropWheat: "Wheat",
+      cropCotton: "Cotton",
+      cropSugarcane: "Sugarcane",
+      cropGroundnut: "Groundnut",
+      soilAlluvial: "Alluvial (Clayey)",
+      soilBlack: "Black (Regur)",
+      soilRed: "Red Soil",
+      soilLaterite: "Laterite",
+      soilDesert: "Desert (Sandy)",
+      fertilityLow: "Low (+25% dose)",
+      fertilityMedium: "Medium (Standard)",
+      fertilityHigh: "High (-25% dose)"
     },
     gu: {
       title: "ક્રોપબડી ડેશબોર્ડ",
@@ -52,26 +71,84 @@ export default function TabOneScreen() {
       mandiTitle: "એ.પી.એમ.સી. બજાર ભાવ (ગુજરાત)",
       cropHeader: "પાક",
       priceHeader: "સરેરાશ ભાવ (૨૦ કિલોના)",
-      trendHeader: "ટ્રેન્ડ"
+      trendHeader: "ટ્રેન્ડ",
+      cropLabel: "પાક પસંદ કરો",
+      soilTypeLabel: "જમીનનો પ્રકાર પસંદ કરો",
+      fertilityLabel: "જમીનની ફળદ્રુપતા સ્તર (સોઇલ ટેસ્ટ)",
+      cropPaddy: "ડાંગર (ચોખા)",
+      cropWheat: "ઘઉં",
+      cropCotton: "કપાસ",
+      cropSugarcane: "શેરડી",
+      cropGroundnut: "મગફળી",
+      soilAlluvial: "કાંપવાળી જમીન",
+      soilBlack: "કાળી (રેગુર) જમીન",
+      soilRed: "લાલ જમીન",
+      soilLaterite: "પડખાઉ (રાતી) જમીન",
+      soilDesert: "રેતાળ જમીન",
+      fertilityLow: "ઓછી (+૨૫% ખાતર)",
+      fertilityMedium: "મધ્યમ (સામાન્ય)",
+      fertilityHigh: "વધારે (-૨૫% ખાતર)"
     }
   };
 
   const currentLabels = labels[lang];
 
-  // NPK calculation logic
+  // NPK calculation logic based on Indian Soil Types
   const handleCalculate = () => {
     const size = parseFloat(landSize);
     if (isNaN(size) || size <= 0) return;
 
+    // Convert land size to Bighas first, then convert Bighas to Hectares (1 Hectare = 6.25 Bighas)
     let bighas = size;
     if (landUnit === 'acre') bighas = size * 2.5;
     else if (landUnit === 'hectare') bighas = size * 6.25;
 
-    // Urea: 20kg/bigha, DAP: 10kg/bigha, MOP: 8kg/bigha
-    // 50kg per bag
-    const ureaBags = Math.ceil((bighas * 20) / 50);
-    const dapBags = Math.ceil((bighas * 10) / 50);
-    const mopBags = Math.ceil((bighas * 8) / 50);
+    const hectares = bighas / 6.25;
+
+    // Base NPK targets (kg/hectare)
+    const cropBaselines = {
+      paddy: { n: 120, p: 60, k: 60 },
+      wheat: { n: 120, p: 60, k: 40 },
+      cotton: { n: 80, p: 40, k: 40 },
+      sugarcane: { n: 250, p: 80, k: 80 },
+      groundnut: { n: 20, p: 40, k: 40 }
+    };
+
+    // Soil type adjustments
+    const soilCorrections = {
+      alluvial: { n: 0.15, p: 0.0, k: -0.10 },
+      black: { n: 0.20, p: 0.10, k: -0.20 },
+      red: { n: 0.10, p: 0.25, k: 0.0 },
+      laterite: { n: 0.25, p: 0.20, k: 0.15 },
+      desert: { n: 0.30, p: 0.05, k: 0.0 }
+    };
+
+    // Fertility levels multiplier
+    const fertilityFactors = {
+      low: 1.25,
+      medium: 1.0,
+      high: 0.75
+    };
+
+    const baseCrop = cropBaselines[crop];
+    const correction = soilCorrections[soilType];
+    const fertilityMultiplier = fertilityFactors[soilFertility];
+
+    // Compute target nutrients in kg
+    const targetN = baseCrop.n * hectares * (1 + correction.n) * fertilityMultiplier;
+    const targetP = baseCrop.p * hectares * (1 + correction.p) * fertilityMultiplier;
+    const targetK = baseCrop.k * hectares * (1 + correction.k) * fertilityMultiplier;
+
+    // Commercial Fertilizers: DAP (46% P, 18% N), Urea (46% N), MOP (60% K)
+    const dapKg = targetP / 0.46;
+    const nFromDap = dapKg * 0.18;
+    const ureaKg = Math.max(0, targetN - nFromDap) / 0.46;
+    const mopKg = targetK / 0.60;
+
+    // 50kg Bags calculation (ceil up to full bags)
+    const ureaBags = Math.ceil(ureaKg / 50);
+    const dapBags = Math.ceil(dapKg / 50);
+    const mopBags = Math.ceil(mopKg / 50);
 
     setCalcResult({
       urea: ureaBags,
@@ -122,6 +199,55 @@ export default function TabOneScreen() {
           <Text style={styles.cardTitle}>{currentLabels.npkTitle}</Text>
         </View>
 
+        {/* Crop Selection */}
+        <Text style={styles.inputHeading}>{currentLabels.cropLabel}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
+          {(['paddy', 'wheat', 'cotton', 'sugarcane', 'groundnut'] as const).map((c) => (
+            <TouchableOpacity
+              key={c}
+              style={[styles.selectorBtn, crop === c && styles.selectorBtnActive]}
+              onPress={() => setCrop(c)}
+            >
+              <Text style={[styles.selectorBtnText, crop === c && styles.selectorBtnTextActive]}>
+                {currentLabels[`crop${c.charAt(0).toUpperCase() + c.slice(1)}` as keyof typeof currentLabels]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Soil Type Selection */}
+        <Text style={styles.inputHeading}>{currentLabels.soilTypeLabel}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
+          {(['alluvial', 'black', 'red', 'laterite', 'desert'] as const).map((s) => (
+            <TouchableOpacity
+              key={s}
+              style={[styles.selectorBtn, soilType === s && styles.selectorBtnActive]}
+              onPress={() => setSoilType(s)}
+            >
+              <Text style={[styles.selectorBtnText, soilType === s && styles.selectorBtnTextActive]}>
+                {currentLabels[`soil${s.charAt(0).toUpperCase() + s.slice(1)}` as keyof typeof currentLabels]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Soil Fertility Selection */}
+        <Text style={styles.inputHeading}>{currentLabels.fertilityLabel}</Text>
+        <View style={styles.gridContainer}>
+          {(['low', 'medium', 'high'] as const).map((f) => (
+            <TouchableOpacity
+              key={f}
+              style={[styles.selectorBtn, { flex: 1 }, soilFertility === f && styles.selectorBtnActive]}
+              onPress={() => setSoilFertility(f)}
+            >
+              <Text style={[styles.selectorBtnText, soilFertility === f && styles.selectorBtnTextActive]}>
+                {currentLabels[`fertility${f.charAt(0).toUpperCase() + f.slice(1)}` as keyof typeof currentLabels]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Land Size Input */}
         <TextInput
           style={styles.input}
           placeholder={currentLabels.landSizePlaceholder}
@@ -387,5 +513,44 @@ const styles = StyleSheet.create({
   cropPrice: {
     color: '#2d6a4f',
     fontWeight: '500'
+  },
+  inputHeading: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#40916c',
+    marginBottom: 8,
+    marginTop: 5
+  },
+  selectorScroll: {
+    flexDirection: 'row',
+    marginBottom: 12
+  },
+  selectorBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 8,
+    backgroundColor: '#fafafa',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  selectorBtnActive: {
+    backgroundColor: '#2d6a4f',
+    borderColor: '#2d6a4f'
+  },
+  selectorBtnText: {
+    color: '#555',
+    fontWeight: '600',
+    fontSize: 12
+  },
+  selectorBtnTextActive: {
+    color: 'white'
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 15
   }
 });
