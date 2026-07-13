@@ -1,0 +1,27 @@
+{
+  "name": "CropBuddy AI Agricultural Assistant",
+  "short_name": "CropBuddy",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f4fbf7",
+  "theme_color": "#2d6a4f",
+  "description": "AI-driven plant disease diagnostics, NPK calculators, and APMC prices.",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "1024x1024"
+    }
+  ]
+}
