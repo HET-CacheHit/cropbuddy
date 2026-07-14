@@ -44,11 +44,16 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  // Handle redirects safely for PWA validation
+  const requestToFetch = event.request.redirect === 'manual'
+    ? new Request(event.request, { redirect: 'follow' })
+    : event.request;
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
         // Return cached file, but update in background (stale-while-revalidate)
-        fetch(event.request).then((networkResponse) => {
+        fetch(requestToFetch).then((networkResponse) => {
           if (networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
           }
@@ -57,7 +62,7 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
       
-      return fetch(event.request).then((networkResponse) => {
+      return fetch(requestToFetch).then((networkResponse) => {
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
           return networkResponse;
         }
