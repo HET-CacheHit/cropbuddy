@@ -91,6 +91,7 @@
                 <div style="display: flex; border-bottom: 1px solid #e0e0e0; margin-bottom: 25px;">
                     <button id="tab-leaf" class="tab-btn active">🔍 Diagnose Leaf Disease</button>
                     <button id="tab-bottle" class="tab-btn">🧴 Scan Medicine Bottle</button>
+                    <button id="tab-upload" class="tab-btn">☁️ Upload Image</button>
                 </div>
 
                 <h2 id="portal-title">Disease Analysis Portal</h2>
@@ -322,9 +323,10 @@ const ocrResultBox = document.getElementById('ocr-result-box');
 // Tab Selection Buttons
 const tabLeaf = document.getElementById('tab-leaf');
 const tabBottle = document.getElementById('tab-bottle');
+const tabUpload = document.getElementById('tab-upload');
 const leafDiagnosticSection = document.getElementById('leaf-diagnostic-section');
 
-let currentActiveMode = 'leaf'; // 'leaf' or 'bottle'
+let currentActiveMode = 'leaf'; // 'leaf', 'bottle', or 'upload'
 let model = null;
 let pesticideData = null;
 
@@ -334,6 +336,7 @@ tabLeaf.addEventListener('click', () => {
     currentActiveMode = 'leaf';
     tabLeaf.classList.add('active');
     tabBottle.classList.remove('active');
+    tabUpload.classList.remove('active');
     leafDiagnosticSection.style.display = "block";
     
     // Hide results
@@ -354,6 +357,28 @@ tabBottle.addEventListener('click', () => {
     currentActiveMode = 'bottle';
     tabBottle.classList.add('active');
     tabLeaf.classList.remove('active');
+    tabUpload.classList.remove('active');
+    leafDiagnosticSection.style.display = "none";
+    
+    // Hide results
+    resultBox.style.display = "none";
+    ocrResultBox.style.display = "none";
+    
+    // Reset file input
+    fileInput.value = "";
+    imagePreview.style.display = "none";
+    uploadPrompt.style.display = "block";
+    fileNameDisplay.innerText = "";
+    
+    updateUiLabels();
+});
+
+tabUpload.addEventListener('click', () => {
+    if (currentActiveMode === 'upload') return;
+    currentActiveMode = 'upload';
+    tabUpload.classList.add('active');
+    tabLeaf.classList.remove('active');
+    tabBottle.classList.remove('active');
     leafDiagnosticSection.style.display = "none";
     
     // Hide results
@@ -724,7 +749,13 @@ const UI_LABELS = {
         navAdvisor: "AI Advisor",
         tabLeaf: "🔍 Diagnose Leaf Disease",
         tabBottle: "🧴 Scan Medicine Bottle",
+        tabUpload: "☁️ Upload Image",
         title: "Disease Analysis Portal",
+        titleUpload: "Direct Cloud Upload",
+        descUpload: "Select or capture any crop photo to instantly upload it to Firebase console.",
+        analyzeBtnUpload: "Upload to Cloud",
+        uploadingBtn: "Uploading to Firebase... ⏳",
+        uploadSuccessMsg: "🎉 Photo successfully backed up in Firebase Console!",
         desc: "Upload a clear photograph of the affected plant leaf to begin processing.",
         titleBottle: "Pesticide Bottle Scanner",
         descBottle: "Upload a picture of the pesticide chemical bottle to verify its dosage and safety details.",
@@ -769,7 +800,13 @@ const UI_LABELS = {
         navAdvisor: "એઆઈ સલાહકાર",
         tabLeaf: "🔍 પાક રોગ નિદાન",
         tabBottle: "🧴 દવાની બોટલ સ્કેનર",
+        tabUpload: "☁️ ક્લાઉડ અપલોડ",
         title: "પાક રોગ નિદાન પોર્ટલ",
+        titleUpload: "ફોટો ક્લાઉડ અપલોડ",
+        descUpload: "તમારા ફોટાને ફાયરબેઝમાં સીધા જ અપલોડ કરવા માટે કેમેરો વાપરો અથવા ફોટો પસંદ કરો.",
+        analyzeBtnUpload: "ક્લાઉડમાં અપલોડ કરો",
+        uploadingBtn: "અપલોડ થઈ રહ્યું છે... ⏳",
+        uploadSuccessMsg: "🎉 ફોટો સફળતાપૂર્વક ફાયરબેઝમાં સેવ થઈ ગયો છે!",
         desc: "પ્રક્રિયા શરૂ કરવા માટે રોગિષ્ઠ છોડના પાનનો સ્પષ્ટ ફોટો અપલોડ કરો.",
         titleBottle: "જંતુનાશક દવાની બોટલનું સ્કેનિંગ",
         descBottle: "દવાની સાચી માત્રા (ડોઝ) અને સાવચેતીઓ ચકાસવા માટે દવાની બોટલનો ફોટો અપલોડ કરો.",
@@ -837,16 +874,21 @@ function updateUiLabels() {
     // Tabs Text
     tabLeaf.innerText = labels.tabLeaf;
     tabBottle.innerText = labels.tabBottle;
+    if (tabUpload) tabUpload.innerText = labels.tabUpload;
     
     // General Headers
     if (currentActiveMode === 'leaf') {
         document.getElementById('portal-title').innerText = labels.title;
         document.getElementById('portal-desc').innerText = labels.desc;
         submitBtn.innerText = isModelLoaded ? labels.analyzeBtn : labels.loadingModel;
-    } else {
+    } else if (currentActiveMode === 'bottle') {
         document.getElementById('portal-title').innerText = labels.titleBottle;
         document.getElementById('portal-desc').innerText = labels.descBottle;
         submitBtn.innerText = labels.analyzeBtnBottle;
+    } else if (currentActiveMode === 'upload') {
+        document.getElementById('portal-title').innerText = labels.titleUpload;
+        document.getElementById('portal-desc').innerText = labels.descUpload;
+        submitBtn.innerText = labels.analyzeBtnUpload;
     }
     
     // Choose model labels
@@ -1239,7 +1281,7 @@ submitBtn.addEventListener('click', async () => {
             submitBtn.disabled = false;
             if (loadingIndicator) loadingIndicator.style.display = "none";
         }
-    } else {
+    } else if (currentActiveMode === 'bottle') {
         // BOTTLE SCANNER OCR MODE
         submitBtn.innerText = UI_LABELS[activeLang].scanningBtn;
         submitBtn.disabled = true;
@@ -1293,6 +1335,44 @@ submitBtn.addEventListener('click', async () => {
                 if (loadingIndicator) loadingIndicator.style.display = "none";
             });
         });
+    } else if (currentActiveMode === 'upload') {
+        // DIRECT CLOUD UPLOAD MODE
+        submitBtn.innerText = UI_LABELS[activeLang].uploadingBtn;
+        submitBtn.disabled = true;
+        if (loadingIndicator) {
+            loadingText.innerText = UI_LABELS[activeLang].uploadingBtn;
+            loadingIndicator.style.display = "block";
+        }
+        
+        try {
+            if (window.storage && window.db) {
+                const file = fileInput.files[0];
+                const storageRef = window.fbRef(window.storage, `user_gallery/${Date.now()}_${file.name}`);
+                
+                await window.fbUploadBytes(storageRef, file);
+                const downloadURL = await window.fbGetDownloadURL(storageRef);
+                console.log("Firebase PWA: Uploaded direct image successfully! URL:", downloadURL);
+
+                await window.fbAddDoc(window.fbCollection(window.db, "user_gallery"), {
+                    imageUrl: downloadURL,
+                    fileName: file.name,
+                    uploadedAt: new Date().toISOString()
+                });
+                alert(UI_LABELS[activeLang].uploadSuccessMsg);
+            }
+        } catch (error) {
+            console.error("Firebase direct upload failed:", error);
+            alert("Upload failed. Please verify your connection.");
+        } finally {
+            submitBtn.innerText = UI_LABELS[activeLang].analyzeBtnUpload;
+            submitBtn.disabled = false;
+            if (loadingIndicator) loadingIndicator.style.display = "none";
+            // Reset input fields
+            fileInput.value = "";
+            imagePreview.style.display = "none";
+            uploadPrompt.style.display = "block";
+            fileNameDisplay.innerText = "";
+        }
     }
 });
 
