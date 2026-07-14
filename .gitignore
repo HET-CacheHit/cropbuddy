@@ -68,3 +68,6 @@ desktop.ini
 *.png
 *.jpg
 *.jpeg
+
+.vercel
+.env*
