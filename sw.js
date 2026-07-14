@@ -40,6 +40,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Helper to clean redirected responses to avoid browser security block
+const cleanResponse = async (response) => {
+  if (!response.redirected) {
+    return response;
+  }
+  const body = await response.blob();
+  return new Response(body, {
+    headers: response.headers,
+    status: response.status,
+    statusText: response.statusText
+  });
+};
+
 // Fetch Event: Cache First, fallback to Network
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
@@ -53,29 +66,33 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
         // Return cached file, but update in background (stale-while-revalidate)
-        fetch(requestToFetch).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {/* Ignore network errors offline */});
+        fetch(requestToFetch)
+          .then(cleanResponse)
+          .then((networkResponse) => {
+            if (networkResponse.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+            }
+          }).catch(() => {/* Ignore network errors offline */});
         
         return cachedResponse;
       }
       
-      return fetch(requestToFetch).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+      return fetch(requestToFetch)
+        .then(cleanResponse)
+        .then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+          
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+          
           return networkResponse;
-        }
-        
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+        }).catch(() => {
+          return caches.match('/index.html');
         });
-        
-        return networkResponse;
-      }).catch(() => {
-        return caches.match('/index.html');
-      });
     })
   );
 });
