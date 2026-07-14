@@ -31,6 +31,32 @@
     </style>
     <!-- TensorFlow.js Web Model Inference Library -->
     <script src="tf.min.js"></script>
+    <!-- Firebase JS SDK v10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAX0lDahRpVnu17A2lu8exPPWxUbBlusmA",
+          authDomain: "cropbuddy-98035.firebaseapp.com",
+          projectId: "cropbuddy-98035",
+          storageBucket: "cropbuddy-98035.firebasestorage.app",
+          messagingSenderId: "514894419469",
+          appId: "1:514894419469:web:1927b10cb6a08a971de744",
+          measurementId: "G-NS0XD02CCG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.storage = getStorage(app);
+        window.fbAddDoc = addDoc;
+        window.fbCollection = collection;
+        window.fbRef = ref;
+        window.fbUploadBytes = uploadBytes;
+        window.fbGetDownloadURL = getDownloadURL;
+        console.log("Firebase initialized in CropBuddy PWA!");
+    </script>
 </head>
 <body>
 
@@ -1180,6 +1206,30 @@ submitBtn.addEventListener('click', async () => {
             lastPredictionIdx = highestConfIdx;
             lastPredictionVal = highestConfVal;
             renderAnalysisResults();
+
+            // PWA Firebase: Upload photo to storage and save record in Firestore
+            (async () => {
+                try {
+                    if (window.storage && window.db) {
+                        const file = fileInput.files[0];
+                        const storageRef = window.fbRef(window.storage, `plant_photos/${Date.now()}_${file.name}`);
+                        
+                        await window.fbUploadBytes(storageRef, file);
+                        const downloadURL = await window.fbGetDownloadURL(storageRef);
+                        console.log("Firebase PWA: Uploaded plant photo successfully! URL:", downloadURL);
+
+                        await window.fbAddDoc(window.fbCollection(window.db, "leaf_scans"), {
+                            crop: selectedCrop,
+                            result: CLASS_NAMES[highestConfIdx],
+                            imageUrl: downloadURL,
+                            timestamp: new Date().toISOString()
+                        });
+                        console.log("Firebase PWA: Successfully logged leaf scan to Firestore.");
+                    }
+                } catch (fbErr) {
+                    console.warn("Firebase PWA: Firestore logging skipped:", fbErr);
+                }
+            })();
             
         } catch (error) {
             console.error("Local pipeline analysis failure:", error);
@@ -1207,6 +1257,29 @@ submitBtn.addEventListener('click', async () => {
             ).then(({ data: { text } }) => {
                 console.log("OCR Scanned Text:", text);
                 processOCRText(text);
+
+                // PWA Firebase: Upload photo to storage and save record in Firestore
+                (async () => {
+                    try {
+                        if (window.storage && window.db) {
+                            const file = fileInput.files[0];
+                            const storageRef = window.fbRef(window.storage, `bottle_photos/${Date.now()}_${file.name}`);
+                            
+                            await window.fbUploadBytes(storageRef, file);
+                            const downloadURL = await window.fbGetDownloadURL(storageRef);
+                            console.log("Firebase PWA: Uploaded bottle photo successfully! URL:", downloadURL);
+
+                            await window.fbAddDoc(window.fbCollection(window.db, "bottle_scans"), {
+                                textSnippet: text.substring(0, 500),
+                                imageUrl: downloadURL,
+                                timestamp: new Date().toISOString()
+                            });
+                            console.log("Firebase PWA: Successfully logged bottle scan to Firestore.");
+                        }
+                    } catch (fbErr) {
+                        console.warn("Firebase PWA: Firestore logging skipped:", fbErr);
+                    }
+                })();
                 
                 submitBtn.innerText = UI_LABELS[activeLang].analyzeBtnBottle;
                 submitBtn.disabled = false;

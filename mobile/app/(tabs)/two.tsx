@@ -14,6 +14,24 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Speech from 'expo-speech';
 import { useRouter } from 'expo-router';
+import { db, storage } from '../../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc } from 'firebase/firestore';
+
+const uploadImageToFirebase = async (localUri: string, folder: string): Promise<string> => {
+  try {
+    const response = await fetch(localUri);
+    const blob = await response.blob();
+    const filename = `${Date.now()}_${localUri.split('/').pop() || 'photo.jpg'}`;
+    const storageRef = ref(storage, `${folder}/${filename}`);
+    await uploadBytes(storageRef, blob);
+    const downloadUrl = await getDownloadURL(storageRef);
+    return downloadUrl;
+  } catch (err) {
+    console.error("Firebase Storage Upload Error:", err);
+    return "";
+  }
+};
 
 const CROP_OPTIONS = [
   { label: 'All Supported Crops (બધા)', value: 'all' },
@@ -170,6 +188,24 @@ export default function TabTwoScreen() {
         treatment: rawText,
         rawText: rawText
       });
+
+      // Upload and log leaf diagnostics to Firebase Storage & Firestore
+      (async () => {
+        try {
+          const firebaseImageUrl = await uploadImageToFirebase(leafImage.uri, 'plant_photos');
+          if (firebaseImageUrl) {
+            await addDoc(collection(db, 'leaf_scans'), {
+              crop: selectedCrop,
+              result: "Diagnosed Condition",
+              imageUrl: firebaseImageUrl,
+              timestamp: new Date().toISOString()
+            });
+            console.log("Firebase PWA: Successfully logged leaf scan to Firestore!");
+          }
+        } catch (e) {
+          console.warn("Firebase operations failed:", e);
+        }
+      })();
     } catch (err: any) {
       console.error(err);
       Alert.alert(
@@ -222,6 +258,23 @@ export default function TabTwoScreen() {
         precautions: parsedResult.precautions || []
       });
 
+      // Upload and log pesticide bottle diagnostics to Firebase Storage & Firestore
+      (async () => {
+        try {
+          const firebaseImageUrl = await uploadImageToFirebase(bottleImage.uri, 'bottle_photos');
+          if (firebaseImageUrl) {
+            await addDoc(collection(db, 'bottle_scans'), {
+              chemicalName: parsedResult.chemicalName || "Unknown Chemical",
+              category: parsedResult.category || "General Pesticide",
+              imageUrl: firebaseImageUrl,
+              timestamp: new Date().toISOString()
+            });
+            console.log("Firebase PWA: Successfully logged bottle scan to Firestore!");
+          }
+        } catch (e) {
+          console.warn("Firebase operations failed:", e);
+        }
+      })();
     } catch (err: any) {
       console.error(err);
       Alert.alert(
@@ -272,6 +325,22 @@ export default function TabTwoScreen() {
         explanation: parsedResult.explanation || "Alluvial clayey soil."
       });
 
+      // Upload and log soil diagnostics to Firebase Storage & Firestore
+      (async () => {
+        try {
+          const firebaseImageUrl = await uploadImageToFirebase(soilImage.uri, 'soil_photos');
+          if (firebaseImageUrl) {
+            await addDoc(collection(db, 'soil_scans'), {
+              soilType: parsedResult.soilType || "alluvial",
+              imageUrl: firebaseImageUrl,
+              timestamp: new Date().toISOString()
+            });
+            console.log("Firebase PWA: Successfully logged soil scan to Firestore!");
+          }
+        } catch (e) {
+          console.warn("Firebase operations failed:", e);
+        }
+      })();
     } catch (err: any) {
       console.error(err);
       Alert.alert(
