@@ -35,14 +35,6 @@
       "use": "@vercel/static"
     },
     {
-      "src": "sw.js",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "manifest.json",
-      "use": "@vercel/static"
-    },
-    {
       "src": "logo.png",
       "use": "@vercel/static"
     },
@@ -57,17 +49,6 @@
     {
       "src": "*.jpg",
       "use": "@vercel/static"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
     }
   ]
 }

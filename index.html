@@ -6,8 +6,6 @@
     <title>Crop Buddy - AI Disease Detection & Weather Insights</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="logo.png">
 </head>
 <body>
 
@@ -269,16 +267,6 @@ window.addEventListener('DOMContentLoaded', () => {
     initLanguageToggle();
     updatePageLanguage();
 });
-</script>
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('CropBuddy PWA: Service Worker registered successfully!', reg.scope))
-                .catch(err => console.log('CropBuddy PWA: Service Worker registration failed:', err));
-        });
-    }
 </script>
 
 </body>
