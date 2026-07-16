@@ -1,0 +1,408 @@
+{
+  "metadata": {
+    "source": "Paragon Synthetics and Polymers Limited, Baroda",
+    "standardVolumeWater": "15 Liters (unless specified otherwise)"
+  },
+  "commonPesticides": [
+    {
+      "categoryId": 1,
+      "categoryGujarati": "પાન, ફૂલ, કળી / ફળને કોરી ખાનાર જીવાતો",
+      "categoryEnglish": "Leaf, flower, bud, and fruit-boring insects",
+      "targetPestsGujarati": "કાબરી ઈયળ, લીલી ઈયળ અને ગુલાબી ઈયળ તથા પાન ખાનારી ઈયળ",
+      "targetPestsEnglish": "Spotted bollworm, green bollworm, pink bollworm, and leaf-eating caterpillar",
+      "medicines": [
+        {
+          "nameGujarati": "એન્ડોસલ્ફાન ૩૫ ઈસી",
+          "nameEnglish": "Endosulfan 35 EC",
+          "recommendedDosage": "30 ml"
+        },
+        {
+          "nameGujarati": "ફોઝેલોન ૩૫ ઈસી",
+          "nameEnglish": "Phosalone 35 EC",
+          "recommendedDosage": "40 ml"
+        },
+        {
+          "nameGujarati": "મોનોકોટ્રોફોસ ૩૬ ઈસી",
+          "nameEnglish": "Monocrotophos 36 EC",
+          "recommendedDosage": "15 ml"
+        },
+        {
+          "nameGujarati": "કવીનાલફોસ ૨૫ ઈસી",
+          "nameEnglish": "Quinalphos 25 EC",
+          "recommendedDosage": "45 ml"
+        },
+        {
+          "nameGujarati": "પ્રોફેન ફોસ ૫૦ ઈસી",
+          "nameEnglish": "Profenofos 50 EC",
+          "recommendedDosage": "30 ml"
+        },
+        {
+          "groupNameGujarati": "સિન્થેટીક પાયરેથ્રોઈડ્સ ગ્રુપની દવાઓ",
+          "groupNameEnglish": "Synthetic Pyrethroids Group",
+          "items": [
+            {
+              "nameGujarati": "ફેનવલ રેટ ૨૦ ઈસી",
+              "nameEnglish": "Fenvalerate 20 EC",
+              "recommendedDosage": "10 ml"
+            },
+            {
+              "nameGujarati": "ડેલ્ટામેથ્રીn ૨.૮ ઈસી",
+              "nameEnglish": "Deltamethrin 2.8 EC",
+              "recommendedDosage": "7.5 ml"
+            },
+            {
+              "nameGujarati": "સાયપરમેથ્રીન ૧૦ ઈસી",
+              "nameEnglish": "Cypermethrin 10 EC",
+              "recommendedDosage": "15 ml"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "categoryId": 2,
+      "categoryGujarati": "ચૂસિયા પ્રકારની જીવાતો",
+      "categoryEnglish": "Sucking Pests",
+      "subCategories": [
+        {
+          "subId": "a",
+          "targetPestsGujarati": "મોલોમશી, લીલા તડતડિયા અને થ્રીપ્સ",
+          "targetPestsEnglish": "Aphids, green jassids, and thrips",
+          "medicines": [
+            {
+              "nameGujarati": "એન્ડોસલ્ફાન ૩૫ ઈસી",
+              "nameEnglish": "Endosulfan 35 EC",
+              "recommendedDosage": "30 ml"
+            },
+            {
+              "nameGujarati": "મિથાઈલ ઓ ડિમેટોન ૨૫ ઈસી",
+              "nameEnglish": "Methyl O Demeton 25 EC",
+              "recommendedDosage": "15 ml"
+            },
+            {
+              "nameGujarati": "ડાયમીથોએટ ૩૦ ઈસી",
+              "nameEnglish": "Dimethoate 30 EC",
+              "recommendedDosage": "15 ml"
+            },
+            {
+              "nameGujarati": "ફોસ્ફામીડોન ૮૫ એસ.એલ.",
+              "nameEnglish": "Phosphamidon 85 SL",
+              "recommendedDosage": "5 ml"
+            }
+          ]
+        },
+        {
+          "subId": "b",
+          "targetPestsGujarati": "સெફેદ માખી",
+          "targetPestsEnglish": "Whitefly",
+          "medicines": [
+            {
+              "nameGujarati": "એન્ડોસલ્ફાન ૩૫ ઈસી",
+              "nameEnglish": "Endosulfan 35 EC",
+              "recommendedDosage": "30 ml"
+            },
+            {
+              "nameGujarati": "મિથાઈલ ઓ.ડીમેટોન ૨૫ ઈસી",
+              "nameEnglish": "Methyl O. Demeton 25 EC",
+              "recommendedDosage": "15 ml"
+            },
+            {
+              "nameGujarati": "ફોસેલોon ૩૫ ઈસી",
+              "nameEnglish": "Phosalone 35 EC",
+              "recommendedDosage": "40 ml"
+            },
+            {
+              "nameGujarati": "ટ્રાયઝોફોસ ૪૦ ઈસી",
+              "nameEnglish": "Triazophos 40 EC",
+              "recommendedDosage": "22 ml"
+            },
+            {
+              "nameGujarati": "એસીફેટ ૭ થાય વે.પા.",
+              "nameEnglish": "Acephate 75% WP",
+              "recommendedDosage": "25 g"
+            }
+          ]
+        },
+        {
+          "subId": "c",
+          "targetPestsGujarati": "લાલકથીરી",
+          "targetPestsEnglish": "Red Spider Mite",
+          "medicines": [
+            {
+              "nameGujarati": "ડાયકોફોલ ૧૮.૫ ઈસી",
+              "nameEnglish": "Dicofol 18.5 EC",
+              "recommendedDosage": "25 ml"
+            },
+            {
+              "nameGujarati": "એરેમાઈટ ૨૫ ઈસી",
+              "nameEnglish": "Aramite 25 EC",
+              "recommendedDosage": "15 ml"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "modernInsecticides": {
+    "neonicotinoids": {
+      "groupGujarati": "ન્યોનિકોટીનોઈડ ગ્રુપ (A)",
+      "groupEnglish": "Neonicotinoid Group",
+      "products": [
+        {
+          "tradeNamesGujarati": "ગૌચો, કોન્ફીડન્સ, ફોન્ફીડોર, જમ્બો, ટાટામીડા/મીડા, ઈમીડાગોલ્ડ, લીમીડા એડમાયર, મરીડ, કોન્ફીડેન્સ-૫૫૫",
+          "genericNameGujarati": "ઈમીડાક્લોપ્રીડ ૭૦ ટકા ડબલ્યુ.એસ. / ઈમીડાક્લોપ્રીડ ૧૭.৮ ટકા એસ.એલ.",
+          "genericNameEnglish": "Imidacloprid 70% WS / Imidacloprid 17.8% SL",
+          "dosage": "7.5 g/kg seed (for seed treatment) OR 5 to 10 ml per 15L water",
+          "effectiveAgainstGujarati": "ચૂસિયા જીવાત (બીજ માવજત), મોલોમશી, સફેદ માખી, તડતડિયા, થ્રીપ્સ",
+          "effectiveAgainstEnglish": "Sucking pests (Seed treatment), Aphids, Whitefly, Jassids, Thrips"
+        },
+        {
+          "tradeNamesGujarati": "પ્રાઈડ, મોસ્પીલાન, એસેલ, રેપીડ, એક્કા, ટ્રેકીલ",
+          "genericNameGujarati": "એસીટામીપ્રીડ ૨૦ એસ.પી",
+          "genericNameEnglish": "Acetamiprid 20 SP",
+          "dosage": "3 g per 15L water OR 3.5 g/kg seed",
+          "effectiveAgainstGujarati": "ચૂસિયા જીવાત, ચૂસિયા પ્રકારની જીવાત બીજ માવજત",
+          "effectiveAgainstEnglish": "Sucking pests, Sucking pests seed treatment"
+        },
+        {
+          "tradeNamesGujarati": "ફેલીપ્સો",
+          "genericNameGujarati": "થાયોકલોપ્રીડ ૪૮૦ ઈસી",
+          "genericNameEnglish": "Thiacloprid 480 EC",
+          "dosage": "7.5 ml",
+          "effectiveAgainstGujarati": "ચૂસિયા જીવાત",
+          "effectiveAgainstEnglish": "Sucking pests"
+        },
+        {
+          "tradeNamesGujarati": "એક્સ્ટ્રા, <br> સુપર એકતારા, ક્રુઝર, રેવા",
+          "genericNameGujarati": "થાયોમીથોક્ઝામ ૨૨ ડબલ્યુ. જી. / થાયોમીથોક્ઝામ ૭૦ ટકા ડબલ્યુ. એસ.",
+          "genericNameEnglish": "Thiamethoxam 25% WG / Thiamethoxam 70% WS",
+          "dosage": "7.5 g per 15L water OR 5 g/kg seed",
+          "effectiveAgainstGujarati": "ચૂસિયા જીવાત, ચાવીને ખાનાર જીવાત",
+          "effectiveAgainstEnglish": "Sucking pests, Chewing pests"
+        },
+        {
+          "tradeNamesGujarati": "ડેન્ટોપ",
+          "genericNameGujarati": "ક્લોથીયાનીડીન ૫૦ ટકા ડબલ્યુ ડી.જી.",
+          "genericNameEnglish": "Clothianidin 50% WDG",
+          "dosage": "7.5 g",
+          "effectiveAgainstGujarati": "ચૂસિયા જીવાત",
+          "effectiveAgainstEnglish": "Sucking pests"
+        }
+      ]
+    },
+    "microbialFermentation": {
+      "groupGujarati": "સૂક્ષ્મજીવાણુઓના આથવણથી તૈયાર કરવામા આવેલ દવાઓ (B)",
+      "groupEnglish": "Microbial Fermentation Derived Insecticides",
+      "products": [
+        {
+          "tradeNamesGujarati": "ટ્રેસર, સ્પીન્ટોર, સકસેસ",
+          "genericNameGujarati": "સ્પીનોસાદ ૪૫ ટકા એસ.એલ.",
+          "genericNameEnglish": "Spinosad 45% SL",
+          "dosage": "3 ml",
+          "effectiveAgainstGujarati": "ઈયળ નિયંત્રણ માટે",
+          "effectiveAgainstEnglish": "Caterpillar control"
+        },
+        {
+          "tradeNamesGujarati": "મિલ્બેનોક",
+          "genericNameGujarati": "મિલ્બેમેક્ટીન ૧ ટકા ઈસી",
+          "genericNameEnglish": "Milbemectin 1% EC",
+          "dosage": "7.5 g",
+          "effectiveAgainstGujarati": "કથીરીનાશક દવા, ચાવીને ખાનાર જીવાત (ઈયળ નિયંત્રણ)",
+          "effectiveAgainstEnglish": "Miticide, Chewing pests (Caterpillar control)"
+        },
+        {
+          "tradeNamesGujarati": "વટી મેક, એગીમેક, સ્ટ્રેપ્ટોમાયસીસ એબાસીન",
+          "genericNameGujarati": "એબોમીક્ટીન ૧.૯ ઈસી",
+          "genericNameEnglish": "Abamectin 1.9 EC",
+          "dosage": "1.5 g",
+          "effectiveAgainstGujarati": "કથીરીનાશક દવા, ચાવીને ખાનાર જીવાત (ઈયળ નિયંત્રણ)",
+          "effectiveAgainstEnglish": "Miticide, Chewing pests (Caterpillar control)"
+        },
+        {
+          "tradeNamesGujarati": "પ્રોકલેઈમ, પ્રભાવ, મિસાઈલ",
+          "genericNameGujarati": "એમામેક્ટીન ૫ ડબલ્યુ",
+          "genericNameEnglish": "Emamectin Benzoate 5% SG/WG",
+          "dosage": "7.5 g",
+          "effectiveAgainstGujarati": "કથીરીનાશક દવા, ચાવીને ખાનાર જીવાત (ઈયળ નિયંત્રણ)",
+          "effectiveAgainstEnglish": "Miticide, Chewing pests (Caterpillar control)"
+        }
+      ]
+    },
+    "insectGrowthRegulators": {
+      "groupGujarati": "જીવાત વૃદ્ધિ નિયંત્રક દવાઓ (C)",
+      "groupEnglish": "Insect Growth Regulators (IGR)",
+      "products": [
+        {
+          "tradeNamesGujarati": "ડોમીલીન",
+          "genericNameGujarati": "ડાયફલુબેન્ઝુરોન ૨૫ ડબલ્યુ. પી.",
+          "genericNameEnglish": "Diflubenzuron 25% WP",
+          "dosage": "15 to 18 g",
+          "effectiveAgainstGujarati": "ચાવીને ખાનાર ઈયળ, કપાસના ઝીંડવા કોરનાર ઈયળ, કોબીજની હીરાકુદ્દી",
+          "effectiveAgainstEnglish": "Chewing caterpillars, Cotton bollworm, Diamondback moth in Cabbage"
+        },
+        {
+          "tradeNamesGujarati": "કાસ્કાડ",
+          "genericNameGujarati": "ફલુનોક્ઝુરોન ૧૦ ટકા ડબલ્યુ. ડી.સી.",
+          "genericNameEnglish": "Flufenoxuron 10% WDC",
+          "dosage": "15 ml",
+          "effectiveAgainstGujarati": "ચાવીને ખાનાર",
+          "effectiveAgainstEnglish": "Chewing pests"
+        },
+        {
+          "tradeNamesGujarati": "એપ્લુક",
+          "genericNameGujarati": "બુપ્રોફેજીન ૨૫ ઈસી",
+          "genericNameEnglish": "Buprofezin 25% EC",
+          "dosage": "15 ml",
+          "effectiveAgainstGujarati": "મીલીબગ તથા ચાવીને ખાનાર",
+          "effectiveAgainstEnglish": "Mealybugs and Chewing pests"
+        },
+        {
+          "tradeNamesGujarati": "રીમોન સિગ્મા",
+          "genericNameGujarati": "નોવાલ્યુરોન ૧૦ ઈસી, લ્યુકેન્યુરોન ૫ ઈસી",
+          "genericNameEnglish": "Novaluron 10% EC / Lufenuron 5% EC",
+          "dosage": "7.5 ml",
+          "effectiveAgainstGujarati": "સફેદ માખી તથા ચાવીને ખાનાર",
+          "effectiveAgainstEnglish": "Whitefly and Chewing pests"
+        }
+      ]
+    },
+    "nervousSystemAgents": {
+      "groupGujarati": "જ્ઞાનતંત્રમાં સોડીયમચેનલને અસર કરતી દવાઓ (સિન્થેટીક પ્રાયરેથ્રોઈડ) (D)",
+      "groupEnglish": "Nervous System Sodium Channel Blockers (Synthetic Pyrethroids)",
+      "products": [
+        {
+          "tradeNamesGujarati": "ન્યુકીલ, ટ્રેબાન, prAibo",
+          "genericNameGujarati": "ઈથોફેનપ્રોક્સ ૧૦ ઈસી",
+          "genericNameEnglish": "Etofenprox 10% EC",
+          "dosage": "7.5 ml",
+          "effectiveAgainstGujarati": "ચાવીને ખાનાર",
+          "effectiveAgainstEnglish": "Chewing pests"
+        },
+        {
+          "tradeNamesGujarati": "મિઓથીન",
+          "genericNameGujarati": "ફેન પ્રોપેથ્રીન ૧૦ ઈસી",
+          "genericNameEnglish": "Fenpropathrin 10% EC",
+          "dosage": "15 ml",
+          "effectiveAgainstGujarati": "ચાવીને ખાનાર તથા ભીંડાની પાનકથીરી અને કપાસની મોલો",
+          "effectiveAgainstEnglish": "Chewing pests, Okra leaf mite, and Cotton aphid"
+        },
+        {
+          "tradeNamesGujarati": "કુંગફુ, નિન્જા",
+          "genericNameGujarati": "લેમડા સાયહેલોથ્રીન",
+          "genericNameEnglish": "Lambda-Cyhalothrin",
+          "dosage": "15 ml",
+          "effectiveAgainstGujarati": "ચાવીને ખાનાર તથા ચૂસિયા",
+          "effectiveAgainstEnglish": "Chewing and Sucking pests"
+        },
+        {
+          "tradeNamesGujarati": "અવાંટ એજન્ટ અવતાર ડીગો, રેમ્બો, ઈન્ડોક્સા",
+          "genericNameGujarati": "એન્ડોક્ષાકાર્બ ૧૪.૫ ઈસી",
+          "genericNameEnglish": "Indoxacarb 14.5% EC",
+          "dosage": "7.5 ml",
+          "effectiveAgainstGujarati": "ઈયળોના નિયંત્રણ માટે ઈંડાનાશક ખાસ લીલી ઈયળ માટે",
+          "effectiveAgainstEnglish": "Ovicidal action for caterpillar control, specifically Green bollworm"
+        }
+      ]
+    },
+    "miticides": {
+      "groupGujarati": "કથીરીનાશક દવાઓ (E)",
+      "groupEnglish": "Miticides / Acaricides",
+      "products": [
+        {
+          "tradeNamesGujarati": "મેજીસ્ટર, <br> મેજેસ્ટિક",
+          "genericNameGujarati": "ફેનાઝાક્વીન",
+          "genericNameEnglish": "Fenazaquin",
+          "dosage": "15 ml",
+          "effectiveAgainstGujarati": "પાનકથીરી",
+          "effectiveAgainstEnglish": "Leaf mites"
+        },
+        {
+          "tradeNamesGujarati": "ઈન્ટ્રેપીડ",
+          "genericNameGujarati": "ક્લોરફેનપાયર ૧૦ ઈસી",
+          "genericNameEnglish": "Chlorfenapyr 10% EC",
+          "dosage": "30 ml",
+          "effectiveAgainstGujarati": "પાનકથીરી, ચાવીને ખાનાર",
+          "effectiveAgainstEnglish": "Leaf mites and Chewing pests"
+        },
+        {
+          "tradeNamesGujarati": "ઓમાઈટ, સીમ્બા, કોમાઈટ",
+          "genericNameGujarati": "પ્રોપરગાઈડ ૫૭ ઈસી",
+          "genericNameEnglish": "Propargite 57% EC",
+          "dosage": "15 ml",
+          "effectiveAgainstGujarati": "કથીરીનાશક",
+          "effectiveAgainstEnglish": "Mites control"
+        }
+      ]
+    }
+  },
+  "specializedTreatments": {
+    "bactericides": {
+      "categoryGujarati": "બેક્ટેરીયાનાશક દવાઓ",
+      "categoryEnglish": "Bactericides",
+      "medicines": [
+        {
+          "nameGujarati": "ટྲાયકોડર્મા (બાયોલોજીકલ ફુગ) મોનીટર, - સ્ટ્રેપ્ટોસાયક્લીન, એગ્રીમાયસીન",
+          "nameEnglish": "Trichoderma (Biological Fungus) Monitor, Streptomycin-Streptocycline, Agrimycin",
+          "targetPestGujarati": "જીવાણુંથી થતાં પાનના ટપકા (બેક્ટેરીયાથી)",
+          "targetPestEnglish": "Bacterial leaf spot",
+          "dosage": "2 g"
+        }
+      ]
+    },
+    "nematicides": {
+      "categoryGujarati": "કૃમિનાશક દવાઓ",
+      "categoryEnglish": "Nematicides",
+      "medicines": [
+        {
+          "nameGujarati": "કાર્બોફ્યુરાન ૩ ટકા દાણાદાર (ફ્યુરાડાન)",
+          "nameEnglish": "Carbofuran 3% Granules (Furadan)",
+          "targetPestGujarati": "મૂળ/ગાંઠના કૃમિના નિયંત્રણ માટે",
+          "targetPestEnglish": "Root-knot nematode control",
+          "dosage": "2 kg per bigha (વીઘા)"
+        },
+        {
+          "nameGujarati": "ફોરેટ - ૧૦ દાણાદાર",
+          "nameEnglish": "Phorate 10G",
+          "targetPestGujarati": "મૂળ/ગાંઠના કૃમિના નિયંત્રણ માટે",
+          "targetPestEnglish": "Root-knot nematode control",
+          "dosage": "3 kg per bigha (વીઘા)"
+        },
+        {
+          "nameGujarati": "પેસિલોમાયસીસ (પૉર્કર) બાયોલોજીકલ",
+          "nameEnglish": "Paecilomyces Biological",
+          "targetPestGujarati": "મૂળ/ગાંઠના કૃમિના નિયંત્રણ માટે",
+          "targetPestEnglish": "Root-knot nematode control",
+          "dosage": "10 kg per bigha (વીઘા)"
+        }
+      ]
+    }
+  },
+  "fungicidesGuidelines": {
+    "titleGujarati": "ફુગનાશક દવાઓ",
+    "titleEnglish": "Fungicides Guidelines",
+    "generalInfoGujarati": "ફુગમુખ્ય ત્વે બીજજન્ય / જમીનજન્ય / વાતાવરણ જન્ય હોય છે. ભેજ વાળા વાતાવરણમાં ફુગ ઝડપથી ફેલાય છે. માટે ચોમાસા તથા કમોસમી વરસાદ / ઝાકળની આગાહી વખતે અગાઉથી ફુગનાશકનો છંટકાવ કરવાથી પાકને બચાવી શકાય છે. ફુગના કારણે ભૂકી છારો / પાન અને ફળના ટપકા / ગેરુ / કાળીયો / ચરમી / મૂળ અથવા ફળનો કોહવારો / સુકારો વગેરે જોવા મળે છે.",
+    "generalInfoEnglish": "Fungi are mainly seed-borne, soil-borne, or airborne. Fungi spread rapidly in humid weather. Therefore, crops can be saved by spraying fungicides in advance when monsoon, unseasonal rain, or dew is forecast. Fungi cause powdery mildew, leaf/fruit spots, rust, anthracnose, blight, root/fruit rot, wilt, etc.",
+    "keyRecommendations": [
+      {
+        "textGujarati": "મૂળ અને થડના કોહવારા માટે ડ્રીપમાં ઓગાળીને ફુગનાશક દવાઓ આપી શકાય પરંતુ દવાનું પ્રમાણ વધારે રાખવું ખાસ કપાસ, પપૈયા, ફળ ઝાડ માટે ઉપયોગી.",
+        "textEnglish": "For root and stem rot, fungicides can be dissolved and given through drip, but keep the dosage higher. Especially useful for cotton, papaya, and fruit trees."
+      },
+      {
+        "textGujarati": "મોરથુથુ (કોપર ઓક્સીક્લોરાઇડ) પણ એક તાંબા યુક્ત ફુગનાશક છે. જે ઓગાળીને રોગ આવતા પહેલા આગોતરૂ એક કિલો પ્રતિ વિદ્યા ડ્રીપમાં આપી શકાય.",
+        "textEnglish": "Morthuthu (Copper Oxychloride) is a copper-based fungicide. It can be dissolved and applied protectively at 1 kg per bigha through drip before disease onset."
+      },
+      {
+        "textGujarati": "રોગ આવતો રોકવા માટે બિયારણને ફુગનાશકનો પટ આપીને વાવણી કરવી હિતાવહ છે.",
+        "textEnglish": "To prevent diseases, it is advisable to treat seeds with a fungicide coating before sowing."
+      },
+      {
+        "textGujarati": "સલફ્યુરિક એસિડ (H2SO4) વીધે ૧ લિ. આપવાથી જમીનમાં સલ્ફર ઉમેરાય છે. જે ફુગનાશક તરીકે કાર્ય કરે તથા પોષક દ્રવ્ય તરીકે તેલીબીયામાં તેલની ટકાવારી અને વજન વધારે છે.",
+        "textEnglish": "Applying 1 liter of Sulfuric Acid (H2SO4) per bigha adds sulfur to the soil. It acts as a fungicide and increases oil content/weight in oilseed crops as a nutrient."
+      },
+      {
+        "textGujarati": "પાણીમાં દ્રાવ્ય સલ્ફર કે પ્રવાહી સલ્ફર પણ ડ્રીપમાં ઓગાળીને આપી શકાય.",
+        "textEnglish": "Water-soluble sulfur or liquid sulfur can also be dissolved and applied through drip systems."
+      }
+    ]
+  }
+}
