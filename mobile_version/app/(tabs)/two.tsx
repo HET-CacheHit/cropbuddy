@@ -4,6 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import pesticidesData from '../../assets/pesticides.json';
 
+import classNamesData from '../../assets/class_names.json';
+
 const BACKEND_URL = 'https://cropbuddy-rho.vercel.app';
 
 export default function ClassifierScreen() {
@@ -122,12 +124,24 @@ export default function ClassifierScreen() {
 
       const data = await response.json();
       if (data.predictions && data.predictions.length > 0) {
-        // Sort predictions by confidence
-        const topPrediction = data.predictions[0]; // Custom model prediction object
-        setResult(topPrediction);
+        // Find index of highest confidence prediction
+        let highestConfIdx = 0;
+        let highestConfVal = -1;
+        for (let i = 0; i < data.predictions.length; i++) {
+          if (data.predictions[i] > highestConfVal) {
+            highestConfVal = data.predictions[i];
+            highestConfIdx = i;
+          }
+        }
+        
+        const className = classNamesData[highestConfIdx] || "Unknown";
+        setResult({
+          class: className,
+          confidence: highestConfVal
+        });
         
         // Load remedies list
-        const loadedRemedies = getRemediesForClass(topPrediction.class);
+        const loadedRemedies = getRemediesForClass(className);
         setRemedies(loadedRemedies);
       } else {
         throw new Error('Empty predictions list returned.');
