@@ -211,6 +211,47 @@
             document.getElementById(elementId).innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
         }
 
+        const CLASS_NAMES = [
+            'Apple___Apple_scab', 'Apple___Black_rot', 'Apple___Cedar_apple_rust', 'Apple___healthy',
+            'Blueberry___healthy', 'Cherry_(including_sour)___Powdery_mildew', 'Cherry_(including_sour)___healthy',
+            'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot', 'Corn_(maize)___Common_rust_', 'Corn_(maize)___Northern_Leaf_Blight',
+            'Corn_(maize)___healthy', 'Grape___Black_rot', 'Grape___Esca_(Black_Measles)', 'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)',
+            'Grape___healthy', 'Orange___Haunglongbing_(Citrus_greening)', 'Peach___Bacterial_spot', 'Peach___healthy',
+            'Pepper,_bell___Bacterial_spot', 'Pepper,_bell___healthy', 'Potato___Early_blight', 'Potato___Late_blight',
+            'Potato___healthy', 'Raspberry___healthy', 'Soybean___healthy', 'Squash___Powdery_mildew', 'Strawberry___Leaf_scorch',
+            'Strawberry___healthy', 'Tomato___Bacterial_spot', 'Tomato___Early_blight', 'Tomato___Late_blight',
+            'Tomato___Leaf_Mold', 'Tomato___Septoria_leaf_spot', 'Tomato___Spider_mites Two-spotted_spider_mite',
+            'Tomato___Target_Spot', 'Tomato___Tomato_Yellow_Leaf_Curl_Virus', 'Tomato___Tomato_mosaic_virus', 'Tomato___healthy'
+        ];
+
+        function showClassifierResponse(elementId, data) {
+            if (data.predictions && Array.isArray(data.predictions)) {
+                let maxIdx = 0;
+                let maxVal = -1;
+                for (let i = 0; i < data.predictions.length; i++) {
+                    if (data.predictions[i] > maxVal) {
+                        maxVal = data.predictions[i];
+                        maxIdx = i;
+                    }
+                }
+                const label = CLASS_NAMES[maxIdx] || "Unknown class";
+                const cleanLabel = label.replace(/___/g, ' - ').replace(/_/g, ' ');
+                const percentage = (maxVal * 100).toFixed(2);
+                
+                document.getElementById(elementId).innerHTML = `
+                    <div style="background: #e2f3e8; border: 1.5px solid #95d5b2; border-radius: 8px; padding: 15px; margin-bottom: 15px; color: #1b4332;">
+                        <h4 style="margin: 0 0 5px 0; font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Predicted Crop Disease:</h4>
+                        <p style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800;">${cleanLabel}</p>
+                        <h4 style="margin: 0 0 5px 0; font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Confidence level:</h4>
+                        <p style="margin: 0; font-size: 16px; font-weight: 700;">${percentage}%</p>
+                    </div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } else {
+                showResponse(elementId, data);
+            }
+        }
+
         // 1. Test Chatbot Endpoint
         async function testChatApi() {
             const msgInput = document.getElementById('chat-msg');
@@ -264,7 +305,7 @@
                             body: JSON.stringify({ image: e.target.result })
                         });
                         const data = await res.json();
-                        showResponse('res-classifier', data);
+                        showClassifierResponse('res-classifier', data);
                     } catch (err) {
                         showResponse('res-classifier', { error: err.message });
                     } finally {
