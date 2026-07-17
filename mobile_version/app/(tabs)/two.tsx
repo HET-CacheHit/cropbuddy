@@ -124,24 +124,11 @@ export default function ClassifierScreen() {
 
       const data = await response.json();
       if (data.predictions && data.predictions.length > 0) {
-        // Find index of highest confidence prediction
-        let highestConfIdx = 0;
-        let highestConfVal = -1;
-        for (let i = 0; i < data.predictions.length; i++) {
-          if (data.predictions[i] > highestConfVal) {
-            highestConfVal = data.predictions[i];
-            highestConfIdx = i;
-          }
-        }
-        
-        const className = classNamesData[highestConfIdx] || "Unknown";
-        setResult({
-          class: className,
-          confidence: highestConfVal
-        });
+        const topPrediction = data.predictions[0]; // Already sorted { class, confidence } object from Vercel!
+        setResult(topPrediction);
         
         // Load remedies list
-        const loadedRemedies = getRemediesForClass(className);
+        const loadedRemedies = getRemediesForClass(topPrediction.class);
         setRemedies(loadedRemedies);
       } else {
         throw new Error('Empty predictions list returned.');

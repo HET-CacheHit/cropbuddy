@@ -225,18 +225,11 @@
         ];
 
         function showClassifierResponse(elementId, data) {
-            if (data.predictions && Array.isArray(data.predictions)) {
-                let maxIdx = 0;
-                let maxVal = -1;
-                for (let i = 0; i < data.predictions.length; i++) {
-                    if (data.predictions[i] > maxVal) {
-                        maxVal = data.predictions[i];
-                        maxIdx = i;
-                    }
-                }
-                const label = CLASS_NAMES[maxIdx] || "Unknown class";
+            if (data.predictions && Array.isArray(data.predictions) && data.predictions[0] && typeof data.predictions[0] === 'object') {
+                const top = data.predictions[0];
+                const label = top.class || "Unknown class";
                 const cleanLabel = label.replace(/___/g, ' - ').replace(/_/g, ' ');
-                const percentage = (maxVal * 100).toFixed(2);
+                const percentage = (top.confidence * 100).toFixed(2);
                 
                 document.getElementById(elementId).innerHTML = `
                     <div style="background: #e2f3e8; border: 1.5px solid #95d5b2; border-radius: 8px; padding: 15px; margin-bottom: 15px; color: #1b4332;">

@@ -109,7 +109,21 @@ module.exports = async (req, res) => {
         const predictionData = await predictions.data();
         predictions.dispose();
 
-        return res.json({ predictions: Array.from(predictionData) });
+        // Load class names
+        const classNamesPath = path.join(process.cwd(), 'model_custom', 'class_names.json');
+        const classNamesRaw = fs.readFileSync(classNamesPath, 'utf8');
+        const classNames = JSON.parse(classNamesRaw);
+
+        // Map float array to { class, confidence } objects
+        const results = Array.from(predictionData).map((score, index) => ({
+            class: classNames[index] || `Class_${index}`,
+            confidence: score
+        }));
+
+        // Sort by confidence descending
+        results.sort((a, b) => b.confidence - a.confidence);
+
+        return res.json({ predictions: results });
 
     } catch (err) {
         console.error("Predict endpoint handler crashed:", err);
