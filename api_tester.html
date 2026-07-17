@@ -177,7 +177,10 @@
     </footer>
 
     <script>
-        const BASE_URL = 'https://cropbuddy-rho.vercel.app';
+        // Dynamically set backend URL to prevent CORS when hosted on Vercel
+        const BASE_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
+            ? 'https://cropbuddy-rho.vercel.app' 
+            : window.location.origin;
 
         // Switch Tester Tabs
         function switchPanel(panelId, btnElement) {
