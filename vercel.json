@@ -50,5 +50,23 @@
       "src": "*.jpg",
       "use": "@vercel/static"
     }
+  ],
+  "routes": [
+    {
+      "src": "/api/chat",
+      "dest": "api/chat.js"
+    },
+    {
+      "src": "/api/predict_custom",
+      "dest": "api/predict_custom.js"
+    },
+    {
+      "src": "/api/asr",
+      "dest": "api/asr.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
   ]
 }
