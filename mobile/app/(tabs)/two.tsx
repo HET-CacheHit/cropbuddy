@@ -182,9 +182,13 @@ export default function TabTwoScreen() {
       const chatData = await chatRes.json();
       const rawText = chatData.reply;
 
+      const topPrediction = data.predictions && data.predictions[0];
+      const cleanResult = topPrediction ? topPrediction.class.replace(/___/g, ' - ').replace(/_/g, ' ') : "Unknown Disease";
+      const cropLabel = selectedCrop === 'all' ? (topPrediction ? topPrediction.class.split('___')[0].toUpperCase() : 'DETECTING...') : selectedCrop.toUpperCase();
+
       setLeafResult({
-        crop: selectedCrop === 'all' ? 'Detecting...' : selectedCrop.toUpperCase(),
-        condition: "Diagnosed Condition",
+        crop: cropLabel,
+        condition: cleanResult,
         treatment: rawText,
         rawText: rawText
       });
@@ -195,8 +199,8 @@ export default function TabTwoScreen() {
           const firebaseImageUrl = await uploadImageToFirebase(leafImage.uri, 'plant_photos');
           if (firebaseImageUrl) {
             await addDoc(collection(db, 'leaf_scans'), {
-              crop: selectedCrop,
-              result: "Diagnosed Condition",
+              crop: selectedCrop === 'all' ? (topPrediction ? topPrediction.class.split('___')[0] : 'Unknown') : selectedCrop,
+              result: cleanResult,
               imageUrl: firebaseImageUrl,
               timestamp: new Date().toISOString()
             });
