@@ -291,6 +291,10 @@ export default function ToolsScreen() {
             <View style={styles.mandiList}>
               {filteredMandiData.map(row => {
                 const avgPrice = Math.round((row.min + row.max) / 2);
+                // Calculate percentage positions for visual bar graph (local scale based on max rate of crop)
+                const minPercent = (row.min / row.max) * 100;
+                const avgPercent = (avgPrice / row.max) * 100;
+
                 return (
                   <View key={row.id} style={styles.mandiCard}>
                     <View style={styles.mandiCardHeader}>
@@ -309,6 +313,21 @@ export default function ToolsScreen() {
                       <View style={[styles.priceItem, styles.avgPriceItem]}>
                         <Text style={[styles.priceLabel, { color: '#1b4332' }]}>{lang === 'en' ? 'Avg' : 'સરેરાશ'}</Text>
                         <Text style={[styles.priceVal, { color: '#1b4332', fontWeight: '800' }]}>₹{avgPrice}</Text>
+                      </View>
+                    </View>
+
+                    {/* Interactive Horizontal Bar Graph */}
+                    <View style={styles.chartContainer}>
+                      <View style={styles.chartTrack}>
+                        {/* Range Bar (from Min to Max) */}
+                        <View style={[styles.chartRangeBar, { left: `${minPercent}%`, width: `${100 - minPercent}%` }]} />
+                        {/* Average Marker Dot */}
+                        <View style={[styles.chartAvgDot, { left: `${avgPercent}%` }]} />
+                      </View>
+                      <View style={styles.chartLabels}>
+                        <Text style={styles.chartLabelText}>0</Text>
+                        <Text style={[styles.chartLabelText, { color: '#2d6a4f' }]}>{lang === 'en' ? 'Avg' : 'સરેરાશ'} (₹{avgPrice})</Text>
+                        <Text style={styles.chartLabelText}>₹{row.max}</Text>
                       </View>
                     </View>
                   </View>
@@ -624,5 +643,42 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#666',
     fontWeight: 'bold',
+  },
+  chartContainer: {
+    marginTop: 15,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f4fbf7',
+  },
+  chartTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#e2f3e8',
+    position: 'relative',
+    marginBottom: 8,
+  },
+  chartRangeBar: {
+    height: '100%',
+    backgroundColor: '#74c69d',
+    borderRadius: 3,
+    position: 'absolute',
+  },
+  chartAvgDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#1b4332',
+    position: 'absolute',
+    top: -3,
+    marginLeft: -6,
+  },
+  chartLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  chartLabelText: {
+    fontSize: 10,
+    color: '#52b788',
+    fontWeight: '600',
   },
 });

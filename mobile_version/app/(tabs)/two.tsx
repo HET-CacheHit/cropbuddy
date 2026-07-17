@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Dimensions, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import pesticidesData from '../../assets/pesticides.json';
 
 import classNamesData from '../../assets/class_names.json';
+import { db, storage } from '../../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc } from 'firebase/firestore';
 
 const BACKEND_URL = 'https://cropbuddy-rho.vercel.app';
 
@@ -12,9 +15,14 @@ export default function ClassifierScreen() {
   const [image, setImage] = useState<string | null>(null);
   const [base64, setBase64] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [remedies, setRemedies] = useState<any[]>([]);
   const [lang, setLang] = useState<'en' | 'gu'>('en');
+
+  // Dosage Calculator State
+  const [landSize, setLandSize] = useState('');
+  const [unit, setUnit] = useState<'acre' | 'bigha'>('acre');
 
   // Request camera and photo library permissions
   const selectImage = async (useCamera: boolean) => {
@@ -141,6 +149,41 @@ export default function ClassifierScreen() {
     }
   };
 
+  const handleCloudUpload = async () => {
+    if (!image) {
+      Alert.alert('No Image', 'Please capture or choose a photo first.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const response = await fetch(image);
+      const blob = await response.blob();
+      const filename = `${Date.now()}_photo.jpg`;
+      
+      const storageRef = ref(storage, `plant_photos/${filename}`);
+      await uploadBytes(storageRef, blob);
+      const downloadUrl = await getDownloadURL(storageRef);
+
+      await addDoc(collection(db, 'leaf_scans'), {
+        imageUrl: downloadUrl,
+        timestamp: new Date().toISOString(),
+        result: result ? result.class : "Direct Upload (No Diagnosis)",
+        source: "mobile_version"
+      });
+
+      Alert.alert(
+        lang === 'en' ? 'Success' : 'સફળતા',
+        lang === 'en' ? '🎉 Photo successfully backed up in Firebase Console!' : '🎉 ફોટો સફળતાપૂર્વક ફાયરબેઝ કન્સોલમાં બેકઅપ લેવામાં આવ્યો છે!'
+      );
+    } catch (error: any) {
+      console.error('Firebase upload error:', error);
+      Alert.alert('Upload Failed', error.message || 'Could not back up image to Cloud.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getCleanLabel = (rawName: string) => {
     return rawName.replace(/___/g, ' - ').replace(/_/g, ' ');
   };
@@ -180,20 +223,37 @@ export default function ClassifierScreen() {
       </View>
 
       {/* Trigger Button */}
-      {image && !loading && (
-        <TouchableOpacity style={styles.analyzeBtn} onPress={uploadAndAnalyze}>
-          <FontAwesome name="search" size={18} color="#ffffff" />
-          <Text style={styles.analyzeBtnText}>
-            {lang === 'en' ? 'Analyze Crop Disease' : 'પાક રોગ ઓળખો'}
-          </Text>
-        </TouchableOpacity>
+      {image && !loading && !uploading && (
+        <View style={{ gap: 10, width: '100%' }}>
+          <TouchableOpacity style={styles.analyzeBtn} onPress={uploadAndAnalyze}>
+            <FontAwesome name="search" size={18} color="#ffffff" />
+            <Text style={styles.analyzeBtnText}>
+              {lang === 'en' ? 'Analyze Crop Disease' : 'પાક રોગ ઓળખો'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.analyzeBtn, { backgroundColor: '#2d6a4f' }]} onPress={handleCloudUpload}>
+            <FontAwesome name="cloud-upload" size={18} color="#ffffff" />
+            <Text style={styles.analyzeBtnText}>
+              {lang === 'en' ? 'Upload to Cloud' : 'ક્લાઉડમાં અપલોડ કરો'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       {loading && (
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color="#1b4332" />
           <Text style={styles.loadingText}>
-            {lang === 'en' ? 'Sending to Vercel API...' : 'ફાયરબેઝ/વરસેલ સર્વર લોડ થઈ રહ્યું છે...'}
+            {lang === 'en' ? 'Sending to Vercel API...' : 'વરસેલ સર્વર લોડ થઈ રહ્યું છે...'}
+          </Text>
+        </View>
+      )}
+
+      {uploading && (
+        <View style={styles.loadingBox}>
+          <ActivityIndicator size="large" color="#2d6a4f" />
+          <Text style={styles.loadingText}>
+            {lang === 'en' ? 'Uploading to Firebase Storage... ⏳' : 'ફાયરબેઝ સર્વર પર અપલોડ થઈ રહ્યું છે... ⏳'}
           </Text>
         </View>
       )}
@@ -225,6 +285,56 @@ export default function ClassifierScreen() {
                 </Text>
               </View>
             ))}
+          </View>
+
+          {/* Pesticide Dosage Calculator */}
+          <View style={styles.dosageCalcBox}>
+            <Text style={styles.dosageCalcHeader}>
+              {lang === 'en' ? '🧮 Dosage & Water Calculator' : '🧮 દવાની માત્રાનું કેલ્ક્યુલેટર'}
+            </Text>
+            
+            <Text style={styles.inputLabel}>{lang === 'en' ? 'Land Size:' : 'જમીનનું માપ:'}</Text>
+            <TextInput
+              style={styles.textInput}
+              keyboardType="numeric"
+              placeholder="e.g. 5"
+              value={landSize}
+              onChangeText={setLandSize}
+            />
+
+            <View style={styles.unitRow}>
+              <TouchableOpacity 
+                style={[styles.unitBtn, unit === 'acre' && styles.activeUnitBtn]}
+                onPress={() => setUnit('acre')}
+              >
+                <Text style={[styles.unitText, unit === 'acre' && styles.activeUnitText]}>
+                  {lang === 'en' ? 'Acres' : 'એકર'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.unitBtn, unit === 'bigha' && styles.activeUnitBtn]}
+                onPress={() => setUnit('bigha')}
+              >
+                <Text style={[styles.unitText, unit === 'bigha' && styles.activeUnitText]}>
+                  {lang === 'en' ? 'Bighas (Gujarat)' : 'વીઘા (ગુજરાત)'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Calculations display */}
+            {parseFloat(landSize) > 0 && (
+              <View style={styles.dosageResults}>
+                <Text style={styles.dosageText}>
+                  💧 <Text style={{ fontWeight: 'bold' }}>{lang === 'en' ? 'Total Water needed:' : 'કુલ પાણીની જરૂરિયાત:'}</Text> {Math.round((unit === 'bigha' ? parseFloat(landSize) / 2.5 : parseFloat(landSize)) * 150)} Liters (લીટર)
+                </Text>
+                <Text style={styles.dosageText}>
+                  🧴 <Text style={{ fontWeight: 'bold' }}>{lang === 'en' ? 'Total Chemical needed:' : 'જરૂરી દવાની માત્રા:'}</Text> {( (unit === 'bigha' ? parseFloat(landSize) / 2.5 : parseFloat(landSize)) * 150 * 2.0 ).toFixed(1)} {result.class.toLowerCase().includes("blight") || result.class.toLowerCase().includes("spot") || result.class.toLowerCase().includes("mold") ? 'grams (ગ્રામ)' : 'mL (મિલી)'}
+                </Text>
+                <Text style={styles.dosageNote}>
+                  * {lang === 'en' ? 'Calculated at standard spray rate of 150L/acre using 2.0 ratio.' : '* એકર દીઠ ૧૫૦ લીટર પાણી અને ૨ મિલી/ગ્રામ પ્રતિ લીટર દવાના પ્રમાણ પર આધારિત છે.'}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       )}
@@ -404,5 +514,78 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#2d6a4f',
     lineHeight: 18,
+  },
+  dosageCalcBox: {
+    marginTop: 20,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#d8f3dc',
+  },
+  dosageCalcHeader: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1b4332',
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2d6a4f',
+    marginBottom: 6,
+  },
+  textInput: {
+    backgroundColor: '#f4fbf7',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#b7e4c7',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#1b4332',
+    marginBottom: 15,
+  },
+  unitRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 20,
+  },
+  unitBtn: {
+    flex: 1,
+    backgroundColor: '#f4fbf7',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#b7e4c7',
+  },
+  activeUnitBtn: {
+    backgroundColor: '#2d6a4f',
+    borderColor: '#2d6a4f',
+  },
+  unitText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#2d6a4f',
+  },
+  activeUnitText: {
+    color: '#ffffff',
+  },
+  dosageResults: {
+    backgroundColor: '#e2f3e8',
+    borderColor: '#95d5b2',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    gap: 6,
+  },
+  dosageText: {
+    fontSize: 13.5,
+    color: '#1b4332',
+    lineHeight: 18,
+  },
+  dosageNote: {
+    fontSize: 10.5,
+    color: '#52b788',
+    marginTop: 4,
   },
 });

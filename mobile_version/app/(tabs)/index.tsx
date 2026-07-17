@@ -17,6 +17,10 @@ const LABELS = {
     chatDesc: "Ask custom questions in English or Gujarati via voice/text.",
     toolsCard: "Agri Calculators",
     toolsDesc: "NPK ratios, urea dosages, and APMC market mandi prices.",
+    calendarCard: "Crop Growth Calendar",
+    calendarDesc: "Track growth lifecycle stages and disease warnings.",
+    mapCard: "Community Outbreak Map",
+    mapDesc: "Monitor and report pest outbreaks in your area.",
     footer: "Sustainable Digital Farming"
   },
   gu: {
@@ -31,6 +35,10 @@ const LABELS = {
     chatDesc: "પ્રશ્નો પૂછવા માટે એઆઈ બોટ સાથે વૉઇસ અથવા ટેક્સ્ટ ચેટ કરો.",
     toolsCard: "કૃષિ કેલ્ક્યુલેટર",
     toolsDesc: "ખાતર ગણતરી અને માર્કેટ યાર્ડના તાજા બજાર ભાવ.",
+    calendarCard: "પાક સમયપત્રક સમયરેખા",
+    calendarDesc: "પાક વિકાસ સમયપત્રક અને સંભવિત રોગ ચેતવણીઓ જુઓ.",
+    mapCard: "રોગચાળા નકશો",
+    mapDesc: "ખેડૂત સમુદાય દ્વારા નોંધાયેલ રોગચાળાના નકશા જુઓ.",
     footer: "ટકાઉ ડિજિટલ ખેતી"
   }
 };
@@ -118,6 +126,36 @@ export default function HomeScreen() {
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>{labels.toolsCard}</Text>
             <Text style={styles.cardDesc}>{labels.toolsDesc}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Crop Calendar Card */}
+        <TouchableOpacity 
+          style={styles.card} 
+          onPress={() => router.push('/calendar')}
+          activeOpacity={0.9}
+        >
+          <View style={[styles.iconBox, { backgroundColor: '#d8f3dc' }]}>
+            <FontAwesome name="calendar" size={24} color="#1b4332" />
+          </View>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>{labels.calendarCard}</Text>
+            <Text style={styles.cardDesc}>{labels.calendarDesc}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Community Outbreak Map Card */}
+        <TouchableOpacity 
+          style={styles.card} 
+          onPress={() => router.push('/map')}
+          activeOpacity={0.9}
+        >
+          <View style={[styles.iconBox, { backgroundColor: '#d8f3dc' }]}>
+            <FontAwesome name="map" size={24} color="#1b4332" />
+          </View>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>{labels.mapCard}</Text>
+            <Text style={styles.cardDesc}>{labels.mapDesc}</Text>
           </View>
         </TouchableOpacity>
 
