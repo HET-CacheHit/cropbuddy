@@ -1,7 +1,19 @@
-const { execFile } = require('child_process');
-const fs = require('fs');
+const tf = require('@tensorflow/tfjs');
+const jpeg = require('jpeg-js');
 const path = require('path');
-const os = require('os');
+
+let model = null;
+
+// Load LayersModel from local file path
+async function loadModel() {
+    if (!model) {
+        const modelPath = path.join(process.cwd(), 'model_custom', 'model.json');
+        console.log("Loading custom model from path:", modelPath);
+        model = await tf.loadLayersModel(`file://${modelPath}`);
+        console.log("Custom model loaded successfully in Node.js!");
+    }
+    return model;
+}
 
 module.exports = async (req, res) => {
     // CORS Headers Setup
@@ -23,54 +35,50 @@ module.exports = async (req, res) => {
         if (!image) {
             return res.status(400).json({ error: "Missing base64 image payload." });
         }
-        
-        // Strip out metadata header from base64 string if present
+
+        // Clean up base64 metadata header
         const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
         const buffer = Buffer.from(base64Data, 'base64');
-        
-        // Create a unique temporary filename in the writable /tmp directory
-        const tempFilename = `temp_predict_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
-        const tempPath = path.join(os.tmpdir(), tempFilename);
-        
-        // Write the temporary file
-        fs.writeFileSync(tempPath, buffer);
-        
-        // Execute python script
-        const pythonPath = 'python'; 
-        const scriptPath = path.join(process.cwd(), 'predict_custom.py');
-        
-        execFile(pythonPath, [scriptPath, tempPath], (error, stdout, stderr) => {
-            // Clean up temporary image file
-            try {
-                if (fs.existsSync(tempPath)) {
-                    fs.unlinkSync(tempPath);
-                }
-            } catch (unlinkErr) {
-                console.error("Failed to delete temporary prediction file:", unlinkErr);
-            }
+
+        // Decode JPEG image buffer to raw pixels
+        let decoded;
+        try {
+            decoded = jpeg.decode(buffer, { useTrainedPostresssors: true });
+        } catch (decErr) {
+            return res.status(400).json({ error: "Failed to decode image buffer. Make sure format is JPEG: " + decErr.message });
+        }
+
+        const { width, height, data } = decoded;
+
+        // Convert Uint8Array (RGBA) to Float32Array (RGB)
+        const rgbValues = new Float32Array(width * height * 3);
+        for (let i = 0; i < width * height; i++) {
+            rgbValues[i * 3] = data[i * 4];       // R
+            rgbValues[i * 3 + 1] = data[i * 4 + 1];   // G
+            rgbValues[i * 3 + 2] = data[i * 4 + 2];   // B
+        }
+
+        // Initialize TensorFlow and load custom model
+        await tf.ready();
+        const loadedModel = await loadModel();
+
+        // Run inference inside tf.tidy to automatically manage memory
+        const predictions = tf.tidy(() => {
+            let tensor = tf.tensor3d(rgbValues, [height, width, 3]);
+            // Resize to 128x128 matching custom model input shape
+            tensor = tf.image.resizeBilinear(tensor, [128, 128]);
+            // Normalize to [-1.0, 1.0] matching (pixel - 127.5) / 127.5
+            tensor = tensor.sub(127.5).div(127.5);
+            const inputTensor = tensor.expandDims(0);
             
-            if (error) {
-                console.error("Python custom prediction execution failed:", error, stderr);
-                return res.status(500).json({ error: "Prediction execution failed: " + stderr });
-            }
-            
-            try {
-                // Find the JSON block in stdout (ignoring TF/oneDNN warnings)
-                const jsonStart = stdout.indexOf('{"status"');
-                if (jsonStart === -1) {
-                    throw new Error("Invalid output format from prediction script: " + stdout);
-                }
-                const resultJson = JSON.parse(stdout.substring(jsonStart).trim());
-                if (resultJson.status === 'success') {
-                    return res.json({ predictions: resultJson.predictions });
-                } else {
-                    return res.status(500).json({ error: resultJson.error });
-                }
-            } catch (parseErr) {
-                console.error("Failed to parse prediction result stdout:", stdout, parseErr);
-                return res.status(500).json({ error: "Parser failure: " + parseErr.message });
-            }
+            return loadedModel.predict(inputTensor);
         });
+
+        const predictionData = await predictions.data();
+        predictions.dispose();
+
+        return res.json({ predictions: Array.from(predictionData) });
+
     } catch (err) {
         console.error("Predict endpoint handler crashed:", err);
         return res.status(500).json({ error: "Endpoint error: " + err.message });

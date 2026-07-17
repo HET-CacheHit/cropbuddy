@@ -547,10 +547,10 @@ async function loadSelectedModel(type) {
                 console.log("Default 38-class model loaded in background worker.");
             } else {
                 activeModelType = 'custom';
-                activeModelShape = [128, 128]; // Server-side crop_disease_model.h5 uses 128x128
-                isModelLoaded = true; // Mark loaded immediately since execution is handled by the server
+                activeModelShape = [128, 128];
+                await loadModelInWorker('./model_custom/model.json');
                 try {
-                    const classNamesRes = await fetch('./model_custom/tfjs_model/class_names.json');
+                    const classNamesRes = await fetch('./model_custom/class_names.json');
                     if (classNamesRes.ok) {
                         activeClassNames = await classNamesRes.json();
                     } else {
@@ -560,7 +560,7 @@ async function loadSelectedModel(type) {
                     console.warn("Could not load custom class names, using fallback:", classErr);
                     activeClassNames = [...CUSTOM_CLASS_NAMES];
                 }
-                console.log(`Custom server-side model initialized with ${activeClassNames.length} classes.`);
+                console.log(`Custom client-side model loaded in background worker with ${activeClassNames.length} classes.`);
             }
             submitBtn.disabled = false;
             submitBtn.innerText = labels.analyzeBtn;
@@ -695,30 +695,15 @@ function preprocessImage(imgElement, targetWidth, targetHeight) {
 async function runLocalInference(imgElement) {
     if (!isModelLoaded) throw new Error("AI model is not loaded yet.");
     
-    if (activeModelType === 'default') {
-        const inputHeight = activeModelShape[0];
-        const inputWidth = activeModelShape[1];
-        console.log(`Preprocessing input image to dimensions: [${inputHeight}, ${inputWidth}]`);
-        
-        const rgbValues = preprocessImage(imgElement, inputWidth, inputHeight);
-        
-        console.log("Sending prediction job to background Web Worker...");
-        const predictions = await predictInWorker(rgbValues, activeModelShape);
-        return predictions;
-    } else {
-        console.log("Sending prediction job to backend python executor...");
-        const res = await fetch('/api/predict_custom', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: imgElement.src })
-        });
-        if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.error || "Server side prediction failed.");
-        }
-        const data = await res.json();
-        return data.predictions;
-    }
+    const inputHeight = activeModelShape[0];
+    const inputWidth = activeModelShape[1];
+    console.log(`Preprocessing input image to dimensions: [${inputHeight}, ${inputWidth}]`);
+    
+    const rgbValues = preprocessImage(imgElement, inputWidth, inputHeight);
+    
+    console.log(`Sending prediction job for ${activeModelType} model to background Web Worker...`);
+    const predictions = await predictInWorker(rgbValues, activeModelShape);
+    return predictions;
 }
 
 // Global state variables for Dosage Calculator & TTS
