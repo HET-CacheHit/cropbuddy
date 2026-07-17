@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropBuddy - API Testing Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .tester-card {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1.5px solid #e2f3e8;
+        }
+        .tester-tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #e2f3e8;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+        .tester-tab {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: bold;
+            color: #52b788;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .tester-tab.active {
+            color: #1b4332;
+            border-bottom-color: #1b4332;
+        }
+        .panel {
+            display: none;
+        }
+        .panel.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1b4332;
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1.5px solid #b7e4c7;
+            background: #f4fbf7;
+            font-size: 14px;
+            color: #1b4332;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .test-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #1b4332;
+            color: #ffffff;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+        }
+        .test-btn:hover {
+            background: #2d6a4f;
+        }
+        .response-box {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1.5px solid #e9ecef;
+            border-radius: 8px;
+            text-align: left;
+            overflow-x: auto;
+        }
+        .response-box pre {
+            margin: 0;
+            font-family: monospace;
+            font-size: 13px;
+            color: #2b2b2b;
+        }
+        .preview-img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            display: none;
+            margin-top: 15px;
+            border: 1.5px solid #e2f3e8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="navbar" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="logo">Crop<span>Buddy</span></div>
+            <nav>
+                <ul style="display: flex; list-style: none; gap: 15px; margin: 0;">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="api_tester.html" class="active">API Tester</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container" style="padding: 20px;">
+        <div class="tester-card">
+            <h1 style="color: #1b4332; font-weight: 800; text-align: center;">🧪 API Testing Portal</h1>
+            <p style="color: #52b788; text-align: center; margin-bottom: 30px; font-weight: 600;">Interactively test and inspect responses from CropBuddy endpoints</p>
+
+            <div class="tester-tab-buttons">
+                <button class="tester-tab active" onclick="switchPanel('tab-chat', this)">💬 Chatbot</button>
+                <button class="tester-tab" onclick="switchPanel('tab-classifier', this)">📸 Leaf Classifier</button>
+                <button class="tester-tab" onclick="switchPanel('tab-asr', this)">🎙️ Whisper ASR</button>
+            </div>
+
+            <!-- CHAT PANEL -->
+            <div id="tab-chat" class="panel active">
+                <div class="form-group">
+                    <label for="chat-msg">User Message</label>
+                    <input type="text" id="chat-msg" class="form-input" placeholder="e.g. What is early blight in potato?">
+                </div>
+                <button class="test-btn" id="btn-chat" onclick="testChatApi()">Send POST Request</button>
+                <div class="response-box" id="res-chat">
+                    <pre>Response JSON will be displayed here...</pre>
+                </div>
+            </div>
+
+            <!-- CLASSIFIER PANEL -->
+            <div id="tab-classifier" class="panel">
+                <div class="form-group">
+                    <label for="classifier-file">Select Crop Leaf Image</label>
+                    <input type="file" id="classifier-file" accept="image/*" class="form-input" onchange="previewImage(this, 'classifier-preview')">
+                    <img id="classifier-preview" class="preview-img" alt="Upload Preview">
+                </div>
+                <button class="test-btn" id="btn-classifier" onclick="testClassifierApi()">Send POST Request</button>
+                <div class="response-box" id="res-classifier">
+                    <pre>Response JSON will be displayed here...</pre>
+                </div>
+            </div>
+
+            <!-- ASR PANEL -->
+            <div id="tab-asr" class="panel">
+                <div class="form-group">
+                    <label for="asr-file">Select Audio File (.m4a, .webm, .wav)</label>
+                    <input type="file" id="asr-file" accept="audio/*" class="form-input">
+                </div>
+                <button class="test-btn" id="btn-asr" onclick="testAsrApi()">Send POST Request</button>
+                <div class="response-box" id="res-asr">
+                    <pre>Response JSON will be displayed here...</pre>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Crop Buddy Project. Developer APIs testing suite.</p>
+    </footer>
+
+    <script>
+        const BASE_URL = 'https://cropbuddy-rho.vercel.app';
+
+        // Switch Tester Tabs
+        function switchPanel(panelId, btnElement) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tester-tab').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(panelId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // Preview local selected image files
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = "none";
+            }
+        }
+
+        // Helper to display response prettily
+        function showResponse(elementId, data) {
+            document.getElementById(elementId).innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // 1. Test Chatbot Endpoint
+        async function testChatApi() {
+            const msgInput = document.getElementById('chat-msg');
+            const btn = document.getElementById('btn-chat');
+            const message = msgInput.value.trim();
+
+            if (!message) {
+                alert("Please enter a test message first.");
+                return;
+            }
+
+            btn.innerText = "Querying... ⏳";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, history: [] })
+                });
+                const data = await res.json();
+                showResponse('res-chat', data);
+            } catch (err) {
+                showResponse('res-chat', { error: err.message });
+            } finally {
+                btn.innerText = "Send POST Request";
+                btn.disabled = false;
+            }
+        }
+
+        // 2. Test Classifier Endpoint
+        async function testClassifierApi() {
+            const fileInput = document.getElementById('classifier-file');
+            const btn = document.getElementById('btn-classifier');
+
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert("Please select a leaf photo to classify.");
+                return;
+            }
+
+            btn.innerText = "Analyzing image... ⏳";
+            btn.disabled = true;
+
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const res = await fetch(`${BASE_URL}/api/predict_custom`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ image: e.target.result })
+                        });
+                        const data = await res.json();
+                        showResponse('res-classifier', data);
+                    } catch (err) {
+                        showResponse('res-classifier', { error: err.message });
+                    } finally {
+                        btn.innerText = "Send POST Request";
+                        btn.disabled = false;
+                    }
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } catch (err) {
+                showResponse('res-classifier', { error: err.message });
+                btn.innerText = "Send POST Request";
+                btn.disabled = false;
+            }
+        }
+
+        // 3. Test Whisper ASR Endpoint
+        async function testAsrApi() {
+            const fileInput = document.getElementById('asr-file');
+            const btn = document.getElementById('btn-asr');
+
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert("Please select an audio file to transcribe.");
+                return;
+            }
+
+            btn.innerText = "Transcribing... ⏳";
+            btn.disabled = true;
+
+            try {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        // Extract base64 part
+                        const base64Data = e.target.result.split(',')[1];
+                        const res = await fetch(`${BASE_URL}/api/asr`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ audio: base64Data })
+                        });
+                        const data = await res.json();
+                        showResponse('res-asr', data);
+                    } catch (err) {
+                        showResponse('res-asr', { error: err.message });
+                    } finally {
+                        btn.innerText = "Send POST Request";
+                        btn.disabled = false;
+                    }
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } catch (err) {
+                showResponse('res-asr', { error: err.message });
+                btn.innerText = "Send POST Request";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
