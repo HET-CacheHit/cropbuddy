@@ -1,6 +1,7 @@
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 module.exports = async (req, res) => {
     // CORS Headers Setup
@@ -27,9 +28,9 @@ module.exports = async (req, res) => {
         const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
         const buffer = Buffer.from(base64Data, 'base64');
         
-        // Create a unique temporary filename in the workspace root
+        // Create a unique temporary filename in the writable /tmp directory
         const tempFilename = `temp_predict_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`;
-        const tempPath = path.join(process.cwd(), tempFilename);
+        const tempPath = path.join(os.tmpdir(), tempFilename);
         
         // Write the temporary file
         fs.writeFileSync(tempPath, buffer);
