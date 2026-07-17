@@ -1,15 +1,47 @@
 const tf = require('@tensorflow/tfjs');
 const jpeg = require('jpeg-js');
 const path = require('path');
+const fs = require('fs');
 
 let model = null;
+
+const customLoader = {
+    load: async () => {
+        const modelJsonPath = path.join(process.cwd(), 'model_custom', 'model.json');
+        const modelJsonRaw = fs.readFileSync(modelJsonPath, 'utf8');
+        const modelJson = JSON.parse(modelJsonRaw);
+
+        const weightPaths = modelJson.weightsManifest[0].paths;
+        const buffers = [];
+        let totalLength = 0;
+
+        for (const weightPath of weightPaths) {
+            const fullWeightPath = path.join(process.cwd(), 'model_custom', weightPath);
+            const weightBuffer = fs.readFileSync(fullWeightPath);
+            buffers.push(weightBuffer);
+            totalLength += weightBuffer.length;
+        }
+
+        const weightData = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const buf of buffers) {
+            weightData.set(new Uint8Array(buf), offset);
+            offset += buf.length;
+        }
+
+        return {
+            modelTopology: modelJson.modelTopology,
+            weightSpecs: modelJson.weightsManifest[0].weights,
+            weightData: weightData.buffer,
+        };
+    }
+};
 
 // Load LayersModel from local file path
 async function loadModel() {
     if (!model) {
-        const modelPath = path.join(process.cwd(), 'model_custom', 'model.json');
-        console.log("Loading custom model from path:", modelPath);
-        model = await tf.loadLayersModel(`file://${modelPath}`);
+        console.log("Loading custom model via custom Node.js IO loader...");
+        model = await tf.loadLayersModel(customLoader);
         console.log("Custom model loaded successfully in Node.js!");
     }
     return model;
