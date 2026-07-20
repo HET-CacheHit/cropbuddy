@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import * as Location from 'expo-location';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LABELS = {
   en: {
@@ -10,6 +11,7 @@ const LABELS = {
     errorTitle: "Error",
     gpsError: "Location permission is required for weather insights.",
     apiError: "Failed to fetch weather data.",
+    offlineNotice: "📡 Offline Mode (Cached Data)",
     title: "Weather Spray Advisor",
     subtitle: "Real-time conditions for chemical application",
     safetyHeadline: "Spray Safety Status:",
@@ -32,6 +34,7 @@ const LABELS = {
     errorTitle: "ભૂલ",
     gpsError: "હવામાન સલાહ મેળવવા માટે લોકેશન પરમિશન આપવી જરૂરી છે.",
     apiError: "હવામાન ડેટા મેળવવામાં નિષ્ફળતા.",
+    offlineNotice: "📡 ઑફલાઇન મોડ (અગાઉ સેવ થયેલ હવામાન વિગત)",
     title: "હવામાન સ્પ્રે સલાહકાર",
     subtitle: "દવાના છંટકાવ માટે લાઈવ હવામાન વિગતો",
     safetyHeadline: "સ્પ્રે સલામતી સ્થિતિ:",
@@ -56,6 +59,7 @@ export default function WeatherScreen() {
   const [lang, setLang] = useState<'en' | 'gu'>('en');
   const [weather, setWeather] = useState<any>(null);
   const [isSafe, setIsSafe] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const labels = LABELS[lang];
@@ -63,15 +67,14 @@ export default function WeatherScreen() {
   const fetchWeather = async () => {
     setLoading(true);
     setErrorMsg(null);
+    setIsOffline(false);
     setLoadingText(labels.loadingLoc);
 
     try {
       // 1. Get GPS coordinates
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setErrorMsg(labels.gpsError);
-        setLoading(false);
-        return;
+        throw new Error("GPS_PERMISSION_DENIED");
       }
 
       const location = await Location.getCurrentPositionAsync({});
@@ -82,7 +85,7 @@ export default function WeatherScreen() {
       // 2. Fetch Open-Meteo weather API
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation&forecast_days=1`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("API_FETCH_FAILED");
 
       const data = await res.json();
       const current = data.current;
@@ -92,17 +95,36 @@ export default function WeatherScreen() {
       const humidity = current.relative_humidity_2m;
       const rain = current.precipitation;
 
-      // 3. Evaluate spray safety guidelines
-      // Safe wind range: 3 to 12 km/h, Temp < 30°C, Rain = 0
       const windSafe = wind >= 3.0 && wind <= 12.0;
       const tempSafe = temp <= 30.0;
       const rainSafe = rain <= 0.1;
+      const safeStatus = windSafe && tempSafe && rainSafe;
 
-      setIsSafe(windSafe && tempSafe && rainSafe);
-      setWeather({ temp, wind, humidity, rain });
+      const weatherObj = { temp, wind, humidity, rain };
+      setIsSafe(safeStatus);
+      setWeather(weatherObj);
 
-    } catch (err) {
-      setErrorMsg(labels.apiError);
+      // Save to local offline cache
+      await AsyncStorage.setItem('@cached_weather', JSON.stringify({
+        weather: weatherObj,
+        isSafe: safeStatus
+      }));
+
+    } catch (err: any) {
+      console.warn("Weather fetch offline fallback triggered:", err?.message || err);
+      try {
+        const cachedData = await AsyncStorage.getItem('@cached_weather');
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          setWeather(parsed.weather);
+          setIsSafe(parsed.isSafe);
+          setIsOffline(true);
+        } else {
+          setErrorMsg(err?.message === "GPS_PERMISSION_DENIED" ? labels.gpsError : labels.apiError);
+        }
+      } catch (cacheErr) {
+        setErrorMsg(labels.apiError);
+      }
     } finally {
       setLoading(false);
     }
@@ -122,6 +144,12 @@ export default function WeatherScreen() {
 
       <Text style={styles.title}>{labels.title}</Text>
       <Text style={styles.subtitle}>{labels.subtitle}</Text>
+
+      {isOffline && (
+        <View style={{ backgroundColor: '#fff3cd', borderColor: '#ffebaa', borderWidth: 1, padding: 8, borderRadius: 8, marginBottom: 15, alignItems: 'center' }}>
+          <Text style={{ color: '#856404', fontSize: 12, fontWeight: 'bold' }}>{labels.offlineNotice}</Text>
+        </View>
+      )}
 
       {loading ? (
         <View style={styles.loadingBox}>
