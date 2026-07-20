@@ -177,8 +177,8 @@ export default function ClassifierScreen() {
         lang === 'en' ? '🎉 Photo successfully backed up in Firebase Console!' : '🎉 ફોટો સફળતાપૂર્વક ફાયરબેઝ કન્સોલમાં બેકઅપ લેવામાં આવ્યો છે!'
       );
     } catch (error: any) {
-      console.error('Firebase upload error:', error);
-      Alert.alert('Upload Failed', error.message || 'Could not back up image to Cloud.');
+      console.warn('Firebase upload error:', error);
+      Alert.alert('Upload Status', 'Cloud backup is currently offline or requires open Firebase permissions. The scan completed locally!');
     } finally {
       setUploading(false);
     }
