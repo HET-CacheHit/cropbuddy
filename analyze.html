@@ -436,6 +436,9 @@ const CLASS_NAMES = [
  'Tomato___healthy'
 ];
 
+const CUSTOM_CLASS_NAMES = [...CLASS_NAMES];
+let activeClassNames = [...CUSTOM_CLASS_NAMES];
+
 // Initialize Web Worker for background thread processing
 let modelWorker = new Worker('model_worker.js');
 let workerLoadResolver = null;
@@ -715,12 +718,6 @@ let chemicalName = "Recommended Product";
 let predictedCropNameEng = "";
 let predictedConditionNameEng = "";
 let activeRecommendations = [];
-
-const CUSTOM_CLASS_NAMES = [
-    "New Plant Diseases Dataset(Augmented)",
-    "test"
-];
-let activeClassNames = [];
 
 const UI_LABELS = {
     en: {
