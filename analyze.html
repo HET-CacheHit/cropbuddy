@@ -550,7 +550,7 @@ async function loadSelectedModel(type) {
                 console.log("Default 38-class model loaded in background worker.");
             } else {
                 activeModelType = 'custom';
-                activeModelShape = [128, 128];
+                activeModelShape = [180, 180];
                 await loadModelInWorker('./model_custom/model.json');
                 try {
                     const classNamesRes = await fetch('./model_custom/class_names.json');

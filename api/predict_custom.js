@@ -97,8 +97,12 @@ module.exports = async (req, res) => {
         // Run inference inside tf.tidy to automatically manage memory
         const predictions = tf.tidy(() => {
             let tensor = tf.tensor3d(rgbValues, [height, width, 3]);
-            // Resize to 128x128 matching custom model input shape
-            tensor = tf.image.resizeBilinear(tensor, [128, 128]);
+            // Inspect model input shape or default to 180x180
+            const inputShape = loadedModel.inputs && loadedModel.inputs[0] && loadedModel.inputs[0].shape;
+            const targetH = (inputShape && inputShape[1]) ? inputShape[1] : 180;
+            const targetW = (inputShape && inputShape[2]) ? inputShape[2] : 180;
+
+            tensor = tf.image.resizeBilinear(tensor, [targetH, targetW]);
             // Normalize to [-1.0, 1.0] matching (pixel - 127.5) / 127.5
             tensor = tensor.sub(127.5).div(127.5);
             const inputTensor = tensor.expandDims(0);
